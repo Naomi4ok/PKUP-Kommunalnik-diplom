@@ -1,0 +1,17 @@
+.sidebar-trigger {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 101;
+    display: none;
+  }
+  
+  .trigger-button {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar-trigger {
+      display: block;
+    }
+  }

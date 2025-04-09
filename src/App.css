@@ -1,33 +1,31 @@
 @import '~antd/dist/reset.css';
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-  background: #001529;
+/* Update sidebar styling */
+.site-sider {
   position: fixed;
-  width: 100%;
-  z-index: 1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  height: 100vh;
+  left: 0;
+  z-index: 10;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+  background-color: #fff !important;
 }
 
-.logo {
-  color: white;
-  font-size: 18px;
-  font-weight: 700;
+.site-layout {
+  margin-left: 250px; /* Increased from 200px to 250px */
+  transition: margin-left 0.2s;
+  position: relative;
 }
 
-.site-layout-content {
-  padding-top: 64px; /* height of header */
+/* When sidebar is collapsed */
+.ant-layout-sider-collapsed + .site-layout {
+  margin-left: 80px;
 }
 
 .content-area {
   margin: 24px 16px;
   padding: 24px;
   background: #fff;
-  min-height: 280px;
-  overflow: auto;
+  min-height: calc(100vh - 70px); /* Adjust height to account for footer */
 }
 
 .home-container {
@@ -50,31 +48,52 @@
   color: #1890ff;
 }
 
-.mobile-menu-button {
-  font-size: 18px;
-  line-height: 64px;
-  padding: 0 24px;
-  cursor: pointer;
-  transition: color 0.3s;
-  display: none;
-  color: white;
+/* Update menu item styling */
+.ant-menu-item a {
+  color: rgba(0, 0, 0, 0.65);
 }
 
+.ant-menu-item-selected a {
+  color: #1890ff;
+}
+
+.ant-menu-item-selected {
+  color: #1890ff;
+}
+
+.ant-menu-item:hover {
+  color: #1890ff;
+}
+
+.ant-menu-item:hover a {
+  color: #1890ff;
+}
+
+/* Responsive styling */
 @media (max-width: 768px) {
-  .mobile-menu-button {
-    display: inline-block;
+  .site-layout {
+    margin-left: 0;
+    transition: margin-left 0.2s;
   }
   
-  .header {
-    padding: 0 16px;
+  .ant-layout-sider-collapsed + .site-layout {
+    margin-left: 0;
   }
   
-  .site-layout-content {
-    padding-top: 64px;
+  /* When sidebar is not collapsed on mobile, push content */
+  .ant-layout-has-sider .site-layout {
+    margin-left: 0;
   }
   
   .content-area {
     margin: 16px 8px;
     padding: 16px;
+  }
+  
+  /* Mobile sidebar behavior */
+  .site-sider {
+    position: fixed;
+    z-index: 100;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
   }
 }

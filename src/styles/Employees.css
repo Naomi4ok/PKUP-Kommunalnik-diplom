@@ -39,7 +39,7 @@
   color: #bfbfbf;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
   .ant-page-header {
     flex-direction: column;

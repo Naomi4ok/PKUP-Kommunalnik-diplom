@@ -1,21 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Layout, Menu, Typography, Card, Row, Col } from 'antd';
 import {
   HomeOutlined,
   UserOutlined,
-  SettingOutlined,
-  MenuUnfoldOutlined,
-  MenuFoldOutlined
+  SettingOutlined
 } from '@ant-design/icons';
 import './App.css';
 import Employees from './pages/Employees';
+import Logo from './components/Logo';
+import SidebarCollapseButton from './components/SidebarCollapseButton';
+import SidebarTrigger from './components/SidebarTrigger';
 
-const { Header, Sider, Content, Footer } = Layout;
+const { Sider, Content, Footer } = Layout;
 const { Title } = Typography;
 
 function App() {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
@@ -24,49 +25,58 @@ function App() {
   return (
     <Router>
       <Layout style={{ minHeight: '100vh' }}>
-        <Header className="header">
-          <div className="logo">PKUP Kommunalnik</div>
-          <div className="mobile-menu-button">
-            {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
-              onClick: toggleCollapsed,
-            })}
-          </div>
-        </Header>
-        <Layout>
-          <Sider
-            width={200}
-            className="site-layout-background"
-            breakpoint="lg"
-            collapsedWidth="80"
-            collapsed={collapsed}
-            onCollapse={toggleCollapsed}
-          >
-            <Menu
-              mode="inline"
-              defaultSelectedKeys={['1']}
-              style={{ height: '100%', borderRight: 0 }}
-            >
-              <Menu.Item key="1" icon={<HomeOutlined />}>
-                <Link to="/">Home</Link>
-              </Menu.Item>
-              <Menu.Item key="2" icon={<UserOutlined />}>
-                <Link to="/employees">Employees</Link>
-              </Menu.Item>
-              {/* Add more menu items for other tables */}
-            </Menu>
-          </Sider>
-          <Layout className="site-layout-content">
-            <Content className="content-area">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/employees" element={<Employees />} />
-                {/* Add routes for other tables */}
-              </Routes>
-            </Content>
-            <Footer style={{ textAlign: 'center' }}>
-              PKUP Kommunalnik ©2025 Created by Naomi4ok
-            </Footer>
-          </Layout>
+        {/* Mobile sidebar trigger */}
+        <SidebarTrigger collapsed={collapsed} toggle={toggleCollapsed} />
+        
+        <Sider
+          width={250}
+          className="site-sider"
+          breakpoint="lg"
+          collapsedWidth="80"
+          collapsed={collapsed}
+          trigger={null} // Remove default trigger
+          theme="light"
+        >
+          {/* Logo at the top of sidebar */}
+          <Logo collapsed={collapsed} lightTheme={true} />
+          
+          {/* Custom collapse button */}
+          <SidebarCollapseButton 
+            collapsed={collapsed} 
+            onToggle={toggleCollapsed} 
+          />
+          
+          <Menu
+            theme="light"
+            mode="inline"
+            defaultSelectedKeys={['1']}
+            items={[
+              {
+                key: '1',
+                icon: <HomeOutlined />,
+                label: <Link to="/">Home</Link>,
+              },
+              {
+                key: '2',
+                icon: <UserOutlined />,
+                label: <Link to="/employees">Employees</Link>,
+              },
+              // Add more menu items for other tables
+            ]}
+          />
+        </Sider>
+        
+        <Layout className="site-layout">
+          <Content className="content-area">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/employees" element={<Employees />} />
+              {/* Add routes for other tables */}
+            </Routes>
+          </Content>
+          <Footer style={{ textAlign: 'center' }}>
+            PKUP Kommunalnik ©2025 Created by Naomi4ok
+          </Footer>
         </Layout>
       </Layout>
     </Router>
