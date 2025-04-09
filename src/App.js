@@ -1,205 +1,118 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link as RouterLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Layout, Menu, Typography, Card, Row, Col } from 'antd';
 import {
-  AppBar,
-  Box,
-  CssBaseline,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  Container,
-  ThemeProvider,
-  createTheme,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  Grid,
-  Divider
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Home as HomeIcon,
-  People as PeopleIcon,
-  ChevronRight as ChevronRightIcon
-} from '@mui/icons-material';
-
+  HomeOutlined,
+  UserOutlined,
+  SettingOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined
+} from '@ant-design/icons';
+import './App.css';
 import Employees from './pages/Employees';
 
-// Create a theme
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-});
-
-const drawerWidth = 240;
+const { Header, Sider, Content, Footer } = Layout;
+const { Title } = Typography;
 
 function App() {
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(false);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+  const toggleCollapsed = () => {
+    setCollapsed(!collapsed);
   };
 
-  const drawer = (
-    <Box sx={{ overflow: 'auto' }}>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          PKUP Kommunalnik
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        <ListItem disablePadding>
-          <ListItemButton component={RouterLink} to="/">
-            <ListItemIcon>
-              <HomeIcon />
-            </ListItemIcon>
-            <ListItemText primary="Home" />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton component={RouterLink} to="/employees">
-            <ListItemIcon>
-              <PeopleIcon />
-            </ListItemIcon>
-            <ListItemText primary="Employees" />
-          </ListItemButton>
-        </ListItem>
-      </List>
-    </Box>
-  );
-
   return (
-    <ThemeProvider theme={theme}>
-      <Router>
-        <Box sx={{ display: 'flex' }}>
-          <CssBaseline />
-          <AppBar
-            position="fixed"
-            sx={{
-              width: { sm: `calc(100% - ${drawerWidth}px)` },
-              ml: { sm: `${drawerWidth}px` },
-            }}
+    <Router>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header className="header">
+          <div className="logo">PKUP Kommunalnik</div>
+          <div className="mobile-menu-button">
+            {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
+              onClick: toggleCollapsed,
+            })}
+          </div>
+        </Header>
+        <Layout>
+          <Sider
+            width={200}
+            className="site-layout-background"
+            breakpoint="lg"
+            collapsedWidth="80"
+            collapsed={collapsed}
+            onCollapse={toggleCollapsed}
           >
-            <Toolbar>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2, display: { sm: 'none' } }}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Typography variant="h6" noWrap component="div">
-                PKUP Kommunalnik
-              </Typography>
-            </Toolbar>
-          </AppBar>
-          <Box
-            component="nav"
-            sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-            aria-label="navigation drawer"
-          >
-            {/* Mobile drawer */}
-            <Drawer
-              variant="temporary"
-              open={mobileOpen}
-              onClose={handleDrawerToggle}
-              sx={{
-                display: { xs: 'block', sm: 'none' },
-                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-              }}
+            <Menu
+              mode="inline"
+              defaultSelectedKeys={['1']}
+              style={{ height: '100%', borderRight: 0 }}
             >
-              {drawer}
-            </Drawer>
-            {/* Desktop drawer */}
-            <Drawer
-              variant="permanent"
-              sx={{
-                display: { xs: 'none', sm: 'block' },
-                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-              }}
-              open
-            >
-              {drawer}
-            </Drawer>
-          </Box>
-          <Box
-            component="main"
-            sx={{ 
-              flexGrow: 1, 
-              p: 3, 
-              width: { sm: `calc(100% - ${drawerWidth}px)` },
-              mt: '64px', // height of AppBar
-              minHeight: 'calc(100vh - 64px)'
-            }}
-          >
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/employees" element={<Employees />} />
-              {/* Add routes for other tables */}
-            </Routes>
-          </Box>
-        </Box>
-      </Router>
-    </ThemeProvider>
+              <Menu.Item key="1" icon={<HomeOutlined />}>
+                <Link to="/">Home</Link>
+              </Menu.Item>
+              <Menu.Item key="2" icon={<UserOutlined />}>
+                <Link to="/employees">Employees</Link>
+              </Menu.Item>
+              {/* Add more menu items for other tables */}
+            </Menu>
+          </Sider>
+          <Layout className="site-layout-content">
+            <Content className="content-area">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/employees" element={<Employees />} />
+                {/* Add routes for other tables */}
+              </Routes>
+            </Content>
+            <Footer style={{ textAlign: 'center' }}>
+              PKUP Kommunalnik ©2025 Created by Naomi4ok
+            </Footer>
+          </Layout>
+        </Layout>
+      </Layout>
+    </Router>
   );
 }
 
-// Home component using Material UI
+// Simple Home component using Ant Design
 const Home = () => {
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom component="h1">
-        Welcome to PKUP Kommunalnik Management System
-      </Typography>
-      <Typography variant="body1" paragraph>
-        Select a module from the navigation menu to get started managing your data.
-      </Typography>
+    <div className="home-container">
+      <Title level={2}>Welcome to PKUP Kommunalnik Management System</Title>
+      <p>Select a module from the navigation menu to get started.</p>
       
-      <Grid container spacing={3} sx={{ mt: 2 }}>
-        <Grid item xs={12} sm={6} md={4}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flexGrow: 1 }}>
-              <Typography variant="h5" component="h2" gutterBottom>
-                Employees
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Manage employee information, positions, departments, and more.
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Button 
-                size="small" 
-                component={RouterLink} 
-                to="/employees"
-                endIcon={<ChevronRightIcon />}
-              >
-                Go to Employees
-              </Button>
-            </CardActions>
+      <Row gutter={[16, 16]} className="module-cards">
+        <Col xs={24} sm={12} md={8} lg={8} xl={6}>
+          <Card
+            hoverable
+            cover={<div className="card-icon-container"><UserOutlined /></div>}
+            actions={[
+              <Link to="/employees">Manage</Link>,
+            ]}
+          >
+            <Card.Meta
+              title="Employees"
+              description="Manage employee information, positions, departments, and more."
+            />
           </Card>
-        </Grid>
-        {/* Add more module cards here */}
-      </Grid>
-    </Container>
+        </Col>
+        
+        {/* Add cards for other modules/tables here */}
+        <Col xs={24} sm={12} md={8} lg={8} xl={6}>
+          <Card
+            hoverable
+            cover={<div className="card-icon-container"><SettingOutlined /></div>}
+            actions={[
+              <Link to="/">Coming Soon</Link>,
+            ]}
+          >
+            <Card.Meta
+              title="More Tables"
+              description="Additional tables will be implemented in the future."
+            />
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 };
 

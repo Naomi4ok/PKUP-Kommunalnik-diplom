@@ -11,3 +11,27 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Ensure Ant Design components are properly sized */
+.ant-table-wrapper {
+  width: 100%;
+}
+
+.ant-form-item {
+  margin-bottom: 16px;
+}
+
+.ant-upload-list-picture-card .ant-upload-list-item {
+  float: left;
+  width: 104px;
+  height: 104px;
+  margin: 0 8px 8px 0;
+}
+
+.ant-upload.ant-upload-select-picture-card {
+  border: 1px dashed #d9d9d9;
+  border-radius: 2px;
+  cursor: pointer;
+  height: 104px;
+  width: 104px;
+}

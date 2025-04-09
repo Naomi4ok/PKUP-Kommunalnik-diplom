@@ -1,63 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
+  Table,
   Button,
-  Container,
-  TextField,
+  Form,
+  Input,
+  Select,
+  Upload,
+  Space,
+  Card,
   Typography,
-  Paper,
-  Grid,
-  MenuItem,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Snackbar,
-  Alert,
-  CircularProgress,
-  Avatar,
-  IconButton
-} from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+  message,
+  Popconfirm,
+  Spin,
+  Tag,
+  Modal,
+  Divider
+} from 'antd';
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Cancel as CancelIcon,
-  Save as SaveIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
-import { format } from 'date-fns';
+  UserOutlined,
+  UploadOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined
+} from '@ant-design/icons';
+import '../styles/Employees.css';
+
+const { Title } = Typography;
+const { Option } = Select;
+const { TextArea } = Input;
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  // Form state for adding/editing employees
-  const [formData, setFormData] = useState({
-    fullName: '',
-    position: '',
-    department: '',
-    contactDetails: '',
-    workSchedule: '',
-    status: 'Active',
-    photo: null
-  });
-  
-  // UI state management
-  const [openForm, setOpenForm] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
-  const [photoPreview, setPhotoPreview] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('Add Employee');
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [form] = Form.useForm();
+  const [fileList, setFileList] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   // Fetch employees on component mount
   useEffect(() => {
@@ -76,72 +58,82 @@ const Employees = () => {
       
       const data = await response.json();
       setEmployees(data);
-      setLoading(false);
     } catch (err) {
-      setError(`Failed to fetch employees: ${err.message}`);
+      message.error(`Failed to fetch employees: ${err.message}`);
+    } finally {
       setLoading(false);
-      showSnackbar(`Failed to fetch employees: ${err.message}`, 'error');
     }
   };
 
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Handle photo file upload
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({
-        ...prev,
-        photo: file
-      }));
+  // Show modal for adding or editing employee
+  const showModal = (employee = null) => {
+    setModalTitle(employee ? 'Edit Employee' : 'Add Employee');
+    setEditingEmployee(employee);
+    
+    // Reset form and file list
+    form.resetFields();
+    setFileList([]);
+    
+    if (employee) {
+      // Populate form with employee data
+      form.setFieldsValue({
+        fullName: employee.Full_Name,
+        position: employee.Position || '',
+        department: employee.Department || '',
+        contactDetails: employee.Contact_Details || '',
+        workSchedule: employee.Work_Schedule || '',
+        status: employee.Status || 'Active',
+      });
       
-      // Create a preview URL for the selected photo
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      // If employee has a photo, add it to the file list
+      if (employee.Photo) {
+        setFileList([{
+          uid: '-1',
+          name: 'employee-photo.jpg',
+          status: 'done',
+          url: `data:image/jpeg;base64,${employee.Photo}`,
+        }]);
+      }
     }
+    
+    setModalVisible(true);
   };
 
-  // Submit form to add or update employee
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+  // Handle modal cancel
+  const handleCancel = () => {
+    setModalVisible(false);
+  };
+
+  // Handle form submission (add or update employee)
+  const handleSubmit = async (values) => {
     // Create FormData object to handle file upload
-    const formDataToSend = new FormData();
-    formDataToSend.append('fullName', formData.fullName);
-    formDataToSend.append('position', formData.position || '');
-    formDataToSend.append('department', formData.department || '');
-    formDataToSend.append('contactDetails', formData.contactDetails || '');
-    formDataToSend.append('workSchedule', formData.workSchedule || '');
-    formDataToSend.append('status', formData.status || 'Active');
+    const formData = new FormData();
+    formData.append('fullName', values.fullName);
+    formData.append('position', values.position || '');
+    formData.append('department', values.department || '');
+    formData.append('contactDetails', values.contactDetails || '');
+    formData.append('workSchedule', values.workSchedule || '');
+    formData.append('status', values.status || 'Active');
     
-    if (formData.photo instanceof File) {
-      formDataToSend.append('photo', formData.photo);
+    // Get file from fileList if it exists
+    if (fileList.length > 0 && fileList[0].originFileObj) {
+      formData.append('photo', fileList[0].originFileObj);
     }
 
     try {
       let response;
       
-      if (isEditing) {
+      if (editingEmployee) {
         // Update existing employee
-        response = await fetch(`/api/employees/${editingId}`, {
+        response = await fetch(`/api/employees/${editingEmployee.Employee_ID}`, {
           method: 'PUT',
-          body: formDataToSend
+          body: formData
         });
       } else {
         // Add new employee
         response = await fetch('/api/employees', {
           method: 'POST',
-          body: formDataToSend
+          body: formData
         });
       }
 
@@ -149,22 +141,21 @@ const Employees = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      // Reset form, close dialog, and refresh employee list
-      resetForm();
-      setOpenForm(false);
+      // Success message
+      message.success(`Employee ${editingEmployee ? 'updated' : 'added'} successfully!`);
+      
+      // Close the modal and refresh employee list
+      setModalVisible(false);
       fetchEmployees();
-      showSnackbar(`Employee ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
     } catch (err) {
-      showSnackbar(`Failed to ${isEditing ? 'update' : 'add'} employee: ${err.message}`, 'error');
+      message.error(`Failed to ${editingEmployee ? 'update' : 'add'} employee: ${err.message}`);
     }
   };
 
-  // Delete an employee
-  const handleDelete = async () => {
-    if (!employeeToDelete) return;
-    
+  // Handle employee deletion
+  const handleDelete = async (id) => {
     try {
-      const response = await fetch(`/api/employees/${employeeToDelete}`, {
+      const response = await fetch(`/api/employees/${id}`, {
         method: 'DELETE'
       });
 
@@ -172,400 +163,319 @@ const Employees = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      // Close confirm dialog and refresh employee list
-      setDeleteConfirmOpen(false);
-      setEmployeeToDelete(null);
+      message.success('Employee deleted successfully!');
       fetchEmployees();
-      showSnackbar('Employee deleted successfully!', 'success');
     } catch (err) {
-      showSnackbar(`Failed to delete employee: ${err.message}`, 'error');
+      message.error(`Failed to delete employee: ${err.message}`);
     }
   };
 
-  // Edit an employee
-  const handleEdit = (employee) => {
-    setIsEditing(true);
-    setEditingId(employee.Employee_ID);
-    
-    setFormData({
-      fullName: employee.Full_Name || '',
-      position: employee.Position || '',
-      department: employee.Department || '',
-      contactDetails: employee.Contact_Details || '',
-      workSchedule: employee.Work_Schedule || '',
-      status: employee.Status || 'Active',
-      photo: null // We don't set the photo here as we can't retrieve the binary data this way
-    });
-    
-    // Set photo preview if photo exists
-    if (employee.Photo) {
-      setPhotoPreview(`data:image/jpeg;base64,${employee.Photo}`);
-    } else {
-      setPhotoPreview(null);
+  // Handle file upload change
+  const handleUploadChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+  };
+
+  // Handle image preview
+  const handlePreview = async (file) => {
+    if (file.url) {
+      setPreviewImage(file.url);
+    } else if (file.originFileObj) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file.originFileObj);
     }
-    
-    setOpenForm(true);
+    setPreviewVisible(true);
   };
 
-  // Reset form and editing state
-  const resetForm = () => {
-    setFormData({
-      fullName: '',
-      position: '',
-      department: '',
-      contactDetails: '',
-      workSchedule: '',
-      status: 'Active',
-      photo: null
-    });
-    setPhotoPreview(null);
-    setIsEditing(false);
-    setEditingId(null);
-  };
-
-  // Open form dialog for adding new employee
-  const handleAddNew = () => {
-    resetForm();
-    setOpenForm(true);
-  };
-
-  // Close form dialog
-  const handleCloseForm = () => {
-    setOpenForm(false);
-    resetForm();
-  };
-
-  // Open delete confirmation dialog
-  const handleDeleteConfirm = (id) => {
-    setEmployeeToDelete(id);
-    setDeleteConfirmOpen(true);
-  };
-
-  // Close delete confirmation dialog
-  const handleCloseDeleteConfirm = () => {
-    setDeleteConfirmOpen(false);
-    setEmployeeToDelete(null);
-  };
-
-  // Show snackbar message
-  const showSnackbar = (message, severity = 'success') => {
-    setSnackbar({
-      open: true,
-      message,
-      severity
-    });
-  };
-
-  // Close snackbar
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({
-      ...prev,
-      open: false
-    }));
-  };
-
-  // DataGrid columns definition
+  // Define table columns
   const columns = [
     {
-      field: 'Photo',
-      headerName: 'Photo',
+      title: 'Photo',
+      dataIndex: 'Photo',
+      key: 'photo',
       width: 80,
-      renderCell: (params) => (
-        <Avatar
-          src={params.value ? `data:image/jpeg;base64,${params.value}` : null}
-          alt={params.row.Full_Name}
-        >
-          {!params.value && params.row.Full_Name ? params.row.Full_Name.charAt(0) : 'E'}
-        </Avatar>
-      ),
-    },
-    { field: 'Full_Name', headerName: 'Full Name', width: 180 },
-    { field: 'Position', headerName: 'Position', width: 150 },
-    { field: 'Department', headerName: 'Department', width: 150 },
-    { field: 'Contact_Details', headerName: 'Contact Details', width: 180 },
-    { field: 'Work_Schedule', headerName: 'Work Schedule', width: 150 },
-    {
-      field: 'Status',
-      headerName: 'Status',
-      width: 120,
-      renderCell: (params) => (
-        <Box
-          sx={{
-            backgroundColor: 
-              params.value === 'Active' ? '#d4edda' :
-              params.value === 'On Leave' ? '#fff3cd' :
-              params.value === 'Terminated' ? '#f8d7da' : '#e2e3e5',
-            color: 
-              params.value === 'Active' ? '#155724' :
-              params.value === 'On Leave' ? '#856404' :
-              params.value === 'Terminated' ? '#721c24' : '#383d41',
-            py: 0.5,
-            px: 1.5,
-            borderRadius: 1,
-            display: 'inline-block',
-            fontSize: '0.875rem',
-          }}
-        >
-          {params.value || 'Unknown'}
-        </Box>
+      render: (photo) => (
+        photo ? (
+          <img 
+            src={`data:image/jpeg;base64,${photo}`} 
+            alt="Employee" 
+            className="ant-employee-photo"
+            onClick={() => {
+              setPreviewImage(`data:image/jpeg;base64,${photo}`);
+              setPreviewVisible(true);
+            }}
+          />
+        ) : (
+          <div className="ant-employee-photo-placeholder">
+            <UserOutlined />
+          </div>
+        )
       ),
     },
     {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 120,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton 
-            size="small" 
-            color="primary"
-            onClick={() => handleEdit(params.row)}
+      title: 'Full Name',
+      dataIndex: 'Full_Name',
+      key: 'fullName',
+      sorter: (a, b) => a.Full_Name.localeCompare(b.Full_Name),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Search name"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ width: 188, marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Search
+            </Button>
+            <Button onClick={() => clearFilters()} size="small" style={{ width: 90 }}>
+              Reset
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered) => (
+        <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+      ),
+      onFilter: (value, record) => record.Full_Name.toLowerCase().includes(value.toLowerCase()),
+    },
+    {
+      title: 'Position',
+      dataIndex: 'Position',
+      key: 'position',
+      sorter: (a, b) => (a.Position || '').localeCompare(b.Position || ''),
+    },
+    {
+      title: 'Department',
+      dataIndex: 'Department',
+      key: 'department',
+      filters: Array.from(new Set(employees.map(e => e.Department).filter(Boolean))).map(dept => ({
+        text: dept,
+        value: dept,
+      })),
+      onFilter: (value, record) => record.Department === value,
+    },
+    {
+      title: 'Contact Details',
+      dataIndex: 'Contact_Details',
+      key: 'contactDetails',
+      ellipsis: true,
+    },
+    {
+      title: 'Work Schedule',
+      dataIndex: 'Work_Schedule',
+      key: 'workSchedule',
+      ellipsis: true,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'Status',
+      key: 'status',
+      filters: [
+        { text: 'Active', value: 'Active' },
+        { text: 'On Leave', value: 'On Leave' },
+        { text: 'Terminated', value: 'Terminated' },
+      ],
+      onFilter: (value, record) => record.Status === value,
+      render: (status) => {
+        let color = 'green';
+        if (status === 'On Leave') {
+          color = 'gold';
+        } else if (status === 'Terminated') {
+          color = 'red';
+        }
+        
+        return (
+          <Tag color={color}>
+            {status || 'Active'}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      width: 150,
+      render: (_, record) => (
+        <Space>
+          <Button 
+            type="primary" 
+            icon={<EditOutlined />} 
+            onClick={() => showModal(record)}
+          />
+          <Popconfirm
+            title="Delete employee"
+            description="Are you sure you want to delete this employee?"
+            onConfirm={() => handleDelete(record.Employee_ID)}
+            okText="Yes"
+            cancelText="No"
           >
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            color="error"
-            onClick={() => handleDeleteConfirm(params.row.Employee_ID)}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
+            <Button 
+              type="primary" 
+              danger 
+              icon={<DeleteOutlined />} 
+            />
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
 
-  // Format date to display in the UI
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return format(new Date(dateString), 'yyyy-MM-dd HH:mm:ss');
-  };
-
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3, mb: 3, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Employees Management
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddNew}
-          >
-            Add Employee
-          </Button>
-        </Box>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Box sx={{ height: 500, width: '100%' }}>
-            <DataGrid
-              rows={employees}
-              columns={columns}
-              getRowId={(row) => row.Employee_ID}
-              initialState={{
-                pagination: {
-                  paginationModel: { page: 0, pageSize: 10 },
-                },
+    <div className="ant-employees-container">
+      <Card>
+        <div className="ant-page-header-wrapper">
+          <div className="ant-page-header">
+            <Title level={2}>Employees Management</Title>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={() => showModal()}
+              className="ant-add-button"
+            >
+              Add Employee
+            </Button>
+          </div>
+          <Divider />
+          
+          <Spin spinning={loading}>
+            <Table 
+              dataSource={employees} 
+              columns={columns} 
+              rowKey="Employee_ID"
+              pagination={{ 
+                pageSize: 10,
+                showSizeChanger: true,
+                pageSizeOptions: ['10', '20', '50'],
               }}
-              pageSizeOptions={[5, 10, 25]}
-              disableRowSelectionOnClick
-              autoHeight
-              sx={{
-                '& .MuiDataGrid-cell': {
-                  py: 1,
-                },
-              }}
+              scroll={{ x: 'max-content' }}
             />
-          </Box>
-        )}
-      </Paper>
-
-      {/* Employee Form Dialog */}
-      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {isEditing ? 'Edit Employee' : 'Add New Employee'}
-        </DialogTitle>
-        <DialogContent>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="fullName"
-                  label="Full Name"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  autoFocus
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  id="position"
-                  label="Position"
-                  name="position"
-                  value={formData.position}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  id="department"
-                  label="Department"
-                  name="department"
-                  value={formData.department}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  id="contactDetails"
-                  label="Contact Details"
-                  name="contactDetails"
-                  value={formData.contactDetails}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  id="workSchedule"
-                  label="Work Schedule"
-                  name="workSchedule"
-                  value={formData.workSchedule}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  select
-                  id="status"
-                  label="Status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                >
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="On Leave">On Leave</MenuItem>
-                  <MenuItem value="Terminated">Terminated</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    htmlFor="photo-upload"
-                  >
-                    Upload Photo
-                    <input
-                      id="photo-upload"
-                      name="photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      style={{ display: 'none' }}
-                    />
-                  </Button>
-                  {photoPreview && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Avatar
-                        src={photoPreview}
-                        alt="Preview"
-                        sx={{ width: 60, height: 60 }}
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={() => {
-                          setPhotoPreview(null);
-                          setFormData(prev => ({ ...prev, photo: null }));
-                        }}
-                      >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  )}
-                </Box>
-              </Grid>
-            </Grid>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseForm} startIcon={<CancelIcon />} color="inherit">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSubmit} 
-            startIcon={<SaveIcon />} 
-            variant="contained"
-            color="primary"
-          >
-            {isEditing ? 'Update' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteConfirmOpen}
-        onClose={handleCloseDeleteConfirm}
+          </Spin>
+        </div>
+      </Card>
+      
+      {/* Add/Edit Employee Modal */}
+      <Modal
+        title={modalTitle}
+        open={modalVisible}
+        onCancel={handleCancel}
+        footer={null}
+        destroyOnClose
+        width={600}
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this employee? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteConfirm} color="inherit">
-            Cancel
-          </Button>
-          <Button onClick={handleDelete} color="error" variant="contained" autoFocus>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{
+            status: 'Active',
+          }}
         >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+          <Form.Item
+            name="fullName"
+            label="Full Name"
+            rules={[{ required: true, message: 'Please enter full name' }]}
+          >
+            <Input placeholder="Enter full name" />
+          </Form.Item>
+          
+          <Form.Item
+            name="position"
+            label="Position"
+          >
+            <Input placeholder="Enter position" />
+          </Form.Item>
+          
+          <Form.Item
+            name="department"
+            label="Department"
+          >
+            <Input placeholder="Enter department" />
+          </Form.Item>
+          
+          <Form.Item
+            name="contactDetails"
+            label="Contact Details"
+          >
+            <TextArea rows={2} placeholder="Enter contact details (phone, email, etc.)" />
+          </Form.Item>
+          
+          <Form.Item
+            name="workSchedule"
+            label="Work Schedule"
+          >
+            <Input placeholder="Enter work schedule" />
+          </Form.Item>
+          
+          <Form.Item
+            name="status"
+            label="Status"
+          >
+            <Select>
+              <Option value="Active">Active</Option>
+              <Option value="On Leave">On Leave</Option>
+              <Option value="Terminated">Terminated</Option>
+            </Select>
+          </Form.Item>
+          
+          <Form.Item
+            name="photo"
+            label="Photo"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => {
+              if (Array.isArray(e)) {
+                return e;
+              }
+              return e && e.fileList;
+            }}
+          >
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onChange={handleUploadChange}
+              onPreview={handlePreview}
+              beforeUpload={() => false} // Prevent automatic upload
+              maxCount={1}
+            >
+              {fileList.length >= 1 ? null : (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>Upload</div>
+                </div>
+              )}
+            </Upload>
+          </Form.Item>
+          
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                {editingEmployee ? 'Update' : 'Add'}
+              </Button>
+              <Button onClick={handleCancel}>Cancel</Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+      
+      {/* Preview Modal */}
+      <Modal
+        open={previewVisible}
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+      >
+        <img alt="Preview" style={{ width: '100%' }} src={previewImage} />
+      </Modal>
+    </div>
   );
 };
 
