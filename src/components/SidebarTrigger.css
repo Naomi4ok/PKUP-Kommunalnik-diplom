@@ -1,17 +1,40 @@
 .sidebar-trigger {
-    position: fixed;
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 101;
+  left: 250px; /* Aligns with expanded sidebar width */
+  transition: left 0.2s;
+}
+
+.sidebar-collapsed .sidebar-trigger {
+  left: 80px; /* Aligns with collapsed sidebar width */
+}
+
+.trigger-button {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 0 4px 4px 0; /* Rounded corners only on right side */
+  height: 40px;
+  width: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.trigger-button .anticon {
+  font-size: 12px;
+  margin-left: -2px;
+}
+
+@media (max-width: 768px) {
+  .sidebar-trigger {
     top: 16px;
-    left: 16px;
-    z-index: 101;
-    display: none;
+    transform: none;
+    left: 16px !important;
   }
   
   .trigger-button {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    width: auto;
   }
-  
-  @media (max-width: 768px) {
-    .sidebar-trigger {
-      display: block;
-    }
-  }
+}

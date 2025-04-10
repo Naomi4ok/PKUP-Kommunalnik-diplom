@@ -22,16 +22,86 @@
 }
 
 .content-area {
-  margin: 24px 16px;
-  padding: 24px;
-  background: #fff;
+  margin: 12px 8px;
+  padding: 12px;
   min-height: calc(100vh - 70px); /* Adjust height to account for footer */
+  /* Removed background: #fff; */
+}
+
+/* Remove background from ant-layout-content */
+.ant-layout-content {
+  background: transparent !important;
+}
+
+/* Make sure ant-card-body is not nested in the specified class */
+.ant-card-body {
+  background: transparent;
+}
+
+/* Target the specific class to override */
+.ant-card.ant-card-bordered.css-dev-only-do-not-override-1dz67ku > .ant-card-body {
+  background: transparent;
+}
+
+/* Center table pagination */
+.ant-table-pagination.ant-pagination {
+  display: flex;
+  justify-content: center !important;
+  float: none !important;
+  margin: 16px 0 !important;
+}
+
+/* Make table even wider */
+.ant-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.ant-table {
+  width: 100%;
+}
+
+/* Increase the container size to accommodate wider table */
+.ant-employees-container {
+  padding: 12px;
+  max-width: 1600px !important; /* Increased from 1400px to 1600px */
+  width: 98%; /* Increased from 95% to 98% */
+  margin: 0 auto;
+}
+
+/* Make card use more space */
+.ant-card {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.ant-card-body {
+  padding: 16px !important; /* Reduce internal padding */
 }
 
 .home-container {
-  padding: 24px;
-  max-width: 1200px;
+  padding: 12px;
+  max-width: 1600px; /* Increased from 1400px to 1600px */
+  width: 98%; /* Increased from 95% to 98% */
   margin: 0 auto;
+}
+
+/* Make the Add Employee button bigger */
+.ant-add-button {
+  margin-top: 10px;
+  font-size: 16px !important;
+  height: 45px !important;
+  padding: 6px 20px !important;
+  display: flex;
+  align-items: center;
+}
+
+/* Increase the icon size in the button */
+.ant-add-button .anticon {
+  font-size: 18px;
+  margin-right: 8px;
 }
 
 .module-cards {
@@ -86,8 +156,8 @@
   }
   
   .content-area {
-    margin: 16px 8px;
-    padding: 16px;
+    margin: 8px 4px;
+    padding: 8px;
   }
   
   /* Mobile sidebar behavior */
@@ -96,4 +166,24 @@
     z-index: 100;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
   }
+}
+
+.ant-employee-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.ant-employee-photo-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #bfbfbf;
 }

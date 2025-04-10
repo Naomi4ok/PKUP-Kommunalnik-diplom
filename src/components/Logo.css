@@ -1,0 +1,27 @@
+.circle-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0f0f0;
+  color: #1890ff;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.circle-button:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background-color: #f0f8ff;
+}
+
+/* Adjust position for mobile */
+@media (max-width: 768px) {
+  .circle-button {
+    display: none; /* Hide on mobile - use the mobile trigger instead */
+  }
+}

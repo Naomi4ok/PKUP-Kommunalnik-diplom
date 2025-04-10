@@ -9,7 +9,6 @@ import {
 import './App.css';
 import Employees from './pages/Employees';
 import Logo from './components/Logo';
-import SidebarCollapseButton from './components/SidebarCollapseButton';
 import SidebarTrigger from './components/SidebarTrigger';
 
 const { Sider, Content, Footer } = Layout;
@@ -25,46 +24,48 @@ function App() {
   return (
     <Router>
       <Layout style={{ minHeight: '100vh' }}>
-        {/* Mobile sidebar trigger */}
-        <SidebarTrigger collapsed={collapsed} toggle={toggleCollapsed} />
-        
-        <Sider
-          width={250}
-          className="site-sider"
-          breakpoint="lg"
-          collapsedWidth="80"
-          collapsed={collapsed}
-          trigger={null} // Remove default trigger
-          theme="light"
-        >
-          {/* Logo at the top of sidebar */}
-          <Logo collapsed={collapsed} lightTheme={true} />
-          
-          {/* Custom collapse button */}
-          <SidebarCollapseButton 
-            collapsed={collapsed} 
-            onToggle={toggleCollapsed} 
-          />
-          
-          <Menu
+        <div style={{ position: 'relative' }}>
+          <Sider
+            width={250}
+            className="site-sider"
+            breakpoint="lg"
+            collapsedWidth="80"
+            collapsed={collapsed}
+            trigger={null} // Remove default trigger
             theme="light"
-            mode="inline"
-            defaultSelectedKeys={['1']}
-            items={[
-              {
-                key: '1',
-                icon: <HomeOutlined />,
-                label: <Link to="/">Home</Link>,
-              },
-              {
-                key: '2',
-                icon: <UserOutlined />,
-                label: <Link to="/employees">Employees</Link>,
-              },
-              // Add more menu items for other tables
-            ]}
-          />
-        </Sider>
+          >
+            {/* Logo at the top of sidebar */}
+            <Logo collapsed={collapsed} lightTheme={true} />
+            
+            {/* We're removing this since we're using the side trigger */}
+            {/* <SidebarCollapseButton 
+              collapsed={collapsed} 
+              onToggle={toggleCollapsed} 
+            /> */}
+            
+            <Menu
+              theme="light"
+              mode="inline"
+              defaultSelectedKeys={['1']}
+              items={[
+                {
+                  key: '1',
+                  icon: <HomeOutlined />,
+                  label: <Link to="/">Home</Link>,
+                },
+                {
+                  key: '2',
+                  icon: <UserOutlined />,
+                  label: <Link to="/employees">Employees</Link>,
+                },
+                // Add more menu items for other tables
+              ]}
+            />
+          </Sider>
+          
+          {/* Sidebar trigger moved here so it's attached to the sidebar */}
+          <SidebarTrigger collapsed={collapsed} toggle={toggleCollapsed} />
+        </div>
         
         <Layout className="site-layout">
           <Content className="content-area">
