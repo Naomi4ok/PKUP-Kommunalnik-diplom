@@ -9,8 +9,9 @@
 }
 
 .trigger-button {
-  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   border-radius: 4px; /* Rounded corners only on right side */
+  border-color: none;
   height: 40px;
   width: 16px;
   display: flex;

@@ -22,8 +22,10 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  SearchOutlined
+  SearchOutlined,
+  FileExcelOutlined
 } from '@ant-design/icons';
+import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
 
 const { Title } = Typography;
@@ -62,6 +64,47 @@ const Employees = () => {
       message.error(`Failed to fetch employees: ${err.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Export employees to Excel
+  const exportToExcel = () => {
+    try {
+      // Create a clean dataset without photos and with formatted data
+      const exportData = employees.map(employee => ({
+        'Full Name': employee.Full_Name,
+        'Position': employee.Position || '',
+        'Department': employee.Department || '',
+        'Contact Details': employee.Contact_Details || '',
+        'Work Schedule': employee.Work_Schedule || '',
+        'Status': employee.Status || 'Active'
+      }));
+      
+      // Create worksheet from data
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      
+      // Set column widths
+      const wscols = [
+        { wch: 25 }, // Full Name
+        { wch: 20 }, // Position
+        { wch: 20 }, // Department
+        { wch: 30 }, // Contact Details
+        { wch: 20 }, // Work Schedule
+        { wch: 15 }  // Status
+      ];
+      worksheet['!cols'] = wscols;
+      
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
+      
+      // Generate and download the Excel file
+      const filename = `Employees_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+      
+      message.success('Employees exported successfully!');
+    } catch (err) {
+      message.error(`Failed to export employees: ${err.message}`);
     }
   };
 
@@ -337,14 +380,24 @@ const Employees = () => {
         <div className="ant-page-header-wrapper">
           <div className="ant-page-header">
             <Title level={2}>Employees Management</Title>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
-              onClick={() => showModal()}
-              className="ant-add-button"
-            >
-              Add Employee
-            </Button>
+            <Space>
+              <Button 
+                type="primary" 
+                icon={<FileExcelOutlined />} 
+                onClick={exportToExcel}
+                className="ant-export-button"
+              >
+                Export
+              </Button>
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={() => showModal()}
+                className="ant-add-button"
+              >
+                Add Employee
+              </Button>
+            </Space>
           </div>
           <Divider />
           

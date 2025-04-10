@@ -12,6 +12,7 @@ root.render(
       theme={{
         token: {
           colorPrimary: '#1890ff',
+          fontFamily: "'Golos Text', sans-serif",
         },
       }}
     >

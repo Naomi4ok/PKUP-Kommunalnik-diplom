@@ -19,6 +19,18 @@
   margin-bottom: 10px;
 }
 
+.ant-export-button {
+  background-color: #52c41a; /* Green color for export button */
+  border-color: #52c41a;
+  margin-right: 45px;
+  height: 40px;
+}
+
+.ant-export-button:hover {
+  background-color: #73d13d;
+  border-color: #73d13d;
+}
+
 .ant-employee-photo {
   width: 40px;
   height: 40px;
@@ -47,6 +59,10 @@
   }
   
   .ant-add-button {
+    margin-top: 16px;
+  }
+
+  .ant-export-button {
     margin-top: 16px;
   }
 }
