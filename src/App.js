@@ -24,48 +24,41 @@ function App() {
   return (
     <Router>
       <Layout style={{ minHeight: '100vh' }}>
-        <div style={{ position: 'relative' }}>
-          <Sider
-            width={250}
-            className="site-sider"
-            breakpoint="lg"
-            collapsedWidth="80"
-            collapsed={collapsed}
-            trigger={null} // Remove default trigger
-            theme="light"
-          >
-            {/* Logo at the top of sidebar */}
-            <Logo collapsed={collapsed} lightTheme={true} />
-            
-            {/* We're removing this since we're using the side trigger */}
-            {/* <SidebarCollapseButton 
-              collapsed={collapsed} 
-              onToggle={toggleCollapsed} 
-            /> */}
-            
-            <Menu
-              theme="light"
-              mode="inline"
-              defaultSelectedKeys={['1']}
-              items={[
-                {
-                  key: '1',
-                  icon: <HomeOutlined />,
-                  label: <Link to="/">Home</Link>,
-                },
-                {
-                  key: '2',
-                  icon: <UserOutlined />,
-                  label: <Link to="/employees">Employees</Link>,
-                },
-                // Add more menu items for other tables
-              ]}
-            />
-          </Sider>
+        <Sider
+          width={250}
+          className="site-sider"
+          breakpoint="lg"
+          collapsedWidth="80"
+          collapsed={collapsed}
+          trigger={null} // Remove default trigger
+          theme="light"
+        >
+          {/* Logo at the top of sidebar */}
+          <Logo collapsed={collapsed} lightTheme={true} />
           
-          {/* Sidebar trigger moved here so it's attached to the sidebar */}
-          <SidebarTrigger collapsed={collapsed} toggle={toggleCollapsed} />
-        </div>
+          {/* Moved: Sidebar trigger at top of the sidebar */}
+          <SidebarTrigger collapsed={collapsed} toggle={toggleCollapsed} color="white" />
+        
+          
+          <Menu
+            theme="light"
+            mode="inline"
+            defaultSelectedKeys={['1']}
+            items={[
+              {
+                key: '1',
+                icon: <HomeOutlined />,
+                label: <Link to="/">Home</Link>,
+              },
+              {
+                key: '2',
+                icon: <UserOutlined />,
+                label: <Link to="/employees">Employees</Link>,
+              },
+              // Add more menu items for other tables
+            ]}
+          />
+        </Sider>
         
         <Layout className="site-layout">
           <Content className="content-area">

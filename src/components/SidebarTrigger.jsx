@@ -5,12 +5,11 @@ import './SidebarTrigger.css';
 
 const SidebarTrigger = ({ collapsed, toggle }) => {
   return (
-    <div className="sidebar-trigger" style={{ left: collapsed ? '80px' : '250px' }}>
+    <div className="sidebar-trigger" style={{ left: collapsed ? '90px' : '260px' }}>
       <Button 
-        type="primary" 
+        className="trigger-button white-button"
         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         onClick={toggle}
-        className="trigger-button"
       />
     </div>
   );
