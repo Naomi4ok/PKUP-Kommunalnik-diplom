@@ -14,7 +14,8 @@ import {
   Spin,
   Tag,
   Modal,
-  Divider
+  Divider,
+  Dropdown
 } from 'antd';
 import {
   UserOutlined,
@@ -23,7 +24,8 @@ import {
   EditOutlined,
   DeleteOutlined,
   SearchOutlined,
-  FileExcelOutlined
+  FileExcelOutlined,
+  MoreOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
@@ -377,28 +379,43 @@ const Employees = () => {
     {
       title: 'Actions',
       key: 'actions',
-      width: 150,
+      width: 80,
       render: (_, record) => (
-        <Space>
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: '1',
+                label: 'Edit',
+                icon: <EditOutlined />,
+                onClick: () => showModal(record)
+              },
+              {
+                key: '2',
+                label: 
+                  <Popconfirm
+                    title="Delete employee"
+                    description="Are you sure you want to delete this employee?"
+                    onConfirm={() => handleDelete(record.Employee_ID)}
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <span className="dropdown-delete-label">Delete</span>
+                  </Popconfirm>,
+                icon: <DeleteOutlined />,
+                danger: true
+              }
+            ]
+          }}
+          trigger={['click']}
+          placement="bottomRight"
+        >
           <Button 
-            type="primary" 
-            icon={<EditOutlined />} 
-            onClick={() => showModal(record)}
+            type="text" 
+            icon={<MoreOutlined />}
+            className="action-more-button"
           />
-          <Popconfirm
-            title="Delete employee"
-            description="Are you sure you want to delete this employee?"
-            onConfirm={() => handleDelete(record.Employee_ID)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button 
-              type="primary" 
-              danger 
-              icon={<DeleteOutlined />} 
-            />
-          </Popconfirm>
-        </Space>
+        </Dropdown>
       ),
     },
   ];
@@ -416,7 +433,6 @@ const Employees = () => {
               autoFocus={false}
             />
           </div>
-            {/* <Title level={2}>Employees Management</Title> */}
             <Space>
               <Button 
                 type="primary" 
@@ -436,15 +452,6 @@ const Employees = () => {
               </Button>
             </Space>
           </div>
-          
-          {/* Add SearchBar component here */}
-          {/* <div className="employees-search-bar-container">
-            <SearchBar 
-              onSearch={handleSearch} 
-              placeholder="Search employees by name, position, department..."
-              autoFocus={false}
-            />
-          </div> */}
           
           <Divider />
           

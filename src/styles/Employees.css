@@ -81,4 +81,47 @@
   .employees-search-bar-container .search-container {
     max-width: 100%;
   }
+
+  .horizontal-dots-button {
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+}
+
+.horizontal-dots {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 20px;
+}
+
+.horizontal-dots .dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #8c8c8c;
+}
+
+.horizontal-dots-button:hover .dot {
+  background-color: #1890ff;
+}
+
+/* Dropdown menu styling */
+.dropdown-delete-label {
+  margin-left: 8px;
+}
+
+.ant-dropdown-menu-item-danger .dropdown-delete-label {
+  color: inherit;
+}
+
+/* Adjust the width of the Actions column to make it more compact */
+.ant-table-cell:last-child {
+  padding: 8px !important;
+}
 }

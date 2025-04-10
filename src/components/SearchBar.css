@@ -14,8 +14,8 @@
   }
   
   .search-wrapper:focus-within {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
+    /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12); */
+    transform: translateY(-3px);
   }
   
   .search-input {
