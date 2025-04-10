@@ -51,6 +51,18 @@
   color: #bfbfbf;
 }
 
+/* Add styling for search bar container */
+.employees-search-bar-container {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.employees-search-bar-container .search-container {
+  width: 100%;
+  max-width: 600px;
+  padding: 10px 0;
+  margin-left: 0;
+}
 
 @media (max-width: 768px) {
   .ant-page-header {
@@ -64,5 +76,9 @@
 
   .ant-export-button {
     margin-top: 16px;
+  }
+  
+  .employees-search-bar-container .search-container {
+    max-width: 100%;
   }
 }

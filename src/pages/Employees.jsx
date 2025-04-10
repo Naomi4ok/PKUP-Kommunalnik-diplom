@@ -27,6 +27,7 @@ import {
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
+import SearchBar from '../components/SearchBar';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -34,6 +35,7 @@ const { TextArea } = Input;
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('Add Employee');
@@ -47,6 +49,11 @@ const Employees = () => {
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  // Update filtered employees when employees change
+  useEffect(() => {
+    setFilteredEmployees(employees);
+  }, [employees]);
 
   // Fetch all employees from the database
   const fetchEmployees = async () => {
@@ -65,6 +72,28 @@ const Employees = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle search functionality
+  const handleSearch = (query) => {
+    if (query.trim() === '') {
+      setFilteredEmployees(employees);
+      return;
+    }
+    
+    const searchQuery = query.toLowerCase();
+    const filtered = employees.filter(employee => {
+      return (
+        (employee.Full_Name && employee.Full_Name.toLowerCase().includes(searchQuery)) ||
+        (employee.Position && employee.Position.toLowerCase().includes(searchQuery)) ||
+        (employee.Department && employee.Department.toLowerCase().includes(searchQuery)) ||
+        (employee.Contact_Details && employee.Contact_Details.toLowerCase().includes(searchQuery)) ||
+        (employee.Work_Schedule && employee.Work_Schedule.toLowerCase().includes(searchQuery)) ||
+        (employee.Status && employee.Status.toLowerCase().includes(searchQuery))
+      );
+    });
+    
+    setFilteredEmployees(filtered);
   };
 
   // Export employees to Excel
@@ -376,10 +405,18 @@ const Employees = () => {
 
   return (
     <div className="ant-employees-container">
+      <Title level={2}>Employees Management</Title>
       <Card>
         <div className="ant-page-header-wrapper">
           <div className="ant-page-header">
-            <Title level={2}>Employees Management</Title>
+          <div className="employees-search-bar-container">
+            <SearchBar 
+              onSearch={handleSearch} 
+              placeholder="Search employees by name, position, department..."
+              autoFocus={false}
+            />
+          </div>
+            {/* <Title level={2}>Employees Management</Title> */}
             <Space>
               <Button 
                 type="primary" 
@@ -399,11 +436,21 @@ const Employees = () => {
               </Button>
             </Space>
           </div>
+          
+          {/* Add SearchBar component here */}
+          {/* <div className="employees-search-bar-container">
+            <SearchBar 
+              onSearch={handleSearch} 
+              placeholder="Search employees by name, position, department..."
+              autoFocus={false}
+            />
+          </div> */}
+          
           <Divider />
           
           <Spin spinning={loading}>
             <Table 
-              dataSource={employees} 
+              dataSource={filteredEmployees} 
               columns={columns} 
               rowKey="Employee_ID"
               pagination={{ 
