@@ -434,12 +434,12 @@ const Employees = () => {
         <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
       ),
       onFilter: (value, record) => record.Full_Name.toLowerCase().includes(value.toLowerCase()),
-    },
-    {
-      title: 'Position',
-      dataIndex: 'Position',
-      key: 'position',
-      sorter: (a, b) => (a.Position || '').localeCompare(b.Position || ''),
+      render: (text, record) => (
+        <div>
+          <div className="employee-name">{text}</div>
+          {record.Position && <div className="employee-position">{record.Position}</div>}
+        </div>
+      ),
     },
     {
       title: 'Department',
