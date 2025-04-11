@@ -33,6 +33,7 @@ import {
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
 import SearchBar from '../components/SearchBar';
+import Pagination from '../components/Pagination'; // Import the custom Pagination component
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -377,6 +378,12 @@ const Employees = () => {
     setPreviewVisible(true);
   };
 
+  // Handle page change for custom pagination
+  const handlePageChange = (page, newPageSize) => {
+    setCurrentPage(page);
+    setPageSize(newPageSize);
+  };
+
   // Define table columns
   const columns = [
     {
@@ -533,6 +540,9 @@ const Employees = () => {
       ),
     },
   ];
+  
+  // Calculate the data to be displayed on the current page
+  const paginatedData = filteredEmployees.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="ant-employees-container">
@@ -586,26 +596,23 @@ const Employees = () => {
           <Divider />
           
           <Spin spinning={loading}>
-          <Table 
-  dataSource={filteredEmployees} 
-  columns={columns} 
-  rowKey="Employee_ID"
-  pagination={{ 
-    current: currentPage,
-    pageSize: pageSize,
-    showSizeChanger: true,
-    pageSizeOptions: [8, 20, 50],
-    onChange: (page, size) => {
-      setCurrentPage(page);
-      setPageSize(size);
-    },
-    onShowSizeChange: (current, size) => {
-      setCurrentPage(1); // Reset to first page when changing page size
-      setPageSize(size);
-    }
-  }}
-  scroll={{ x: 'max-content' }}
-/>
+            {/* Table without built-in pagination */}
+            <Table 
+              dataSource={paginatedData}
+              columns={columns}
+              rowKey="Employee_ID"
+              pagination={false} // Disable built-in pagination
+              scroll={{ x: 'max-content' }}
+            />
+            
+            {/* Custom Pagination Component */}
+            <Pagination
+              totalItems={filteredEmployees.length}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              pageSizeOptions={[8, 20, 50]}
+              initialPageSize={pageSize}
+            />
           </Spin>
         </div>
       </Card>
