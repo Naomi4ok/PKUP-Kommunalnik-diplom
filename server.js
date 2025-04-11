@@ -199,6 +199,65 @@ app.delete('/api/employees/:id', (req, res) => {
   });
 });
 
+// NEW ENDPOINT: Import employees from Excel
+app.post('/api/employees/import', (req, res) => {
+  const { employees } = req.body;
+  
+  if (!employees || !Array.isArray(employees) || employees.length === 0) {
+    return res.status(400).json({ error: 'No employee data provided or invalid format' });
+  }
+  
+  // Begin a transaction to ensure all inserts succeed or fail together
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+    
+    const stmt = db.prepare(`
+      INSERT INTO Employees (Full_Name, Position, Department, Contact_Details, Work_Schedule, Status)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    employees.forEach(employee => {
+      if (!employee.fullName) {
+        errorCount++;
+        return; // Skip this record
+      }
+      
+      try {
+        stmt.run(
+          employee.fullName,
+          employee.position || '',
+          employee.department || '',
+          employee.contactDetails || '',
+          employee.workSchedule || '',
+          employee.status || 'Active'
+        );
+        successCount++;
+      } catch (err) {
+        console.error('Error inserting employee:', err);
+        errorCount++;
+      }
+    });
+    
+    stmt.finalize();
+    
+    db.run('COMMIT', (err) => {
+      if (err) {
+        console.error('Error committing transaction:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      res.status(201).json({
+        message: 'Import completed',
+        imported: successCount,
+        failed: errorCount
+      });
+    });
+  });
+});
+
 // Catch-all handler to serve React's index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
