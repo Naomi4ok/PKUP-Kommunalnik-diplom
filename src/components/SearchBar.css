@@ -10,12 +10,6 @@
     position: relative;
     border-radius: 8px;
     overflow: hidden;
-    transition: all 0.3s ease;
-  }
-  
-  .search-wrapper:focus-within {
-    /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12); */
-    transform: translateY(-3px);
   }
   
   .search-input {

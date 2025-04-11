@@ -15,7 +15,9 @@ import {
   Tag,
   Modal,
   Divider,
-  Dropdown
+  Dropdown,
+  Row,
+  Col
 } from 'antd';
 import {
   UserOutlined,
@@ -426,22 +428,28 @@ const Employees = () => {
       <Card>
         <div className="ant-page-header-wrapper">
           <div className="ant-page-header">
-          <div className="employees-search-bar-container">
-            <SearchBar 
-              onSearch={handleSearch} 
-              placeholder="Search employees by name, position, department..."
-              autoFocus={false}
-            />
-          </div>
-            <Space>
-              <Button 
-                type="primary" 
-                icon={<FileExcelOutlined />} 
-                onClick={exportToExcel}
-                className="ant-export-button"
-              >
-                Export
-              </Button>
+            {/* Left side: Export button */}
+            <Button 
+              type="primary" 
+              icon={<FileExcelOutlined />} 
+              onClick={exportToExcel}
+              className="ant-export-button"
+            >
+              Export
+            </Button>
+            
+            {/* Right side: Search bar and Add Employee button */}
+            <div className="header-right-content">
+              {/* Search bar on the right side */}
+              <div className="employees-search-bar-container">
+                <SearchBar 
+                  onSearch={handleSearch} 
+                  placeholder="Search employees"
+                  autoFocus={false}
+                />
+              </div>
+              
+              {/* Add Employee button after search bar */}
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -450,7 +458,7 @@ const Employees = () => {
               >
                 Add Employee
               </Button>
-            </Space>
+            </div>
           </div>
           
           <Divider />

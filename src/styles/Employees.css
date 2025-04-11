@@ -9,26 +9,39 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  margin-top: 10px;
 }
 
 .ant-page-header h2 {
   margin: 0;
 }
 
+/* Group the search bar and add button together */
+.header-right-content {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  /* Ensure items are centered vertically */
+  height: 40px;
+}
+
 .ant-add-button {
-  margin-bottom: 10px;
+  margin-bottom: 0;
+  height: 40px;
+  white-space: nowrap; /* Prevent button text from wrapping */
 }
 
 .ant-export-button {
-  background-color: #52c41a; /* Green color for export button */
-  border-color: #52c41a;
-  margin-right: 45px;
-  height: 40px;
+  background-color: #F5F5F5; /* Green color for export button */
+  color: black;
+  height: 50px;
+  width: 110px;
+  box-shadow: none;
 }
 
 .ant-export-button:hover {
   background-color: #73d13d;
-  border-color: #73d13d;
+
 }
 
 .ant-employee-photo {
@@ -51,77 +64,88 @@
   color: #bfbfbf;
 }
 
-/* Add styling for search bar container */
+/* Improved styling for search bar container */
 .employees-search-bar-container {
-  width: 100%;
-  margin-top: 16px;
+  width: 300px;
+  display: flex;
+  align-items: center;
 }
 
 .employees-search-bar-container .search-container {
   width: 100%;
-  max-width: 600px;
-  padding: 10px 0;
-  margin-left: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* Ensure search input has the same height as buttons */
+.employees-search-bar-container .search-input {
+  height: 50px;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .ant-page-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
   }
   
-  .ant-add-button {
-    margin-top: 16px;
+  .header-right-content {
+    flex-direction: column;
+    width: 100%;
+    gap: 16px;
+    height: auto;
   }
-
+  
+  .employees-search-bar-container {
+    width: 100%;
+  }
+  
+  .ant-add-button,
   .ant-export-button {
-    margin-top: 16px;
-  }
-  
-  .employees-search-bar-container .search-container {
-    max-width: 100%;
+    width: 100%;
   }
 
   .horizontal-dots-button {
-  border: none;
-  background: transparent;
-  padding: 4px 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-}
+    border: none;
+    background: transparent;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+  }
 
-.horizontal-dots {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 20px;
-}
+  .horizontal-dots {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 20px;
+  }
 
-.horizontal-dots .dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: #8c8c8c;
-}
+  .horizontal-dots .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #8c8c8c;
+  }
 
-.horizontal-dots-button:hover .dot {
-  background-color: #1890ff;
-}
+  .horizontal-dots-button:hover .dot {
+    background-color: #1890ff;
+  }
 
-/* Dropdown menu styling */
-.dropdown-delete-label {
-  margin-left: 8px;
-}
+  /* Dropdown menu styling */
+  .dropdown-delete-label {
+    margin-left: 8px;
+  }
 
-.ant-dropdown-menu-item-danger .dropdown-delete-label {
-  color: inherit;
-}
+  .ant-dropdown-menu-item-danger .dropdown-delete-label {
+    color: inherit;
+  }
 
-/* Adjust the width of the Actions column to make it more compact */
-.ant-table-cell:last-child {
-  padding: 8px !important;
-}
+  /* Adjust the width of the Actions column to make it more compact */
+  .ant-table-cell:last-child {
+    padding: 8px !important;
+  }
 }
