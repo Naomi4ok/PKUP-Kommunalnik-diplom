@@ -95,6 +95,7 @@
   padding: 6px 20px !important;
   display: flex;
   align-items: center;
+  box-shadow: none;
 }
 
 /* Increase the icon size in the button */

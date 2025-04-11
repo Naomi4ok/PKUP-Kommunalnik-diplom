@@ -52,6 +52,8 @@ const Employees = () => {
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importFileList, setImportFileList] = useState([]);
   const [importing, setImporting] = useState(false);
+  const [pageSize, setPageSize] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch employees on component mount
   useEffect(() => {
@@ -584,17 +586,26 @@ const Employees = () => {
           <Divider />
           
           <Spin spinning={loading}>
-            <Table 
-              dataSource={filteredEmployees} 
-              columns={columns} 
-              rowKey="Employee_ID"
-              pagination={{ 
-                pageSize: 10,
-                showSizeChanger: true,
-                pageSizeOptions: ['10', '20', '50'],
-              }}
-              scroll={{ x: 'max-content' }}
-            />
+          <Table 
+  dataSource={filteredEmployees} 
+  columns={columns} 
+  rowKey="Employee_ID"
+  pagination={{ 
+    current: currentPage,
+    pageSize: pageSize,
+    showSizeChanger: true,
+    pageSizeOptions: [8, 20, 50],
+    onChange: (page, size) => {
+      setCurrentPage(page);
+      setPageSize(size);
+    },
+    onShowSizeChange: (current, size) => {
+      setCurrentPage(1); // Reset to first page when changing page size
+      setPageSize(size);
+    }
+  }}
+  scroll={{ x: 'max-content' }}
+/>
           </Spin>
         </div>
       </Card>
