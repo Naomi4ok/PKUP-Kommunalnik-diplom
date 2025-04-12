@@ -11,6 +11,7 @@ import {
   Row,
   Col,
   message,
+  TimePicker,
   Spin,
   Space,
   Breadcrumb
@@ -23,7 +24,7 @@ import {
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import '../styles/EmployeeForm.css';
-import TimeRangePicker from '../components/TimeRangePicker';
+import dayjs from 'dayjs';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -38,8 +39,6 @@ const EmployeeForm = () => {
   const [initialValues, setInitialValues] = useState({});
   const [positions, setPositions] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [timeRange, setTimeRange] = useState({ from: '', to: '' });
-  const [showTimeRangePicker, setShowTimeRangePicker] = useState(false);
   
   // Phone input refs and state
   const inputRef = useRef(null);
@@ -102,27 +101,20 @@ const EmployeeForm = () => {
       const lastName = nameParts.slice(1).join(' ') || '';
       
       // Determine work schedule type and value
-      let workScheduleType = 'Flexible'; // Default to Flexible
-      let initialTimeRange = { from: '', to: '' };
+      let workScheduleType = 'Custom';
+      let workScheduleCustom = '';
+      let workScheduleTime = null;
       
       if (employee.Work_Schedule === 'Flexible' || employee.Work_Schedule === 'Shift Work') {
         workScheduleType = employee.Work_Schedule;
-        setShowTimeRangePicker(false);
       } else if (employee.Work_Schedule) {
-        // Check if it looks like a time range format (contains "to")
-        const timeRangeMatch = employee.Work_Schedule.match(/(\d+:\d+\s*(?:AM|PM)?)\s*to\s*(\d+:\d+\s*(?:AM|PM)?)/i);
-        if (timeRangeMatch) {
-          workScheduleType = 'Custom';
-          initialTimeRange = { 
-            from: timeRangeMatch[1].trim(),
-            to: timeRangeMatch[2].trim()
-          };
-          setTimeRange(initialTimeRange);
-          setShowTimeRangePicker(true);
+        // Check if it looks like a time format (contains ":" and possibly AM/PM)
+        if (/\d+:\d+/.test(employee.Work_Schedule)) {
+          workScheduleType = 'Time';
+          workScheduleTime = dayjs(employee.Work_Schedule, 'HH:mm');
         } else {
-          // If it doesn't match any known format, default to Custom
           workScheduleType = 'Custom';
-          setShowTimeRangePicker(true);
+          workScheduleCustom = employee.Work_Schedule;
         }
       }
       
@@ -134,6 +126,8 @@ const EmployeeForm = () => {
         department: employee.Department || '',
         status: employee.Status || 'Active',
         workScheduleType,
+        workScheduleCustom,
+        workScheduleTime,
       };
       
       setInitialValues(formValues);
@@ -179,13 +173,12 @@ const EmployeeForm = () => {
       // Handle work schedule based on selection
       let workSchedule = '';
       
-      if (values.workScheduleType === 'Flexible' || values.workScheduleType === 'Shift Work') {
-        workSchedule = values.workScheduleType;
+      if (values.workScheduleType === 'Time' && values.workScheduleTime) {
+        workSchedule = values.workScheduleTime.format('HH:mm');
       } else if (values.workScheduleType === 'Custom') {
-        // Format the time range as "from to to"
-        if (timeRange.from && timeRange.to) {
-          workSchedule = `${timeRange.from} to ${timeRange.to}`;
-        }
+        workSchedule = values.workScheduleCustom || '';
+      } else {
+        workSchedule = values.workScheduleType || '';
       }
       
       formData.append('workSchedule', workSchedule);
@@ -305,12 +298,6 @@ const EmployeeForm = () => {
   // Handle work schedule type change
   const handleWorkScheduleTypeChange = (value) => {
     form.setFieldsValue({ workScheduleType: value });
-    setShowTimeRangePicker(value === 'Custom');
-  };
-
-  // Handle time range change from TimeRangePicker
-  const handleTimeRangeChange = (range) => {
-    setTimeRange(range);
   };
 
   // Validate the phone number
@@ -365,6 +352,37 @@ const EmployeeForm = () => {
             initialValues={initialValues}
             className="employee-form"
           >
+            {/* Move Employee Photo to the top */}
+            <Form.Item
+              name="photo"
+              label="Employee Photo"
+              valuePropName="fileList"
+              getValueFromEvent={(e) => {
+                if (Array.isArray(e)) {
+                  return e;
+                }
+                return e && e.fileList;
+              }}
+              className="employee-photo-field"
+            >
+              <Upload
+                name="photo"
+                listType="picture-card"
+                fileList={fileList}
+                onChange={handleUploadChange}
+                onPreview={handlePreview}
+                beforeUpload={() => false} // Prevent automatic upload
+                maxCount={1}
+              >
+                {fileList.length >= 1 ? null : (
+                  <div>
+                    <UploadOutlined />
+                    <div style={{ marginTop: 8 }}>Upload</div>
+                  </div>
+                )}
+              </Upload>
+            </Form.Item>
+            
             <Row gutter={24}>
               <Col xs={24} md={12}>
                 <Form.Item
@@ -458,22 +476,33 @@ const EmployeeForm = () => {
               >
                 <Option value="Flexible">Flexible</Option>
                 <Option value="Shift Work">Shift Work</Option>
+                <Option value="Time">Specific Time</Option>
                 <Option value="Custom">Custom Schedule</Option>
               </Select>
             </Form.Item>
             
-            {showTimeRangePicker && (
+            {form.getFieldValue('workScheduleType') === 'Time' && (
               <Form.Item
-                label="Select Work Hours"
-                required={true}
+                name="workScheduleTime"
+                label="Working Hours"
+                rules={[{ required: true, message: 'Please select working hours' }]}
               >
-                <TimeRangePicker 
-                  label=""
-                  onChange={handleTimeRangeChange}
-                  initialFromTime={timeRange.from}
-                  initialToTime={timeRange.to}
-                  required={true}
+                <TimePicker
+                  use12Hours
+                  format="h:mm A"
+                  style={{ width: '100%' }}
+                  placeholder="Select working hours"
                 />
+              </Form.Item>
+            )}
+            
+            {form.getFieldValue('workScheduleType') === 'Custom' && (
+              <Form.Item
+                name="workScheduleCustom"
+                label="Custom Work Schedule"
+                rules={[{ required: true, message: 'Please enter custom work schedule' }]}
+              >
+                <Input placeholder="E.g., Mon-Fri 9:00-18:00" />
               </Form.Item>
             )}
             
@@ -487,35 +516,6 @@ const EmployeeForm = () => {
                 <Option value="On Leave">On Leave</Option>
                 <Option value="Terminated">Terminated</Option>
               </Select>
-            </Form.Item>
-            
-            <Form.Item
-              name="photo"
-              label="Employee Photo"
-              valuePropName="fileList"
-              getValueFromEvent={(e) => {
-                if (Array.isArray(e)) {
-                  return e;
-                }
-                return e && e.fileList;
-              }}
-            >
-              <Upload
-                name="photo"
-                listType="picture-card"
-                fileList={fileList}
-                onChange={handleUploadChange}
-                onPreview={handlePreview}
-                beforeUpload={() => false} // Prevent automatic upload
-                maxCount={1}
-              >
-                {fileList.length >= 1 ? null : (
-                  <div>
-                    <UploadOutlined />
-                    <div style={{ marginTop: 8 }}>Upload</div>
-                  </div>
-                )}
-              </Upload>
             </Form.Item>
             
             <Form.Item className="form-actions">

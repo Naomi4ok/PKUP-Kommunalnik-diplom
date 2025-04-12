@@ -12,7 +12,9 @@ import {
   Tag,
   Divider,
   Dropdown,
-  Input
+  Input,
+  Modal,
+  Image
 } from 'antd';
 import {
   UserOutlined,
@@ -41,6 +43,10 @@ const Employees = () => {
   const [importing, setImporting] = useState(false);
   const [pageSize, setPageSize] = useState(8);
   const [currentPage, setCurrentPage] = useState(1);
+  // New state for avatar preview
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const [previewTitle, setPreviewTitle] = useState('');
 
   // Fetch employees on component mount
   useEffect(() => {
@@ -69,6 +75,20 @@ const Employees = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle avatar preview
+  const handlePreview = (photo, name) => {
+    if (photo) {
+      setPreviewImage(`data:image/jpeg;base64,${photo}`);
+      setPreviewTitle(name || 'Employee Photo');
+      setPreviewVisible(true);
+    }
+  };
+
+  // Handle closing the preview modal
+  const handlePreviewCancel = () => {
+    setPreviewVisible(false);
   };
 
   // Handle search functionality
@@ -289,12 +309,14 @@ const Employees = () => {
       dataIndex: 'Photo',
       key: 'photo',
       width: 80,
-      render: (photo) => (
+      render: (photo, record) => (
         photo ? (
           <img 
             src={`data:image/jpeg;base64,${photo}`} 
             alt="Employee" 
             className="ant-employee-photo"
+            onClick={() => handlePreview(photo, record.Full_Name)}
+            style={{ cursor: 'pointer' }}
           />
         ) : (
           <div className="ant-employee-photo-placeholder">
@@ -510,6 +532,22 @@ const Employees = () => {
           </Spin>
         </div>
       </Card>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={previewVisible}
+        title={previewTitle}
+        footer={null}
+        onCancel={handlePreviewCancel}
+      >
+        <div className="employee-photo-preview-container">
+          <img 
+            alt="Employee Preview" 
+            style={{ width: '100%' }} 
+            src={previewImage} 
+          />
+        </div>
+      </Modal>
     </div>
   );
 };

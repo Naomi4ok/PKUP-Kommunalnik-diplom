@@ -55,12 +55,27 @@
   color: white;
 }
 
+.employee-photo-preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.employee-photo-preview-container img {
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* Add a hover effect to employee photos */
 .ant-employee-photo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ant-employee-photo:hover {
+  transform: scale(1.1);
 }
 
 .ant-employee-photo-placeholder {
