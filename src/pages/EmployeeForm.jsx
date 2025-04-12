@@ -11,7 +11,6 @@ import {
   Row,
   Col,
   message,
-  TimePicker,
   Spin,
   Space,
   Breadcrumb
@@ -24,7 +23,7 @@ import {
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import '../styles/EmployeeForm.css';
-import dayjs from 'dayjs';
+import TimeRangePicker from '../components/TimeRangePicker';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -39,6 +38,8 @@ const EmployeeForm = () => {
   const [initialValues, setInitialValues] = useState({});
   const [positions, setPositions] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [timeRange, setTimeRange] = useState({ from: '', to: '' });
+  const [showTimeRangePicker, setShowTimeRangePicker] = useState(false);
   
   // Phone input refs and state
   const inputRef = useRef(null);
@@ -101,20 +102,27 @@ const EmployeeForm = () => {
       const lastName = nameParts.slice(1).join(' ') || '';
       
       // Determine work schedule type and value
-      let workScheduleType = 'Custom';
-      let workScheduleCustom = '';
-      let workScheduleTime = null;
+      let workScheduleType = 'Flexible'; // Default to Flexible
+      let initialTimeRange = { from: '', to: '' };
       
       if (employee.Work_Schedule === 'Flexible' || employee.Work_Schedule === 'Shift Work') {
         workScheduleType = employee.Work_Schedule;
+        setShowTimeRangePicker(false);
       } else if (employee.Work_Schedule) {
-        // Check if it looks like a time format (contains ":" and possibly AM/PM)
-        if (/\d+:\d+/.test(employee.Work_Schedule)) {
-          workScheduleType = 'Time';
-          workScheduleTime = dayjs(employee.Work_Schedule, 'HH:mm');
-        } else {
+        // Check if it looks like a time range format (contains "to")
+        const timeRangeMatch = employee.Work_Schedule.match(/(\d+:\d+\s*(?:AM|PM)?)\s*to\s*(\d+:\d+\s*(?:AM|PM)?)/i);
+        if (timeRangeMatch) {
           workScheduleType = 'Custom';
-          workScheduleCustom = employee.Work_Schedule;
+          initialTimeRange = { 
+            from: timeRangeMatch[1].trim(),
+            to: timeRangeMatch[2].trim()
+          };
+          setTimeRange(initialTimeRange);
+          setShowTimeRangePicker(true);
+        } else {
+          // If it doesn't match any known format, default to Custom
+          workScheduleType = 'Custom';
+          setShowTimeRangePicker(true);
         }
       }
       
@@ -126,8 +134,6 @@ const EmployeeForm = () => {
         department: employee.Department || '',
         status: employee.Status || 'Active',
         workScheduleType,
-        workScheduleCustom,
-        workScheduleTime,
       };
       
       setInitialValues(formValues);
@@ -173,12 +179,13 @@ const EmployeeForm = () => {
       // Handle work schedule based on selection
       let workSchedule = '';
       
-      if (values.workScheduleType === 'Time' && values.workScheduleTime) {
-        workSchedule = values.workScheduleTime.format('HH:mm');
+      if (values.workScheduleType === 'Flexible' || values.workScheduleType === 'Shift Work') {
+        workSchedule = values.workScheduleType;
       } else if (values.workScheduleType === 'Custom') {
-        workSchedule = values.workScheduleCustom || '';
-      } else {
-        workSchedule = values.workScheduleType || '';
+        // Format the time range as "from to to"
+        if (timeRange.from && timeRange.to) {
+          workSchedule = `${timeRange.from} to ${timeRange.to}`;
+        }
       }
       
       formData.append('workSchedule', workSchedule);
@@ -298,6 +305,12 @@ const EmployeeForm = () => {
   // Handle work schedule type change
   const handleWorkScheduleTypeChange = (value) => {
     form.setFieldsValue({ workScheduleType: value });
+    setShowTimeRangePicker(value === 'Custom');
+  };
+
+  // Handle time range change from TimeRangePicker
+  const handleTimeRangeChange = (range) => {
+    setTimeRange(range);
   };
 
   // Validate the phone number
@@ -445,33 +458,22 @@ const EmployeeForm = () => {
               >
                 <Option value="Flexible">Flexible</Option>
                 <Option value="Shift Work">Shift Work</Option>
-                <Option value="Time">Specific Time</Option>
                 <Option value="Custom">Custom Schedule</Option>
               </Select>
             </Form.Item>
             
-            {form.getFieldValue('workScheduleType') === 'Time' && (
+            {showTimeRangePicker && (
               <Form.Item
-                name="workScheduleTime"
-                label="Working Hours"
-                rules={[{ required: true, message: 'Please select working hours' }]}
+                label="Select Work Hours"
+                required={true}
               >
-                <TimePicker
-                  use12Hours
-                  format="h:mm A"
-                  style={{ width: '100%' }}
-                  placeholder="Select working hours"
+                <TimeRangePicker 
+                  label=""
+                  onChange={handleTimeRangeChange}
+                  initialFromTime={timeRange.from}
+                  initialToTime={timeRange.to}
+                  required={true}
                 />
-              </Form.Item>
-            )}
-            
-            {form.getFieldValue('workScheduleType') === 'Custom' && (
-              <Form.Item
-                name="workScheduleCustom"
-                label="Custom Work Schedule"
-                rules={[{ required: true, message: 'Please enter custom work schedule' }]}
-              >
-                <Input placeholder="E.g., Mon-Fri 9:00-18:00" />
               </Form.Item>
             )}
             

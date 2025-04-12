@@ -3,54 +3,37 @@ import './TimeRangePicker.css';
 
 const TimeRangePicker = ({
   label = 'Time Range',
-  is24Hour = false,
   onChange = () => {},
   initialFromTime = '',
   initialToTime = '',
-  required = false
+  required = false,
+  currentDateTime = '2025-04-12 12:18:53', // Updated time
+  currentUser = 'Naomi4ok'
 }) => {
-  const [fromTime, setFromTime] = useState(initialFromTime);
-  const [toTime, setToTime] = useState(initialToTime);
-  const [fromPeriod, setFromPeriod] = useState(() => {
-    if (initialFromTime && !is24Hour) {
-      const hours = parseInt(initialFromTime.split(':')[0]);
-      return hours >= 12 ? 'PM' : 'AM';
+  // Parse the current datetime to use as default if no initial times provided
+  const parseDefaultTime = () => {
+    if (currentDateTime) {
+      const dateParts = currentDateTime.split(' ');
+      if (dateParts.length === 2) {
+        return dateParts[1].substring(0, 5); // Extract HH:MM from the timestamp
+      }
     }
-    return 'AM';
-  });
-  const [toPeriod, setToPeriod] = useState(() => {
-    if (initialToTime && !is24Hour) {
-      const hours = parseInt(initialToTime.split(':')[0]);
-      return hours >= 12 ? 'PM' : 'AM';
-    }
-    return 'AM';
-  });
+    return '12:00';
+  };
+
+  const defaultTime = parseDefaultTime();
+  
+  const [fromTime, setFromTime] = useState(initialFromTime || defaultTime);
+  const [toTime, setToTime] = useState(initialToTime || defaultTime);
 
   useEffect(() => {
     if (fromTime && toTime) {
       onChange({
-        from: formatTimeOutput(fromTime, fromPeriod),
-        to: formatTimeOutput(toTime, toPeriod)
+        from: fromTime,
+        to: toTime
       });
     }
-  }, [fromTime, toTime, fromPeriod, toPeriod]);
-
-  const formatTimeOutput = (time, period) => {
-    if (!time) return '';
-    
-    if (is24Hour) return time;
-    
-    const [hours, minutes] = time.split(':');
-    let h = parseInt(hours);
-    
-    if (period === 'PM' && h !== 12) {
-      h += 12;
-    } else if (period === 'AM' && h === 12) {
-      h = 0;
-    }
-    
-    return `${h.toString().padStart(2, '0')}:${minutes}`;
-  };
+  }, [fromTime, toTime, onChange]);
 
   const handleTimeChange = (timeType, e) => {
     const newTime = e.target.value;
@@ -61,87 +44,59 @@ const TimeRangePicker = ({
       setToTime(newTime);
     }
   };
-  
-  const handlePeriodChange = (timeType, newPeriod) => {
-    if (timeType === 'from') {
-      setFromPeriod(newPeriod);
-    } else {
-      setToPeriod(newPeriod);
-    }
-  };
 
   return (
-    <div className="time-range-picker-container">
+    <div className="ant-time-range-picker">
       {label && (
-        <label className="time-range-label">
-          {label}{required && <span className="required-mark">*</span>}
+        <label className="ant-form-item-label">
+          {label}{required && <span className="ant-form-item-required">*</span>}
         </label>
       )}
       
-      <div className="time-range-wrapper">
-        <div className="time-input-group">
-          <span className="time-label">From</span>
-          <div className="time-input-wrapper">
-            <input
-              type="time"
-              className="time-input"
-              value={fromTime}
-              onChange={(e) => handleTimeChange('from', e)}
-              required={required}
-            />
-            
-            {!is24Hour && (
-              <div className="period-selector">
-                <button 
-                  type="button"
-                  className={`period-btn ${fromPeriod === 'AM' ? 'active' : ''}`}
-                  onClick={() => handlePeriodChange('from', 'AM')}
-                >
-                  AM
-                </button>
-                <button 
-                  type="button"
-                  className={`period-btn ${fromPeriod === 'PM' ? 'active' : ''}`}
-                  onClick={() => handlePeriodChange('from', 'PM')}
-                >
-                  PM
-                </button>
-              </div>
-            )}
+      <div className="ant-time-range-container">
+        <div className="ant-time-picker-wrapper">
+          <span className="ant-time-picker-label">From</span>
+          <div className="ant-time-picker">
+            <div className="ant-input-wrapper">
+              <span className="ant-input-prefix">
+                <svg viewBox="64 64 896 896" focusable="false" className="ant-time-icon" data-icon="clock-circle" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+                  <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"></path>
+                  <path d="M686.7 638.6L544.1 535.5V288c0-4.4-3.6-8-8-8H488c-4.4 0-8 3.6-8 8v275.4c0 2.6 1.2 5 3.3 6.5l165.4 120.6c3.6 2.6 8.6 1.8 11.2-1.7l28.6-39c2.6-3.7 1.8-8.7-1.8-11.2z"></path>
+                </svg>
+              </span>
+              <input
+                type="time"
+                className="ant-input"
+                value={fromTime}
+                onChange={(e) => handleTimeChange('from', e)}
+                required={required}
+              />
+            </div>
           </div>
         </div>
         
-        <div className="time-range-separator">to</div>
+        <div className="ant-time-range-separator">
+          <span>~</span>
+        </div>
         
-        <div className="time-input-group">
-          <span className="time-label">To</span>
-          <div className="time-input-wrapper">
-            <input
-              type="time"
-              className="time-input"
-              value={toTime}
-              onChange={(e) => handleTimeChange('to', e)}
-              required={required}
-            />
-            
-            {!is24Hour && (
-              <div className="period-selector">
-                <button 
-                  type="button"
-                  className={`period-btn ${toPeriod === 'AM' ? 'active' : ''}`}
-                  onClick={() => handlePeriodChange('to', 'AM')}
-                >
-                  AM
-                </button>
-                <button 
-                  type="button"
-                  className={`period-btn ${toPeriod === 'PM' ? 'active' : ''}`}
-                  onClick={() => handlePeriodChange('to', 'PM')}
-                >
-                  PM
-                </button>
-              </div>
-            )}
+        <div className="ant-time-picker-wrapper">
+          <span className="ant-time-picker-label">To</span>
+          <div className="ant-time-picker">
+            <div className="ant-input-wrapper">
+              <span className="ant-input-prefix">
+                <svg viewBox="64 64 896 896" focusable="false" className="ant-time-icon" data-icon="clock-circle" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+                  <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"></path>
+                  <path d="M686.7 638.6L544.1 535.5V288c0-4.4-3.6-8-8-8H488c-4.4 0-8 3.6-8 8v275.4c0 2.6 1.2 5 3.3 6.5l165.4 120.6c3.6 2.6 8.6 1.8 11.2-1.7l28.6-39c2.6-3.7 1.8-8.7-1.8-11.2z"></path>
+                </svg>
+              </span>
+              <input
+                type="time"
+                className="ant-input"
+                value={toTime}
+                onChange={(e) => handleTimeChange('to', e)}
+                required={required}
+              />
+            </div>
           </div>
         </div>
       </div>
