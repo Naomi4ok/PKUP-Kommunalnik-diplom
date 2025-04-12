@@ -5,7 +5,6 @@ import {
   Input,
   Button,
   Select,
-  Upload,
   Card,
   Typography,
   Row,
@@ -17,13 +16,13 @@ import {
 } from 'antd';
 import {
   UserOutlined,
-  UploadOutlined,
   SaveOutlined,
   HomeOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import '../styles/EmployeeForm.css';
 import TimeRangePicker from '../components/TimeRangePicker';
+import AvatarUploadForm from '../components/AvatarUploadForm';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -33,13 +32,16 @@ const EmployeeForm = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [initialValues, setInitialValues] = useState({});
   const [positions, setPositions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [timeRange, setTimeRange] = useState({ from: '', to: '' });
   const [showTimeRangePicker, setShowTimeRangePicker] = useState(false);
+  
+  // Photo state
+  const [employeePhoto, setEmployeePhoto] = useState(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState(null);
   
   // Phone input refs and state
   const inputRef = useRef(null);
@@ -144,14 +146,10 @@ const EmployeeForm = () => {
         setPhoneValue(employee.Contact_Details);
       }
       
-      // If employee has a photo, add it to the file list
+      // If employee has a photo, set the preview URL
       if (employee.Photo) {
-        setFileList([{
-          uid: '-1',
-          name: 'employee-photo.jpg',
-          status: 'done',
-          url: `data:image/jpeg;base64,${employee.Photo}`,
-        }]);
+        const imageUrl = `data:image/jpeg;base64,${employee.Photo}`;
+        setPhotoPreviewUrl(imageUrl);
       }
       
     } catch (err) {
@@ -191,9 +189,9 @@ const EmployeeForm = () => {
       formData.append('workSchedule', workSchedule);
       formData.append('status', values.status || 'Active');
       
-      // Get file from fileList if it exists
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        formData.append('photo', fileList[0].originFileObj);
+      // Add the photo file if it exists
+      if (employeePhoto && employeePhoto.selectedImage) {
+        formData.append('photo', employeePhoto.selectedImage);
       }
 
       let response;
@@ -229,16 +227,9 @@ const EmployeeForm = () => {
     }
   };
 
-  // Handle file upload change
-  const handleUploadChange = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
-  };
-
-  // Handle preview for uploaded image
-  const handlePreview = async (file) => {
-    if (file.url) {
-      window.open(file.url, '_blank');
-    }
+  // Handle avatar upload
+  const handleAvatarUpload = (photoData) => {
+    setEmployeePhoto(photoData);
   };
 
   // Phone number formatter for Belarus format
@@ -358,6 +349,15 @@ const EmployeeForm = () => {
         </div>
         
         <Spin spinning={loading}>
+          {/* Employee Photo Upload Section - Moved to the top */}
+          <div className="avatar-upload-section">
+            <AvatarUploadForm
+              onAvatarUpload={handleAvatarUpload}
+              maxSizeInMB={5}
+              initialImageUrl={photoPreviewUrl}
+            />
+          </div>
+          
           <Form
             form={form}
             layout="vertical"
@@ -487,35 +487,6 @@ const EmployeeForm = () => {
                 <Option value="On Leave">On Leave</Option>
                 <Option value="Terminated">Terminated</Option>
               </Select>
-            </Form.Item>
-            
-            <Form.Item
-              name="photo"
-              label="Employee Photo"
-              valuePropName="fileList"
-              getValueFromEvent={(e) => {
-                if (Array.isArray(e)) {
-                  return e;
-                }
-                return e && e.fileList;
-              }}
-            >
-              <Upload
-                name="photo"
-                listType="picture-card"
-                fileList={fileList}
-                onChange={handleUploadChange}
-                onPreview={handlePreview}
-                beforeUpload={() => false} // Prevent automatic upload
-                maxCount={1}
-              >
-                {fileList.length >= 1 ? null : (
-                  <div>
-                    <UploadOutlined />
-                    <div style={{ marginTop: 8 }}>Upload</div>
-                  </div>
-                )}
-              </Upload>
             </Form.Item>
             
             <Form.Item className="form-actions">
