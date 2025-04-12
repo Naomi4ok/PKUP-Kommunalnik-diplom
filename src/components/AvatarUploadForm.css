@@ -2,10 +2,19 @@
     width: 100%;
     max-width: 500px;
     padding: 20px;
-    margin: 0 auto;
+    margin: 0 auto 24px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     background-color: #fff;
+  }
+  
+  .avatar-upload-container h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 18px;
+    color: #333;
   }
   
   .avatar-upload-form {
@@ -45,35 +54,24 @@
     justify-content: center;
   }
   
-  button {
+  .select-button {
     padding: 10px 16px;
     border-radius: 4px;
     border: none;
+    background-color: #f0f0f0;
+    color: #333;
     cursor: pointer;
     font-weight: 600;
     transition: background-color 0.2s;
-  }
-  
-  .select-button {
-    background-color: #f0f0f0;
-    color: #333;
   }
   
   .select-button:hover {
     background-color: #e0e0e0;
   }
   
-  .upload-button {
-    background-color: #4a90e2;
-    color: #fff;
-  }
-  
-  .upload-button:hover {
-    background-color: #357ae8;
-  }
-  
-  .upload-button:disabled {
-    background-color: #a8c6e5;
+  .select-button:disabled {
+    background-color: #f5f5f5;
+    color: #999;
     cursor: not-allowed;
   }
   
@@ -81,6 +79,7 @@
     color: #e53935;
     font-size: 14px;
     margin: 0;
+    text-align: center;
   }
   
   .help-text {
@@ -88,4 +87,21 @@
     color: #666;
     margin: 0;
     text-align: center;
+  }
+  
+  /* Add to employee form CSS to make avatar upload stand out */
+  .avatar-upload-section {
+    margin-bottom: 32px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .avatar-upload-container {
+      padding: 16px;
+    }
+    
+    .avatar-preview-container {
+      width: 120px;
+      height: 120px;
+    }
   }

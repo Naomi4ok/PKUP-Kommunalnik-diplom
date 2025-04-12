@@ -37,10 +37,14 @@
     font-weight: 500;
   }
   
+  /* Remove the old ant design upload styles */
   .employee-form .ant-upload.ant-upload-select-picture-card {
-    width: 128px;
-    height: 128px;
-    border-radius: 4px;
+    display: none;
+  }
+  
+  /* Add styles for avatar upload section */
+  .avatar-upload-section {
+    margin-bottom: 32px;
   }
   
   .form-actions {
@@ -65,5 +69,10 @@
     
     .form-actions {
       text-align: center;
+    }
+  
+    /* Make avatar upload component responsive */
+    .avatar-upload-section {
+      margin-bottom: 24px;
     }
   }

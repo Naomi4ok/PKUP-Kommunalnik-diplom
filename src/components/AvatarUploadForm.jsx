@@ -1,12 +1,19 @@
-import { useState, useRef } from 'react';
-import './AvatarUploadForm.css'; // You can create this file for styling
+import { useState, useRef, useEffect } from 'react';
+import './AvatarUploadForm.css';
 
-const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5 }) => {
+const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5, initialImageUrl = null }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(initialImageUrl);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Set initial preview URL if provided
+  useEffect(() => {
+    if (initialImageUrl) {
+      setPreviewUrl(initialImageUrl);
+    }
+  }, [initialImageUrl]);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -35,54 +42,29 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5 }) => {
     setPreviewUrl(objectUrl);
     setSelectedImage(file);
     
+    // Automatically upload when a valid file is selected
+    handleImageUpload(file, objectUrl);
+    
     // Clean up the URL when component unmounts
     return () => URL.revokeObjectURL(objectUrl);
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    
-    if (!selectedImage) {
-      setError('Please select an image first');
-      return;
-    }
-    
+  const handleImageUpload = async (file, fileUrl) => {
     try {
       setIsUploading(true);
       
-      // Create a FormData object to hold the file
-      const formData = new FormData();
-      formData.append('avatar', selectedImage);
-      
-      // This is where you would call your API to upload the image
-      // Example:
-      // const response = await fetch('your-upload-api-endpoint', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-      // const data = await response.json();
-      
-      // For demonstration purposes, we'll simulate a successful upload
-      // Replace this with your actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       // Call the provided callback with the uploaded image data
-      // In a real implementation, you would pass the response from your API
       onAvatarUpload({
-        url: previewUrl,
-        filename: selectedImage.name,
-        fileType: selectedImage.type,
-        fileSize: selectedImage.size,
+        url: fileUrl,
+        selectedImage: file,
+        filename: file.name,
+        fileType: file.type,
+        fileSize: file.size,
       });
-      
-      // Reset form after successful upload
-      // Uncomment if you want to reset after upload
-      // setSelectedImage(null);
-      // setPreviewUrl(null);
       
     } catch (err) {
       console.error('Upload failed:', err);
-      setError('Failed to upload image. Please try again.');
+      setError('Failed to process image. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -94,9 +76,9 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5 }) => {
 
   return (
     <div className="avatar-upload-container">
-      <h2>Upload Profile Picture</h2>
+      <h3>Employee Photo</h3>
       
-      <form onSubmit={handleSubmit} className="avatar-upload-form">
+      <div className="avatar-upload-form">
         <div className="avatar-preview-container">
           {previewUrl ? (
             <img 
@@ -125,16 +107,9 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5 }) => {
             type="button" 
             onClick={triggerFileInput} 
             className="select-button"
+            disabled={isUploading}
           >
-            Select Image
-          </button>
-          
-          <button 
-            type="submit" 
-            className="upload-button"
-            disabled={!selectedImage || isUploading}
-          >
-            {isUploading ? 'Uploading...' : 'Upload Avatar'}
+            {previewUrl ? 'Change Image' : 'Select Image'}
           </button>
         </div>
         
@@ -143,7 +118,7 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5 }) => {
         <p className="help-text">
           Supported formats: JPEG, PNG, GIF, WEBP. Maximum size: {maxSizeInMB}MB
         </p>
-      </form>
+      </div>
     </div>
   );
 };
