@@ -189,4 +189,17 @@
   .ant-table-cell:last-child {
     padding: 8px !important;
   }
+
+  /* Add this to your existing EmployeeForm.css */
+
+.custom-time-wrapper {
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+/* Ensure the TimeInput component matches the styling of other form elements */
+.time-input {
+  height: 40px;
+  box-sizing: border-box;
+}
 }
