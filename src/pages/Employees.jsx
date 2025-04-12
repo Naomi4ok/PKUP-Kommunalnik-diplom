@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   Button,
-  Form,
-  Input,
-  Select,
-  Upload,
   Space,
   Card,
   Typography,
@@ -13,15 +10,12 @@ import {
   Popconfirm,
   Spin,
   Tag,
-  Modal,
   Divider,
   Dropdown,
-  Row,
-  Col
+  Input
 } from 'antd';
 import {
   UserOutlined,
-  UploadOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -33,23 +27,15 @@ import {
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
 import SearchBar from '../components/SearchBar';
-import Pagination from '../components/Pagination'; // Import the custom Pagination component
+import Pagination from '../components/Pagination';
 
 const { Title } = Typography;
-const { Option } = Select;
-const { TextArea } = Input;
 
 const Employees = () => {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState('Add Employee');
-  const [editingEmployee, setEditingEmployee] = useState(null);
-  const [form] = Form.useForm();
-  const [fileList, setFileList] = useState([]);
-  const [previewImage, setPreviewImage] = useState(null);
-  const [previewVisible, setPreviewVisible] = useState(false);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importFileList, setImportFileList] = useState([]);
   const [importing, setImporting] = useState(false);
@@ -111,21 +97,30 @@ const Employees = () => {
   const exportToExcel = () => {
     try {
       // Create a clean dataset without photos and with formatted data
-      const exportData = employees.map(employee => ({
-        'Full Name': employee.Full_Name,
-        'Position': employee.Position || '',
-        'Department': employee.Department || '',
-        'Contact Details': employee.Contact_Details || '',
-        'Work Schedule': employee.Work_Schedule || '',
-        'Status': employee.Status || 'Active'
-      }));
+      const exportData = employees.map(employee => {
+        // Split full name into first and last name if possible
+        const nameParts = employee.Full_Name ? employee.Full_Name.split(' ') : ['', ''];
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        return {
+          'First Name': firstName,
+          'Last Name': lastName,
+          'Position': employee.Position || '',
+          'Department': employee.Department || '',
+          'Contact Details': employee.Contact_Details || '',
+          'Work Schedule': employee.Work_Schedule || '',
+          'Status': employee.Status || 'Active'
+        };
+      });
       
       // Create worksheet from data
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       
       // Set column widths
       const wscols = [
-        { wch: 25 }, // Full Name
+        { wch: 15 }, // First Name
+        { wch: 20 }, // Last Name
         { wch: 20 }, // Position
         { wch: 20 }, // Department
         { wch: 30 }, // Contact Details
@@ -192,14 +187,19 @@ const Employees = () => {
           }
           
           // Map Excel columns to database fields
-          const employees = jsonData.map(row => ({
-            fullName: row['Full Name'] || '',
-            position: row['Position'] || '',
-            department: row['Department'] || '',
-            contactDetails: row['Contact Details'] || '',
-            workSchedule: row['Work Schedule'] || '',
-            status: row['Status'] || 'Active'
-          }));
+          const employees = jsonData.map(row => {
+            // Combine First Name and Last Name into Full Name
+            const fullName = `${row['First Name'] || ''} ${row['Last Name'] || ''}`.trim();
+            
+            return {
+              fullName: fullName || '',
+              position: row['Position'] || '',
+              department: row['Department'] || '',
+              contactDetails: row['Contact Details'] || '',
+              workSchedule: row['Work Schedule'] || '',
+              status: row['Status'] || 'Active'
+            };
+          });
           
           // Filter out invalid entries (missing required fields)
           const validEmployees = employees.filter(emp => emp.fullName.trim() !== '');
@@ -248,97 +248,14 @@ const Employees = () => {
     }
   };
 
-  // Show modal for adding or editing employee
-  const showModal = (employee = null) => {
-    setModalTitle(employee ? 'Edit Employee' : 'Add Employee');
-    setEditingEmployee(employee);
-    
-    // Reset form and file list
-    form.resetFields();
-    setFileList([]);
-    
-    if (employee) {
-      // Populate form with employee data
-      form.setFieldsValue({
-        fullName: employee.Full_Name,
-        position: employee.Position || '',
-        department: employee.Department || '',
-        contactDetails: employee.Contact_Details || '',
-        workSchedule: employee.Work_Schedule || '',
-        status: employee.Status || 'Active',
-      });
-      
-      // If employee has a photo, add it to the file list
-      if (employee.Photo) {
-        setFileList([{
-          uid: '-1',
-          name: 'employee-photo.jpg',
-          status: 'done',
-          url: `data:image/jpeg;base64,${employee.Photo}`,
-        }]);
-      }
-    }
-    
-    setModalVisible(true);
+  // Navigate to add employee page
+  const goToAddEmployee = () => {
+    navigate('/employees/add');
   };
 
-  // Handle modal cancel
-  const handleCancel = () => {
-    setModalVisible(false);
-  };
-
-  // Handle import modal cancel
-  const handleImportCancel = () => {
-    setImportModalVisible(false);
-    setImportFileList([]);
-  };
-
-  // Handle form submission (add or update employee)
-  const handleSubmit = async (values) => {
-    // Create FormData object to handle file upload
-    const formData = new FormData();
-    formData.append('fullName', values.fullName);
-    formData.append('position', values.position || '');
-    formData.append('department', values.department || '');
-    formData.append('contactDetails', values.contactDetails || '');
-    formData.append('workSchedule', values.workSchedule || '');
-    formData.append('status', values.status || 'Active');
-    
-    // Get file from fileList if it exists
-    if (fileList.length > 0 && fileList[0].originFileObj) {
-      formData.append('photo', fileList[0].originFileObj);
-    }
-
-    try {
-      let response;
-      
-      if (editingEmployee) {
-        // Update existing employee
-        response = await fetch(`/api/employees/${editingEmployee.Employee_ID}`, {
-          method: 'PUT',
-          body: formData
-        });
-      } else {
-        // Add new employee
-        response = await fetch('/api/employees', {
-          method: 'POST',
-          body: formData
-        });
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      // Success message
-      message.success(`Employee ${editingEmployee ? 'updated' : 'added'} successfully!`);
-      
-      // Close the modal and refresh employee list
-      setModalVisible(false);
-      fetchEmployees();
-    } catch (err) {
-      message.error(`Failed to ${editingEmployee ? 'update' : 'add'} employee: ${err.message}`);
-    }
+  // Navigate to edit employee page
+  const goToEditEmployee = (id) => {
+    navigate(`/employees/edit/${id}`);
   };
 
   // Handle employee deletion
@@ -357,25 +274,6 @@ const Employees = () => {
     } catch (err) {
       message.error(`Failed to delete employee: ${err.message}`);
     }
-  };
-
-  // Handle file upload change
-  const handleUploadChange = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
-  };
-
-  // Handle image preview
-  const handlePreview = async (file) => {
-    if (file.url) {
-      setPreviewImage(file.url);
-    } else if (file.originFileObj) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file.originFileObj);
-    }
-    setPreviewVisible(true);
   };
 
   // Handle page change for custom pagination
@@ -397,10 +295,6 @@ const Employees = () => {
             src={`data:image/jpeg;base64,${photo}`} 
             alt="Employee" 
             className="ant-employee-photo"
-            onClick={() => {
-              setPreviewImage(`data:image/jpeg;base64,${photo}`);
-              setPreviewVisible(true);
-            }}
           />
         ) : (
           <div className="ant-employee-photo-placeholder">
@@ -509,7 +403,7 @@ const Employees = () => {
                 key: '1',
                 label: 'Edit',
                 icon: <EditOutlined />,
-                onClick: () => showModal(record)
+                onClick: () => goToEditEmployee(record.Employee_ID)
               },
               {
                 key: '2',
@@ -585,7 +479,7 @@ const Employees = () => {
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
-                onClick={() => showModal()}
+                onClick={goToAddEmployee}
                 className="ant-add-button"
               >
                 Add Employee
@@ -616,162 +510,6 @@ const Employees = () => {
           </Spin>
         </div>
       </Card>
-      
-      {/* Add/Edit Employee Modal */}
-      <Modal
-        title={modalTitle}
-        open={modalVisible}
-        onCancel={handleCancel}
-        footer={null}
-        destroyOnClose
-        width={600}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{
-            status: 'Active',
-          }}
-        >
-          <Form.Item
-            name="fullName"
-            label="Full Name"
-            rules={[{ required: true, message: 'Please enter full name' }]}
-          >
-            <Input placeholder="Enter full name" />
-          </Form.Item>
-          
-          <Form.Item
-            name="position"
-            label="Position"
-          >
-            <Input placeholder="Enter position" />
-          </Form.Item>
-          
-          <Form.Item
-            name="department"
-            label="Department"
-          >
-            <Input placeholder="Enter department" />
-          </Form.Item>
-          
-          <Form.Item
-            name="contactDetails"
-            label="Contact Details"
-          >
-            <TextArea rows={2} placeholder="Enter contact details (phone, email, etc.)" />
-          </Form.Item>
-          
-          <Form.Item
-            name="workSchedule"
-            label="Work Schedule"
-          >
-            <Input placeholder="Enter work schedule" />
-          </Form.Item>
-          
-          <Form.Item
-            name="status"
-            label="Status"
-          >
-            <Select>
-              <Option value="Active">Active</Option>
-              <Option value="On Leave">On Leave</Option>
-              <Option value="Terminated">Terminated</Option>
-            </Select>
-          </Form.Item>
-          
-          <Form.Item
-            name="photo"
-            label="Photo"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => {
-              if (Array.isArray(e)) {
-                return e;
-              }
-              return e && e.fileList;
-            }}
-          >
-            <Upload
-              listType="picture-card"
-              fileList={fileList}
-              onChange={handleUploadChange}
-              onPreview={handlePreview}
-              beforeUpload={() => false} // Prevent automatic upload
-              maxCount={1}
-            >
-              {fileList.length >= 1 ? null : (
-                <div>
-                  <UploadOutlined />
-                  <div style={{ marginTop: 8 }}>Upload</div>
-                </div>
-              )}
-            </Upload>
-          </Form.Item>
-          
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                {editingEmployee ? 'Update' : 'Add'}
-              </Button>
-              <Button onClick={handleCancel}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-      
-      {/* Import Modal */}
-      <Modal
-        title="Import Employees"
-        open={importModalVisible}
-        onCancel={handleImportCancel}
-        footer={[
-          <Button key="cancel" onClick={handleImportCancel}>
-            Cancel
-          </Button>,
-          <Button 
-            key="import" 
-            type="primary" 
-            onClick={handleImport}
-            loading={importing}
-            disabled={importFileList.length === 0}
-          >
-            Import
-          </Button>
-        ]}
-      >
-        <div className="import-instructions">
-          <p>Upload an Excel file (.xlsx) with employee data. The file should have the following columns:</p>
-          <ul>
-            <li><strong>Full Name</strong> (required)</li>
-            <li>Position</li>
-            <li>Department</li>
-            <li>Contact Details</li>
-            <li>Work Schedule</li>
-            <li>Status (Active, On Leave, or Terminated)</li>
-          </ul>
-          <p>You can download the current employee list as a template using the Export button.</p>
-        </div>
-        
-        <Upload
-          fileList={importFileList}
-          onChange={handleImportFileChange}
-          beforeUpload={() => false}
-          accept=".xlsx,.xls"
-          maxCount={1}
-        >
-          <Button icon={<UploadOutlined />}>Select File</Button>
-        </Upload>
-      </Modal>
-      
-      {/* Preview Modal */}
-      <Modal
-        open={previewVisible}
-        footer={null}
-        onCancel={() => setPreviewVisible(false)}
-      >
-        <img alt="Preview" style={{ width: '100%' }} src={previewImage} />
-      </Modal>
     </div>
   );
 };

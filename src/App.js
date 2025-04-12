@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons';
 import './App.css';
 import Employees from './pages/Employees';
+import EmployeeForm from './pages/EmployeeForm';
 import Logo from './components/Logo';
 import SidebarTrigger from './components/SidebarTrigger';
 
@@ -65,6 +66,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/employees" element={<Employees />} />
+              {/* Add new routes for employee form */}
+              <Route path="/employees/add" element={<EmployeeForm />} />
+              <Route path="/employees/edit/:id" element={<EmployeeForm />} />
               {/* Add routes for other tables */}
             </Routes>
           </Content>
