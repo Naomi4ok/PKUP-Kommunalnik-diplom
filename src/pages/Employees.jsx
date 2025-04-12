@@ -14,7 +14,8 @@ import {
   Dropdown,
   Input,
   Modal,
-  Image
+  Image,
+  Upload
 } from 'antd';
 import {
   UserOutlined,
@@ -24,7 +25,8 @@ import {
   SearchOutlined,
   FileExcelOutlined,
   ImportOutlined,
-  MoreOutlined
+  MoreOutlined,
+  InboxOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
@@ -43,10 +45,10 @@ const Employees = () => {
   const [importing, setImporting] = useState(false);
   const [pageSize, setPageSize] = useState(8);
   const [currentPage, setCurrentPage] = useState(1);
-  // New state for avatar preview
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
+  const [importError, setImportError] = useState(''); // New state for tracking import errors
 
   // Fetch employees on component mount
   useEffect(() => {
@@ -166,22 +168,82 @@ const Employees = () => {
   // Open import modal
   const showImportModal = () => {
     setImportFileList([]);
+    setImportError(''); // Clear any previous errors
     setImportModalVisible(true);
   };
 
   // Handle import file change
-  const handleImportFileChange = ({ fileList }) => {
-    setImportFileList(fileList);
+  const handleImportFileChange = (info) => {
+    console.log('File changed:', info);
+    setImportFileList(info.fileList.slice(-1)); // Keep only the latest file
+  };
+
+  // Create a template for download
+  const downloadTemplate = () => {
+    // Create sample data
+    const sampleData = [
+      {
+        'First Name': 'John',
+        'Last Name': 'Doe',
+        'Position': 'Manager',
+        'Department': 'IT',
+        'Contact Details': '+375(29)123-45-67',
+        'Work Schedule': '9:00 to 17:00',
+        'Status': 'Active'
+      },
+      {
+        'First Name': 'Jane',
+        'Last Name': 'Smith',
+        'Position': 'Developer',
+        'Department': 'Engineering',
+        'Contact Details': '+375(33)765-43-21',
+        'Work Schedule': 'Flexible',
+        'Status': 'On Leave'
+      }
+    ];
+    
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(sampleData);
+    
+    // Set column widths
+    const wscols = [
+      { wch: 15 }, // First Name
+      { wch: 20 }, // Last Name
+      { wch: 20 }, // Position
+      { wch: 20 }, // Department
+      { wch: 30 }, // Contact Details
+      { wch: 20 }, // Work Schedule
+      { wch: 15 }  // Status
+    ];
+    worksheet['!cols'] = wscols;
+    
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
+    
+    // Download
+    XLSX.writeFile(workbook, 'Employee_Import_Template.xlsx');
   };
 
   // Process the imported Excel file
   const handleImport = async () => {
-    if (importFileList.length === 0) {
+    setImportError('');
+    
+    if (!importFileList || importFileList.length === 0) {
+      setImportError('Please select an Excel file to import');
       message.error('Please select an Excel file to import');
       return;
     }
 
     const file = importFileList[0].originFileObj;
+    console.log('Processing file:', file);
+    
+    if (!file) {
+      setImportError('Invalid file object');
+      message.error('Invalid file object');
+      return;
+    }
+    
     setImporting(true);
 
     try {
@@ -189,6 +251,7 @@ const Employees = () => {
       const reader = new FileReader();
       
       reader.onload = async (e) => {
+        console.log('File loaded successfully');
         try {
           // Parse the Excel data
           const data = new Uint8Array(e.target.result);
@@ -196,28 +259,52 @@ const Employees = () => {
           
           // Get the first worksheet
           const worksheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[worksheetName];
-          
-          // Convert to JSON
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 2 });
-          
-          // Validate the data structure
-          if (jsonData.length === 0) {
-            throw new Error('The Excel file is empty or has invalid data.');
+          if (!worksheetName) {
+            throw new Error('Excel file has no sheets');
           }
           
-          // Map Excel columns to database fields
-          const employees = jsonData.map(row => {
-            // Combine First Name and Last Name into Full Name
-            const fullName = `${row['First Name'] || ''} ${row['Last Name'] || ''}`.trim();
+          const worksheet = workbook.Sheets[worksheetName];
+          
+          // Convert to JSON - more robust parsing with headers
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A" });
+          
+          console.log('Parsed Excel data:', jsonData);
+          
+          // Validate the data structure
+          if (!jsonData || jsonData.length <= 1) { // Account for header row
+            throw new Error('The Excel file is empty or has invalid data');
+          }
+          
+          // Find the header row and identify column positions
+          const headerRow = jsonData[0];
+          const columns = {
+            firstName: Object.keys(headerRow).find(key => headerRow[key] === 'First Name'),
+            lastName: Object.keys(headerRow).find(key => headerRow[key] === 'Last Name'),
+            position: Object.keys(headerRow).find(key => headerRow[key] === 'Position'),
+            department: Object.keys(headerRow).find(key => headerRow[key] === 'Department'),
+            contactDetails: Object.keys(headerRow).find(key => headerRow[key] === 'Contact Details'),
+            workSchedule: Object.keys(headerRow).find(key => headerRow[key] === 'Work Schedule'),
+            status: Object.keys(headerRow).find(key => headerRow[key] === 'Status')
+          };
+          
+          if (!columns.firstName && !columns.lastName) {
+            throw new Error('Excel file is missing First Name or Last Name columns');
+          }
+          
+          // Map rows to our format, skipping header row
+          const employees = jsonData.slice(1).map(row => {
+            // Extract values using identified column positions
+            const firstName = columns.firstName ? row[columns.firstName] || '' : '';
+            const lastName = columns.lastName ? row[columns.lastName] || '' : '';
+            const fullName = `${firstName} ${lastName}`.trim();
             
             return {
-              fullName: fullName || '',
-              position: row['Position'] || '',
-              department: row['Department'] || '',
-              contactDetails: row['Contact Details'] || '',
-              workSchedule: row['Work Schedule'] || '',
-              status: row['Status'] || 'Active'
+              fullName: fullName,
+              position: columns.position ? row[columns.position] || '' : '',
+              department: columns.department ? row[columns.department] || '' : '',
+              contactDetails: columns.contactDetails ? row[columns.contactDetails] || '' : '',
+              workSchedule: columns.workSchedule ? row[columns.workSchedule] || '' : '',
+              status: columns.status ? row[columns.status] || 'Active' : 'Active'
             };
           });
           
@@ -228,6 +315,8 @@ const Employees = () => {
             throw new Error('No valid employee data found. Full Name is required.');
           }
           
+          console.log('Employees to import:', validEmployees);
+          
           // Send the data to the server
           const response = await fetch('/api/employees/import', {
             method: 'POST',
@@ -237,25 +326,32 @@ const Employees = () => {
             body: JSON.stringify({ employees: validEmployees })
           });
           
+          console.log('Server response status:', response.status);
+          
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Import failed');
           }
           
           const result = await response.json();
+          console.log('Import result:', result);
           
           setImportModalVisible(false);
           message.success(`Successfully imported ${result.imported} employees`);
           fetchEmployees();
           
         } catch (err) {
+          console.error('Import processing error:', err);
+          setImportError(`Import failed: ${err.message}`);
           message.error(`Import failed: ${err.message}`);
         } finally {
           setImporting(false);
         }
       };
       
-      reader.onerror = () => {
+      reader.onerror = (error) => {
+        console.error('File reading error:', error);
+        setImportError('Failed to read file');
         message.error('Failed to read file');
         setImporting(false);
       };
@@ -263,6 +359,8 @@ const Employees = () => {
       reader.readAsArrayBuffer(file);
       
     } catch (err) {
+      console.error('Import error:', err);
+      setImportError(`Import failed: ${err.message}`);
       message.error(`Import failed: ${err.message}`);
       setImporting(false);
     }
@@ -535,7 +633,7 @@ const Employees = () => {
 
       {/* Image Preview Modal */}
       <Modal
-        visible={previewVisible}
+        open={previewVisible}
         title={previewTitle}
         footer={null}
         onCancel={handlePreviewCancel}
@@ -547,6 +645,65 @@ const Employees = () => {
             src={previewImage} 
           />
         </div>
+      </Modal>
+
+      {/* Import Modal with debugging improvements */}
+      <Modal
+        title="Import Employees from Excel"
+        open={importModalVisible}
+        onCancel={() => setImportModalVisible(false)}
+        footer={[
+          <Button key="template" onClick={downloadTemplate} style={{ float: 'left' }}>
+            Download Template
+          </Button>,
+          <Button key="cancel" onClick={() => setImportModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button
+            key="import"
+            type="primary"
+            loading={importing}
+            onClick={handleImport}
+            disabled={importFileList.length === 0}
+          >
+            Import
+          </Button>
+        ]}
+      >
+        <div className="import-instructions">
+          <p>Please upload an Excel file with the following columns:</p>
+          <ul>
+            <li><strong>First Name</strong> (required)</li>
+            <li><strong>Last Name</strong></li>
+            <li>Position</li>
+            <li>Department</li>
+            <li>Contact Details</li>
+            <li>Work Schedule</li>
+            <li>Status</li>
+          </ul>
+        </div>
+
+        {importError && (
+          <div className="import-error" style={{ color: 'red', marginBottom: '10px' }}>
+            Error: {importError}
+          </div>
+        )}
+
+        <Upload.Dragger
+          accept=".xlsx,.xls"
+          beforeUpload={() => false} // Prevent auto upload
+          fileList={importFileList}
+          onChange={handleImportFileChange}
+          maxCount={1}
+        >
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">Click or drag file to this area to upload</p>
+          <p className="ant-upload-hint">
+            Support for a single Excel file upload. Ensure your file has the required columns.
+          </p>
+        </Upload.Dragger>
       </Modal>
     </div>
   );
