@@ -399,8 +399,6 @@ const EmployeeForm = () => {
                     optionFilterProp="children"
                     allowClear
                     mode="tags"
-                    maxTagCount={0}
-                    maxTagPlaceholder={(omittedValues) => `${omittedValues.length} selected`}
                   >
                     {positions.map(position => (
                       <Option key={position} value={position}>
@@ -422,8 +420,6 @@ const EmployeeForm = () => {
                     optionFilterProp="children"
                     allowClear
                     mode="tags"
-                    maxTagCount={0}
-                    maxTagPlaceholder={(omittedValues) => `${omittedValues.length} selected`}
                   >
                     {departments.map(department => (
                       <Option key={department} value={department}>
@@ -439,12 +435,20 @@ const EmployeeForm = () => {
               label="Contact Details (Phone)"
               rules={[{ validator: validatePhoneNumber }]}
             >
-              <Input 
-                ref={inputRef}
-                placeholder="+375(XX)YYY-YY-YY" 
-                value={phoneValue}
-                onChange={handlePhoneChange}
-              />
+              <div className="phone-input-wrapper">
+                <Input 
+                  ref={inputRef}
+                  value={phoneValue}
+                  onChange={handlePhoneChange}
+                  className="phone-input"
+                />
+                {phoneValue === '+375' && (
+                  <div className="phone-placeholder">
+                    <span className="prefix">+375</span>
+                    <span className="format">(XX)YYY-YY-YY</span>
+                  </div>
+                )}
+              </div>
             </Form.Item>
             
             <Form.Item

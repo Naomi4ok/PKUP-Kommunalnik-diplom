@@ -1,78 +1,104 @@
 .employee-form-container {
-    padding: 24px;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  
-  .employee-form-card {
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
-  
-  .employee-form-breadcrumb {
-    margin-bottom: 16px;
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.employee-form-card {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.employee-form-breadcrumb {
+  margin-bottom: 16px;
+}
+
+.employee-form-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.employee-form-title {
+  margin-bottom: 0 !important;
+  margin-left: 16px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+}
+
+.employee-form .ant-form-item {
+  margin-bottom: 24px;
+}
+
+.employee-form .ant-form-item-label {
+  font-weight: 500;
+}
+
+/* Remove the old ant design upload styles */
+.employee-form .ant-upload.ant-upload-select-picture-card {
+  display: none;
+}
+
+/* Add styles for avatar upload section */
+.avatar-upload-section {
+  margin-bottom: 32px;
+}
+
+.form-actions {
+  margin-top: 32px;
+  text-align: right;
+}
+
+/* Phone input styling */
+.phone-input-wrapper {
+  position: relative;
+}
+
+.phone-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  padding: 0 11px; /* Match Ant Design's input padding */
+}
+
+.phone-placeholder .prefix {
+  opacity: 0; /* Hide the prefix as it's already visible in the input */
+}
+
+.phone-placeholder .format {
+  opacity: 0.5;
+  margin-left: 22px;
+}
+
+@media (max-width: 768px) {
+  .employee-form-container {
+    padding: 16px;
   }
   
   .employee-form-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 24px;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .employee-form-title {
-    margin-bottom: 0 !important;
-    margin-left: 16px;
-  }
-  
-  .back-button {
-    display: flex;
-    align-items: center;
-  }
-  
-  .employee-form .ant-form-item {
-    margin-bottom: 24px;
-  }
-  
-  .employee-form .ant-form-item-label {
-    font-weight: 500;
-  }
-  
-  /* Remove the old ant design upload styles */
-  .employee-form .ant-upload.ant-upload-select-picture-card {
-    display: none;
-  }
-  
-  /* Add styles for avatar upload section */
-  .avatar-upload-section {
-    margin-bottom: 32px;
+    margin-top: 16px;
+    margin-left: 0;
   }
   
   .form-actions {
-    margin-top: 32px;
-    text-align: right;
+    text-align: center;
   }
-  
-  @media (max-width: 768px) {
-    .employee-form-container {
-      padding: 16px;
-    }
-    
-    .employee-form-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .employee-form-title {
-      margin-top: 16px;
-      margin-left: 0;
-    }
-    
-    .form-actions {
-      text-align: center;
-    }
-  
-    /* Make avatar upload component responsive */
-    .avatar-upload-section {
-      margin-bottom: 24px;
-    }
+
+  /* Make avatar upload component responsive */
+  .avatar-upload-section {
+    margin-bottom: 24px;
   }
+}

@@ -26,7 +26,8 @@ import {
   FileExcelOutlined,
   ImportOutlined,
   MoreOutlined,
-  InboxOutlined
+  InboxOutlined,
+  EllipsisOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
@@ -547,7 +548,7 @@ const Employees = () => {
         >
           <Button 
             type="text" 
-            icon={<MoreOutlined />}
+            icon={<EllipsisOutlined  />}
             className="action-more-button"
           />
         </Dropdown>
