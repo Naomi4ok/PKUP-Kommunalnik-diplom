@@ -81,13 +81,13 @@
   }
   
   .pagination-button.active {
-    background-color: #1890ff17;
-    color: #00aaff;
+    background-color: #f3f8f0;
+    color: #7eaf50;
   }
   
   .pagination-button:not(.active):not(.disabled):hover {
-    background-color: #1890ff17;
-    color: #00aaff;
+    background-color: #f3f8f0;
+    color: #7eaf50;
   }
   
   .pagination-button.disabled {

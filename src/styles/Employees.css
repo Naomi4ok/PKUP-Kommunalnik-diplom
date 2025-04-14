@@ -5,6 +5,10 @@
   animation: fadeIn 0.5s ease-out;
 }
 
+.ant-layout {
+  background-color: #F5F6FA;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -45,15 +49,57 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #7db660 !important; /* Added !important to override any other styles */
+  color: white !important; /* Ensuring text is white for better contrast */
+  border-color: #7db660 !important; /* Match border color to background */
 }
 
 .ant-add-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 4px 10px rgba(125, 182, 96, 0.3);
+  background-color: #6ba551 !important; /* Slightly darker shade for hover state with !important */
+  border-color: #6ba551 !important; /* Match border color on hover */
 }
 
-.ant-export-button, .ant-import-button {
+/* Add active/pressed state styling */
+.ant-add-button:active,
+.ant-add-button.ant-btn-primary:active {
+  background-color: #5c9346 !important; /* Even darker for active/pressed state */
+  border-color: #5c9346 !important;
+  color: white !important;
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Override any focus styles that might be changing the color */
+.ant-add-button:focus {
+  background-color: #7db660 !important;
+  border-color: #7db660 !important;
+  color: white !important;
+}
+
+/* Ensure that the button remains green even when it has the ant-btn-primary class */
+button.ant-add-button.ant-btn-primary {
+  background-color: #7db660 !important;
+  border-color: #7db660 !important;
+}
+
+button.ant-add-button.ant-btn-primary:hover {
+  background-color: #6ba551 !important;
+  border-color: #6ba551 !important;
+}
+
+.ant-export-button {
+  background-color: #F5F5F5; /* Light gray color for buttons */
+  color: black;
+  height: 50px;
+  width: 110px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.ant-import-button {
   background-color: #F5F5F5; /* Light gray color for buttons */
   color: black;
   height: 50px;
@@ -133,8 +179,7 @@
 
 .ant-employee-photo:hover {
   transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-color: #1890ff;
+  border-color: #7db660;
   filter: brightness(1.1);
 }
 
@@ -152,8 +197,8 @@
 }
 
 .ant-employee-photo-placeholder:hover {
-  background-color: #e6f7ff;
-  color: #1890ff;
+  background-color: #f2f7ee;
+  color: #7db660;
   transform: scale(1.1);
 }
 
@@ -180,37 +225,55 @@
   width: 100%;
 }
 
-/* Enhanced filter button styling with glow effect */
 .ant-filter-button {
-  background-color: #F5F5F5;
-  color: black;
+  background-color: #6d88db !important; /* Changed from #F5F5F5 to #6d88db */
+  color: white !important; /* Changed from black to white for better contrast */
   height: 50px;
   width: 110px;
   box-shadow: none;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  border-color: #6d88db !important; /* Match border color to background */
 }
 
 .ant-filter-button:hover {
-  background-color: #1890ff;
-  color: white;
+  background-color: #5b76c7 !important; /* Slightly darker shade for hover state */
+  color: white !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(109, 136, 219, 0.3); /* Updated shadow color to match new button color */
+  border-color: #5b76c7 !important; /* Match border color on hover */
 }
 
 /* Active filter button with pulsing glow effect */
 .ant-filter-button.active {
-  background-color: #1890ff;
-  color: white;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  background-color: #6d88db !important; /* Changed from #1890ff to #6d88db */
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(109, 136, 219, 0.3); /* Updated shadow color */
   animation: pulse 2s infinite;
+  border-color: #6d88db !important;
 }
 
+/* Add active/pressed state styling */
+.ant-filter-button:active {
+  background-color: #4a64ad !important; /* Even darker for active/pressed state */
+  border-color: #4a64ad !important;
+  color: white !important;
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Override any focus styles that might be changing the color */
+.ant-filter-button:focus {
+  background-color: #6d88db !important;
+  border-color: #6d88db !important;
+  color: white !important;
+}
+
+/* Update pulse animation to use the new color */
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.5); }
-  70% { box-shadow: 0 0 0 10px rgba(24, 144, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(109, 136, 219, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(109, 136, 219, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(109, 136, 219, 0); }
 }
 
 /* Create ripple effect on button click */
@@ -411,16 +474,16 @@
 }
 
 tr:hover .employee-name {
-  color: #1890ff;
+  color: #7db660;
 }
 
 tr:hover .employee-position {
-  color: #40a9ff;
+  color: #7db660;
 }
 
 /* Add subtle row hover effect */
 .ant-table-tbody > tr:hover {
-  background-color: #f0f7ff !important;
+  background-color: #f6faf4 !important;
 }
 
 /* Add subtle column hover effect */
@@ -451,10 +514,6 @@ tr:hover .employee-position {
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.ant-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Enhance the upload component */

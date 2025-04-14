@@ -88,22 +88,6 @@
   margin: 0 auto;
 }
 
-/* Make the Add Employee button bigger */
-.ant-add-button {
-  font-size: 16px !important;
-  height: 50px !important;
-  padding: 6px 20px !important;
-  display: flex;
-  align-items: center;
-  box-shadow: none;
-}
-
-/* Increase the icon size in the button */
-.ant-add-button .anticon {
-  font-size: 18px;
-  margin-right: 8px;
-}
-
 .module-cards {
   margin-top: 32px;
 }
