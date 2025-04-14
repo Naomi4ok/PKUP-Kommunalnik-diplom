@@ -3,9 +3,6 @@
 #database
 /database
 
-#Logo
-/src/components/Logo.jsx
-
 # dependencies
 /node_modules
 /.pnp

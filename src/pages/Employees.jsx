@@ -15,7 +15,13 @@ import {
   Input,
   Modal,
   Image,
-  Upload
+  Upload,
+  Collapse,
+  Select,
+  Row,
+  Col,
+  Checkbox,
+  DatePicker
 } from 'antd';
 import {
   UserOutlined,
@@ -27,7 +33,8 @@ import {
   ImportOutlined,
   MoreOutlined,
   InboxOutlined,
-  EllipsisOutlined
+  EllipsisOutlined,
+  FilterOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
@@ -35,6 +42,9 @@ import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
 
 const { Title } = Typography;
+const { Panel } = Collapse;
+const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const Employees = () => {
   const navigate = useNavigate();
@@ -49,16 +59,48 @@ const Employees = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
-  const [importError, setImportError] = useState(''); // New state for tracking import errors
+  const [importError, setImportError] = useState('');
+  
+  // New state for filter functionality
+  const [showFilters, setShowFilters] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [statuses, setStatuses] = useState(['Active', 'On Leave', 'Terminated']);
+  
+  // Filter values
+  const [filterValues, setFilterValues] = useState({
+    departments: [],
+    positions: [],
+    statuses: [],
+    workSchedule: []
+  });
+  
+  // Search query
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch employees on component mount
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  // Update filtered employees when employees change
+  // Update filtered employees when employees change or filters change
   useEffect(() => {
-    setFilteredEmployees(employees);
+    applyFiltersAndSearch();
+  }, [employees, filterValues, searchQuery]);
+
+  // Extract unique departments and positions from employees data
+  useEffect(() => {
+    if (employees.length > 0) {
+      const uniqueDepartments = Array.from(
+        new Set(employees.map(e => e.Department).filter(Boolean))
+      );
+      setDepartments(uniqueDepartments);
+      
+      const uniquePositions = Array.from(
+        new Set(employees.map(e => e.Position).filter(Boolean))
+      );
+      setPositions(uniquePositions);
+    }
   }, [employees]);
 
   // Fetch all employees from the database
@@ -80,6 +122,96 @@ const Employees = () => {
     }
   };
 
+  // Apply both filters and search
+  const applyFiltersAndSearch = () => {
+    let filtered = [...employees];
+    
+    // Apply search query
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(employee => {
+        return (
+          (employee.Full_Name && employee.Full_Name.toLowerCase().includes(query)) ||
+          (employee.Position && employee.Position.toLowerCase().includes(query)) ||
+          (employee.Department && employee.Department.toLowerCase().includes(query)) ||
+          (employee.Contact_Details && employee.Contact_Details.toLowerCase().includes(query)) ||
+          (employee.Work_Schedule && employee.Work_Schedule.toLowerCase().includes(query)) ||
+          (employee.Status && employee.Status.toLowerCase().includes(query))
+        );
+      });
+    }
+    
+    // Apply department filter
+    if (filterValues.departments.length > 0) {
+      filtered = filtered.filter(employee => 
+        filterValues.departments.includes(employee.Department)
+      );
+    }
+    
+    // Apply position filter
+    if (filterValues.positions.length > 0) {
+      filtered = filtered.filter(employee => 
+        filterValues.positions.includes(employee.Position)
+      );
+    }
+    
+    // Apply status filter
+    if (filterValues.statuses.length > 0) {
+      filtered = filtered.filter(employee => 
+        filterValues.statuses.includes(employee.Status)
+      );
+    }
+    
+    // Apply work schedule filter (basic implementation - can be enhanced)
+    if (filterValues.workSchedule.length > 0) {
+      filtered = filtered.filter(employee => {
+        if (filterValues.workSchedule.includes('Flexible') && employee.Work_Schedule === 'Flexible') {
+          return true;
+        }
+        if (filterValues.workSchedule.includes('Shift Work') && employee.Work_Schedule === 'Shift Work') {
+          return true;
+        }
+        if (filterValues.workSchedule.includes('Custom') && 
+            employee.Work_Schedule && 
+            employee.Work_Schedule !== 'Flexible' && 
+            employee.Work_Schedule !== 'Shift Work') {
+          return true;
+        }
+        return false;
+      });
+    }
+    
+    setFilteredEmployees(filtered);
+  };
+
+  // Toggle filter visibility
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (filterType, values) => {
+    setFilterValues(prev => ({
+      ...prev,
+      [filterType]: values
+    }));
+  };
+
+  // Reset all filters
+  const resetFilters = () => {
+    setFilterValues({
+      departments: [],
+      positions: [],
+      statuses: [],
+      workSchedule: []
+    });
+  };
+
+  // Handle search functionality
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
+
   // Handle avatar preview
   const handlePreview = (photo, name) => {
     if (photo) {
@@ -92,28 +224,6 @@ const Employees = () => {
   // Handle closing the preview modal
   const handlePreviewCancel = () => {
     setPreviewVisible(false);
-  };
-
-  // Handle search functionality
-  const handleSearch = (query) => {
-    if (query.trim() === '') {
-      setFilteredEmployees(employees);
-      return;
-    }
-    
-    const searchQuery = query.toLowerCase();
-    const filtered = employees.filter(employee => {
-      return (
-        (employee.Full_Name && employee.Full_Name.toLowerCase().includes(searchQuery)) ||
-        (employee.Position && employee.Position.toLowerCase().includes(searchQuery)) ||
-        (employee.Department && employee.Department.toLowerCase().includes(searchQuery)) ||
-        (employee.Contact_Details && employee.Contact_Details.toLowerCase().includes(searchQuery)) ||
-        (employee.Work_Schedule && employee.Work_Schedule.toLowerCase().includes(searchQuery)) ||
-        (employee.Status && employee.Status.toLowerCase().includes(searchQuery))
-      );
-    });
-    
-    setFilteredEmployees(filtered);
   };
 
   // Export employees to Excel
@@ -585,9 +695,20 @@ const Employees = () => {
               </Button>
             </div>
             
-            {/* Right side: Search bar and Add Employee button */}
+            {/* Right side: Search bar, Filter button, and Add Employee button */}
             <div className="header-right-content">
-              {/* Search bar on the right side */}
+
+              {/* Filter button - NEW */}
+              <Button
+                type="primary" 
+                icon={<FilterOutlined />}
+                onClick={toggleFilters}
+                className="ant-filter-button"
+              >
+                Filter
+              </Button>
+              
+              {/* Search bar */}
               <div className="employees-search-bar-container">
                 <SearchBar 
                   onSearch={handleSearch} 
@@ -596,7 +717,7 @@ const Employees = () => {
                 />
               </div>
               
-              {/* Add Employee button after search bar */}
+              {/* Add Employee button */}
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
@@ -607,6 +728,93 @@ const Employees = () => {
               </Button>
             </div>
           </div>
+          
+          {showFilters && (
+  <div className={`filter-panel ${showFilters ? 'visible' : ''}`}>
+    <div className="filter-panel-header">
+      <h4>Filter Employees</h4>
+      <Button type="link" onClick={resetFilters}>Reset all filters</Button>
+    </div>
+    
+    <Row gutter={[16, 16]}>
+      {/* Department filter */}
+      <Col xs={24} sm={12} md={6}>
+        <div className="filter-group">
+          <label>Department</label>
+          <Select
+            mode="multiple"
+            placeholder="Select departments"
+            value={filterValues.departments}
+            onChange={(values) => handleFilterChange('departments', values)}
+            style={{ width: '100%' }}
+            maxTagCount="responsive"
+          >
+            {departments.map(dept => (
+              <Option key={dept} value={dept}>{dept}</Option>
+            ))}
+          </Select>
+        </div>
+      </Col>
+      
+      {/* Position filter */}
+      <Col xs={24} sm={12} md={6}>
+        <div className="filter-group">
+          <label>Position</label>
+          <Select
+            mode="multiple"
+            placeholder="Select positions"
+            value={filterValues.positions}
+            onChange={(values) => handleFilterChange('positions', values)}
+            style={{ width: '100%' }}
+            maxTagCount="responsive"
+          >
+            {positions.map(pos => (
+              <Option key={pos} value={pos}>{pos}</Option>
+            ))}
+          </Select>
+        </div>
+      </Col>
+      
+      {/* Status filter */}
+      <Col xs={24} sm={12} md={6}>
+        <div className="filter-group">
+          <label>Status</label>
+          <Select
+            mode="multiple"
+            placeholder="Select status"
+            value={filterValues.statuses}
+            onChange={(values) => handleFilterChange('statuses', values)}
+            style={{ width: '100%' }}
+            maxTagCount="responsive"
+          >
+            {statuses.map(status => (
+              <Option key={status} value={status}>{status}</Option>
+            ))}
+          </Select>
+        </div>
+      </Col>
+      
+      {/* Work Schedule filter */}
+      <Col xs={24} sm={12} md={6}>
+        <div className="filter-group">
+          <label>Work Schedule</label>
+          <Select
+            mode="multiple"
+            placeholder="Select schedule type"
+            value={filterValues.workSchedule}
+            onChange={(values) => handleFilterChange('workSchedule', values)}
+            style={{ width: '100%' }}
+            maxTagCount="responsive"
+          >
+            <Option value="Flexible">Flexible</Option>
+            <Option value="Shift Work">Shift Work</Option>
+            <Option value="Custom">Custom Schedule</Option>
+          </Select>
+        </div>
+      </Col>
+    </Row>
+  </div>
+)}
           
           <Divider />
           

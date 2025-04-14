@@ -2,6 +2,12 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .ant-page-header {
@@ -36,6 +42,15 @@
   margin-bottom: 0;
   height: 40px;
   white-space: nowrap; /* Prevent button text from wrapping */
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.ant-add-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(24, 144, 255, 0.3);
 }
 
 .ant-export-button, .ant-import-button {
@@ -43,16 +58,47 @@
   color: black;
   height: 50px;
   width: 110px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
   box-shadow: none;
 }
 
 .ant-export-button:hover {
-  background-color: #73d13d;
+  background-color: #1890ff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
 }
 
 .ant-import-button:hover {
   background-color: #1890ff;
   color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+/* Add ripple effect for buttons */
+.ant-export-button::after,
+.ant-import-button::after,
+.ant-add-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.7);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.ant-export-button:active::after,
+.ant-import-button:active::after,
+.ant-add-button:active::after {
+  animation: ripple 0.6s ease-out;
 }
 
 .employee-photo-preview-container {
@@ -65,17 +111,31 @@
 .employee-photo-preview-container img {
   max-height: 500px;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
 }
 
-/* Add a hover effect to employee photos */
+.employee-photo-preview-container img:hover {
+  transform: scale(1.02);
+}
+
+/* Add a hover effect to employee photos with improved animation */
 .ant-employee-photo {
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid transparent;
 }
 
 .ant-employee-photo:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #1890ff;
+  filter: brightness(1.1);
 }
 
 .ant-employee-photo-placeholder {
@@ -88,6 +148,13 @@
   justify-content: center;
   font-size: 20px;
   color: #bfbfbf;
+  transition: all 0.3s ease;
+}
+
+.ant-employee-photo-placeholder:hover {
+  background-color: #e6f7ff;
+  color: #1890ff;
+  transform: scale(1.1);
 }
 
 /* Improved styling for search bar container */
@@ -95,7 +162,194 @@
   width: 300px;
   display: flex;
   align-items: center;
+  position: relative;
 }
+
+.employees-search-bar-container::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #1890ff;
+  transition: width 0.3s ease;
+}
+
+.employees-search-bar-container:focus-within::after {
+  width: 100%;
+}
+
+/* Enhanced filter button styling with glow effect */
+.ant-filter-button {
+  background-color: #F5F5F5;
+  color: black;
+  height: 50px;
+  width: 110px;
+  box-shadow: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ant-filter-button:hover {
+  background-color: #1890ff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* Active filter button with pulsing glow effect */
+.ant-filter-button.active {
+  background-color: #1890ff;
+  color: white;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(24, 144, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(24, 144, 255, 0); }
+}
+
+/* Create ripple effect on button click */
+.ant-filter-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.ant-filter-button:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+/* Enhanced filter panel with improved styling and animations */
+.filter-panel {
+  border-radius: 8px;
+  padding: 0;
+  margin-bottom: 20px;
+  border: 1px solid #f0f0f0;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* When filters are shown */
+.filter-panel.visible {
+  max-height: 500px; /* Adjust based on your content height */
+  padding: 20px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.filter-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-panel-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #1890ff;
+  font-weight: 600;
+  position: relative;
+}
+
+.filter-panel-header h4::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background-color: #1890ff;
+}
+
+.filter-panel-header button {
+  transition: all 0.3s ease;
+}
+
+.filter-panel-header button:hover {
+  color: #1890ff;
+  transform: scale(1.05);
+}
+
+/* Improved filter groups with visual enhancements */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.5s ease-out forwards;
+  animation-delay: calc(var(--index, 0) * 0.1s); /* Staggered animation for groups */
+  opacity: 0;
+}
+
+.filter-group:hover {
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
+.filter-group label {
+  font-weight: 500;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.85);
+  margin-bottom: 4px;
+  transition: color 0.3s ease;
+}
+
+.filter-group:hover label {
+  color: #1890ff;
+}
+
+/* Custom select styling to match design */
+.filter-group .ant-select-selector {
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+}
+
+.filter-group:hover .ant-select-selector {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
+}
+
+/* Ripple animation */
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+/* Apply different animation delays to each filter group */
+.filter-panel .ant-col:nth-child(1) .filter-group { --index: 1; }
+.filter-panel .ant-col:nth-child(2) .filter-group { --index: 2; }
+.filter-panel .ant-col:nth-child(3) .filter-group { --index: 3; }
+.filter-panel .ant-col:nth-child(4) .filter-group { --index: 4; }
 
 .employees-search-bar-container .search-container {
   width: 100%;
@@ -103,15 +357,27 @@
   margin: 0;
 }
 
-/* Ensure search input has the same height as buttons */
+/* Ensure search input has the same height as buttons with enhanced styling */
 .employees-search-bar-container .search-input {
   height: 50px;
   box-sizing: border-box;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.employees-search-bar-container .search-input:focus,
+.employees-search-bar-container .search-input:hover {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 /* Import modal styles */
 .import-instructions {
   margin-bottom: 20px;
+  animation: fadeIn 0.5s ease-out;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #1890ff;
 }
 
 .import-instructions ul {
@@ -119,11 +385,21 @@
   margin-bottom: 15px;
 }
 
-/* Employee name and position styling */
+.import-instructions li {
+  margin-bottom: 4px;
+  transition: transform 0.2s ease;
+}
+
+.import-instructions li:hover {
+  transform: translateX(2px);
+}
+
+/* Enhanced employee name and position styling */
 .employee-name {
   font-weight: 500;
   font-size: 14px;
   line-height: 1.4;
+  transition: color 0.2s ease;
 }
 
 .employee-position {
@@ -131,6 +407,89 @@
   color: #8c8c8c;
   margin-top: 2px;
   line-height: 1.2;
+  transition: color 0.2s ease;
+}
+
+tr:hover .employee-name {
+  color: #1890ff;
+}
+
+tr:hover .employee-position {
+  color: #40a9ff;
+}
+
+/* Add subtle row hover effect */
+.ant-table-tbody > tr:hover {
+  background-color: #f0f7ff !important;
+}
+
+/* Add subtle column hover effect */
+.ant-table-cell {
+  transition: background-color 0.3s ease;
+}
+
+.ant-table-cell:hover {
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
+/* Style tags with transition effects */
+.ant-tag {
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.ant-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Add styles for card container */
+.ant-card {
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhance the upload component */
+.ant-upload-drag {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ant-upload-drag:hover {
+  border-color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.02);
+}
+
+.ant-upload-drag-icon {
+  transition: transform 0.3s ease;
+}
+
+.ant-upload-drag:hover .ant-upload-drag-icon {
+  transform: translateY(-5px);
+}
+
+/* Error message styling */
+.import-error {
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  animation: shake 0.5s ease forwards;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
 @media (max-width: 768px) {
@@ -171,6 +530,11 @@
     align-items: center;
     justify-content: center;
     height: 32px;
+    transition: all 0.3s ease;
+  }
+
+  .horizontal-dots-button:hover {
+    transform: scale(1.1);
   }
 
   .horizontal-dots {
@@ -185,10 +549,12 @@
     height: 4px;
     border-radius: 50%;
     background-color: #8c8c8c;
+    transition: all 0.3s ease;
   }
 
   .horizontal-dots-button:hover .dot {
     background-color: #1890ff;
+    transform: scale(1.2);
   }
 
   /* Dropdown menu styling */
@@ -206,15 +572,72 @@
   }
 
   /* Add this to your existing EmployeeForm.css */
+  .custom-time-wrapper {
+    margin-top: -8px;
+    margin-bottom: 16px;
+  }
 
-.custom-time-wrapper {
-  margin-top: -8px;
-  margin-bottom: 16px;
+  /* Ensure the TimeInput component matches the styling of other form elements */
+  .time-input {
+    height: 40px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+  }
+  
+  .time-input:focus, .time-input:hover {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  }
 }
 
-/* Ensure the TimeInput component matches the styling of other form elements */
-.time-input {
-  height: 40px;
-  box-sizing: border-box;
+/* Add pagination style enhancements */
+.ant-pagination {
+  margin-top: 20px;
+  text-align: right;
 }
+
+.ant-pagination-item {
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.ant-pagination-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.ant-pagination-item-active {
+  background: linear-gradient(to right, #1890ff, #52c41a);
+  border: none;
+}
+
+.ant-pagination-item-active a {
+  color: white !important;
+}
+
+/* Add subtle title animation */
+h2 {
+  animation: slideInFromLeft 0.5s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from { transform: translateX(-10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Add styles for action buttons in table */
+.action-more-button {
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-more-button:hover {
+  color: #1890ff;
+  background-color: #e6f7ff;
+  transform: rotate(90deg);
 }
