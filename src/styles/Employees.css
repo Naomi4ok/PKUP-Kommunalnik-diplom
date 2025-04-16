@@ -44,7 +44,7 @@
 
 .ant-add-button {
   margin-bottom: 0;
-  height: 40px;
+  height: 50px;
   white-space: nowrap; /* Prevent button text from wrapping */
   transition: all 0.3s ease;
   position: relative;
@@ -52,6 +52,7 @@
   background-color: #7db660 !important; /* Added !important to override any other styles */
   color: white !important; /* Ensuring text is white for better contrast */
   border-color: #7db660 !important; /* Match border color to background */
+  box-shadow: none;
 }
 
 .ant-add-button:hover {

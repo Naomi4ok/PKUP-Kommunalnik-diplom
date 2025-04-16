@@ -1,0 +1,310 @@
+/* === Base Sidebar Styling === */
+.site-sider {
+  position: fixed !important; /* Ensure it stays fixed */
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 100; /* Ensure it's above content, adjust if needed */
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+  background-color: #fff !important; /* Override Antd theme */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Hide overflow initially */
+  transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) !important; /* Smooth collapse */
+}
+
+/* === Sidebar Header === */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  /* justify-content: space-between; */ /* Adjust based on Logo component */
+  justify-content: center; /* Center logo when collapsed */
+  padding: 16px;
+  height: 90px; /* Standard header height */
+  /* border-bottom: 1px solid rgba(0, 0, 0, 0.06); */ /* Optional: separator */
+  flex-shrink: 0; /* Prevent header from shrinking */
+  transition: padding 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.ant-layout-sider-collapsed .sidebar-header {
+  padding: 16px 0; /* Adjust padding when collapsed */
+}
+
+
+/* === Menu Container & Scroll === */
+.sidebar-menu-container {
+  flex: 1; /* Allow menu to grow and fill space */
+  overflow: hidden; /* Hide overflow for the container */
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-menu {
+  flex: 1; /* Allow menu itself to grow */
+  overflow-y: auto; /* Enable vertical scrolling only when needed */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  border-right: 0 !important; /* Remove default Antd border */
+  padding-bottom: 16px; /* Space at the bottom */
+}
+
+/* Scrollbar styling (optional, webkit only) */
+.sidebar-menu::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 5px 0;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* === Menu Item Styling === */
+.ant-menu-item,
+.ant-menu-submenu-title {
+  margin: 4px 8px !important; /* Add some vertical spacing and horizontal padding */
+  width: calc(100% - 16px) !important; /* Adjust width to account for padding */
+  border-radius: 6px !important; /* Rounded corners */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Align icons and text */
+.ant-menu-item .anticon,
+.ant-menu-submenu-title .anticon {
+  font-size: 16px !important;
+  min-width: 16px;
+  vertical-align: middle !important;
+  margin-right: 10px !important;
+}
+.ant-menu-item > .ant-menu-title-content,
+.ant-menu-submenu-title > .ant-menu-title-content {
+  vertical-align: middle !important;
+}
+
+
+/* Hover states */
+.ant-menu-light .ant-menu-item:hover,
+.ant-menu-light .ant-menu-submenu-title:hover {
+  color: #1677ff !important; /* Antd primary blue */
+  background-color: rgba(22, 119, 255, 0.06); /* Subtle blue background */
+}
+
+/* Selected item state */
+.ant-menu-light .ant-menu-item-selected {
+  background-color: #e6f7ff !important; /* Antd selected blue background */
+  color: #1677ff !important; /* Antd primary blue */
+  font-weight: 500; /* Make selected item text bolder */
+}
+.ant-menu-light .ant-menu-item-selected::after {
+  /* Remove default right border */
+  border-right: none !important;
+}
+.ant-menu-light .ant-menu-item-selected .anticon {
+  color: #1677ff !important; /* Ensure icon color matches */
+}
+
+/* Submenu adjustments */
+.ant-menu-submenu-title {
+  font-weight: 500; /* Slightly bolder submenu titles */
+}
+.ant-menu-submenu .ant-menu-item {
+  margin-left: 16px !important; /* Indent submenu items */
+  width: calc(100% - 24px) !important; /* Adjust width for indentation */
+  padding-left: 20px !important; /* Add padding for indentation */
+}
+/* Remove excessive padding on submenu items when collapsed */
+.ant-layout-sider-collapsed .ant-menu-submenu .ant-menu-item {
+   padding-left: 24px !important; /* Match top-level collapsed padding */
+}
+
+
+/* Collapsed state adjustments */
+.ant-layout-sider-collapsed .ant-menu-item,
+.ant-layout-sider-collapsed .ant-menu-submenu-title {
+  padding: 0 24px !important; /* Center icons when collapsed */
+  margin: 4px auto !important; /* Center horizontally */
+  width: 64px !important; /* Fixed width when collapsed */
+}
+.ant-layout-sider-collapsed .ant-menu-item .ant-menu-item-icon,
+.ant-layout-sider-collapsed .ant-menu-submenu-title .ant-menu-item-icon {
+  margin-right: 0 !important; /* Remove margin next to icon */
+}
+.ant-layout-sider-collapsed .ant-menu-title-content {
+  display: none; /* Hide text */
+}
+.ant-layout-sider-collapsed .ant-menu-submenu-arrow {
+  display: none; /* Hide submenu arrow */
+}
+
+/* === Sidebar Footer === */
+.sidebar-footer {
+  padding: 8px 16px 16px 16px; /* Padding around footer content */
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0; /* Prevent footer from shrinking */
+  transition: padding 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.ant-layout-sider-collapsed .sidebar-footer {
+  padding: 8px 0 16px 0; /* Adjust padding when collapsed */
+}
+
+.footer-divider {
+  margin: 8px 0 !important; /* Space around divider */
+}
+
+/* User profile section */
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  padding: 8px 0; /* Padding inside the user section */
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  margin-bottom: 8px; /* Space before logout */
+}
+
+.sidebar-user:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.user-info {
+  margin-left: 12px;
+  overflow: hidden; /* Prevent text overflow */
+  flex-grow: 1;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.88); /* Antd text color */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45); /* Antd secondary text color */
+  white-space: nowrap;
+}
+
+/* Collapsed user profile */
+.ant-layout-sider-collapsed .sidebar-user {
+  justify-content: center; /* Center avatar */
+  padding: 8px;
+}
+.ant-layout-sider-collapsed .user-info {
+  display: none; /* Hide text */
+}
+
+/* Logout Menu Item */
+.logout-menu {
+  background: transparent !important; /* Make menu background transparent */
+  border-right: 0 !important;
+}
+
+.logout-menu .ant-menu-item {
+  margin: 0 !important; /* Remove extra margin */
+  width: 100% !important; /* Full width */
+  padding: 0 8px !important; /* Adjust horizontal padding */
+}
+
+.logout-menu .ant-menu-item:hover {
+  background-color: rgba(255, 77, 79, 0.06) !important; /* Subtle red background on hover */
+  color: #ff4d4f !important; /* Antd danger color */
+}
+.logout-menu .ant-menu-item .anticon {
+   font-size: 16px !important;
+   vertical-align: middle !important;
+}
+.logout-menu .ant-menu-item > .ant-menu-title-content {
+   vertical-align: middle !important;
+}
+
+
+.ant-layout-sider-collapsed .logout-menu .ant-menu-item {
+  padding: 0 24px !important; /* Center icon */
+  width: 64px !important;
+  margin: 0 auto !important;
+}
+.ant-layout-sider-collapsed .logout-menu .ant-menu-item .ant-menu-title-content {
+  display: none;
+}
+
+
+/* === Custom Collapse Trigger Button === */
+.sidebar-collapse-btn {
+  position: fixed;
+  top: 16px; /* Position near the top */
+  z-index: 101; /* Above the sidebar */
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: left 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.3s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  color: #1677ff;
+  border-color: #1677ff;
+  box-shadow: 0 2px 10px rgba(22, 119, 255, 0.2);
+}
+
+.sidebar-collapse-btn.collapsed {
+  left: calc(80px + 16px); /* Position outside collapsed sidebar */
+}
+
+.sidebar-collapse-btn:not(.collapsed) {
+  left: calc(250px + 16px); /* Position outside expanded sidebar */
+}
+
+
+/* === Mobile Responsiveness (Basic) === */
+/* Antd's breakpoint="lg" handles basic collapsing. Add more specific styles if needed */
+@media (max-width: 991px) { /* Corresponds to Antd 'lg' breakpoint */
+  /* Adjust trigger button position if needed when sidebar auto-collapses */
+   .sidebar-collapse-btn {
+      /* Example: hide button on mobile if using drawer behavior */
+      /* display: none; */
+
+      /* Or adjust position if keeping the fixed sidebar */
+       top: 16px; /* Keep consistent top position */
+   }
+    .sidebar-collapse-btn.collapsed {
+        left: calc(80px + 10px); /* Slightly closer on smaller screens */
+    }
+    .sidebar-collapse-btn:not(.collapsed) {
+        left: calc(80px + 10px); /* Should be collapsed by breakpoint, adjust if drawer */
+         /* If using a drawer overlay, you might hide this button */
+    }
+}
+
+@media (max-width: 768px) {
+   /* Further adjustments for smaller tablets/phones if necessary */
+}
+
+/* Mobile backdrop - styling only, visibility controlled by parent state */
+.mobile-sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 99; /* Below sidebar but above content */
+  display: none; /* Controlled by JS */
+}
+
+.mobile-sidebar-backdrop.visible {
+  display: block;
+}
