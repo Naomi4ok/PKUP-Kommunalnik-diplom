@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch Server",
+        "type": "node",
+        "request": "launch",
+        "program": "$/server.js"
+      },
+      {
+        "name": "Launch Dev Client",
+        "type": "pwa-node",
+        "request": "launch",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["run", "dev"]
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Full Start",
+        "configurations": ["Launch Server", "Launch Dev Client"]
+      }
+    ]
+  }
+  

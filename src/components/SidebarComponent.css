@@ -11,6 +11,10 @@
   flex-direction: column;
   overflow: hidden; /* Hide overflow initially */
   transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) !important; /* Smooth collapse */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, width;
 }
 
 /* === Sidebar Header === */
@@ -158,17 +162,21 @@
 
 /* User profile section */
 .sidebar-user {
+  position: relative; /* For positioning the dropdown */
   display: flex;
   align-items: center;
   padding: 8px 0; /* Padding inside the user section */
   cursor: pointer;
   border-radius: 6px;
   transition: background-color 0.2s ease;
-  margin-bottom: 8px; /* Space before logout */
 }
 
 .sidebar-user:hover {
   background-color: rgba(0, 0, 0, 0.04);
+}
+
+.sidebar-user.active {
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 .user-info {
@@ -201,40 +209,64 @@
   display: none; /* Hide text */
 }
 
-/* Logout Menu Item */
-.logout-menu {
-  background: transparent !important; /* Make menu background transparent */
-  border-right: 0 !important;
+/* User Dropdown Menu */
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 5px); /* Position below the user section */
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  z-index: 110; /* Above other elements */
 }
 
-.logout-menu .ant-menu-item {
-  margin: 0 !important; /* Remove extra margin */
-  width: 100% !important; /* Full width */
-  padding: 0 8px !important; /* Adjust horizontal padding */
+.user-dropdown.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-.logout-menu .ant-menu-item:hover {
-  background-color: rgba(255, 77, 79, 0.06) !important; /* Subtle red background on hover */
-  color: #ff4d4f !important; /* Antd danger color */
-}
-.logout-menu .ant-menu-item .anticon {
-   font-size: 16px !important;
-   vertical-align: middle !important;
-}
-.logout-menu .ant-menu-item > .ant-menu-title-content {
-   vertical-align: middle !important;
+.dropdown-menu {
+  padding: 6px 0;
 }
 
-
-.ant-layout-sider-collapsed .logout-menu .ant-menu-item {
-  padding: 0 24px !important; /* Center icon */
-  width: 64px !important;
-  margin: 0 auto !important;
+.dropdown-item {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 14px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
 }
-.ant-layout-sider-collapsed .logout-menu .ant-menu-item .ant-menu-title-content {
-  display: none;
+
+.dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
+.dropdown-item .anticon {
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.dropdown-item.logout {
+  color: #ff4d4f; /* Red for logout */
+}
+
+.dropdown-item.logout:hover {
+  background-color: rgba(255, 77, 79, 0.06); /* Light red background */
+}
+
+/* Handle dropdown in collapsed state */
+.ant-layout-sider-collapsed .user-dropdown {
+  left: 80px; /* Position to the right of collapsed sidebar */
+  width: 200px; /* Fixed width when dropdown appears outside */
+}
 
 /* === Custom Collapse Trigger Button === */
 .sidebar-collapse-btn {
@@ -291,6 +323,10 @@
 
 @media (max-width: 768px) {
    /* Further adjustments for smaller tablets/phones if necessary */
+   /* For dropdown positioning on mobile */
+   .ant-layout-sider-collapsed .user-dropdown {
+     left: 70px;
+   }
 }
 
 /* Mobile backdrop - styling only, visibility controlled by parent state */

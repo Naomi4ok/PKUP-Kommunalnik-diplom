@@ -23,9 +23,10 @@ function App() {
   // Check screen size on mount and resize
   useEffect(() => {
     const checkSize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      const isMobileView = window.innerWidth <= 768;
+      setIsMobile(isMobileView);
       // Auto-collapse sidebar on mobile
-      if (window.innerWidth <= 768) {
+      if (isMobileView) {
         setCollapsed(true);
       }
     };
@@ -41,15 +42,21 @@ function App() {
     const siteLayout = siteLayoutRef.current;
     if (!siteLayout) return;
     
-    // Add transitioning class to manage animation
+    // Add transitioning class
     siteLayout.classList.add('layout-transitioning');
     
-    const transitionEndHandler = () => {
-      siteLayout.classList.remove('layout-transitioning');
+    // Use a more precise listener that only fires once
+    const transitionEndHandler = (e) => {
+      // Only trigger when the margin-left property transition ends
+      if (e.propertyName === 'margin-left') {
+        siteLayout.classList.remove('layout-transitioning');
+        siteLayout.removeEventListener('transitionend', transitionEndHandler);
+      }
     };
     
     siteLayout.addEventListener('transitionend', transitionEndHandler);
     
+    // Clean up if component unmounts before transition ends
     return () => {
       siteLayout.removeEventListener('transitionend', transitionEndHandler);
     };

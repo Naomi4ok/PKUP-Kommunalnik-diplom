@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Avatar, Divider, Button } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Layout, Menu, Avatar, Divider, Button, Dropdown } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -9,6 +9,8 @@ import {
   LogoutOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
+  SettingOutlined,
+  UserSwitchOutlined,
 } from '@ant-design/icons';
 import Logo from './Logo'; // Assuming Logo component exists
 import './SidebarComponent.css';
@@ -20,6 +22,8 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
   const [animateItems, setAnimateItems] = useState(false);
   const [mobileVisible, setMobileVisible] = useState(false);
+  const [userMenuVisible, setUserMenuVisible] = useState(false);
+  const userMenuRef = useRef(null);
   
   // Handle menu animation when expanding/collapsing
   useEffect(() => {
@@ -48,6 +52,20 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     
     return () => window.removeEventListener('resize', handleResize);
   }, [collapsed]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuVisible(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Define all menu items
   const allMenuItems = [
@@ -112,6 +130,18 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
   const toggleCollapsed = () => {
     setAnimateItems(false); // Reset animation state
     setCollapsed(!collapsed);
+  };
+
+  // Toggle user dropdown menu
+  const toggleUserMenu = () => {
+    setUserMenuVisible(!userMenuVisible);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    // Add your logout logic here
+    console.log('User logged out');
+    setUserMenuVisible(false);
   };
 
   // Render menu items recursively with animation delay
@@ -201,12 +231,13 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         </div>
 
         <div className={`sidebar-footer ${animateItems ? 'animate-in' : ''}`}>
-          <Divider className="footer-divider" />
 
-          {/* User profile section */}
+          {/* User profile section with dropdown */}
           <div 
-            className={`sidebar-user ${animateItems ? 'animate-in' : ''}`}
+            ref={userMenuRef}
+            className={`sidebar-user ${animateItems ? 'animate-in' : ''} ${userMenuVisible ? 'active' : ''}`}
             style={{ transitionDelay: animateItems ? '150ms' : '0ms' }}
+            onClick={toggleUserMenu}
           >
             <Avatar 
               size={collapsed ? 32 : 40} 
@@ -219,24 +250,22 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
                 <div className="user-role">Administrator</div>
               </div>
             )}
-          </div>
 
-          {/* Logout Button */}
-          <Menu 
-            theme="light" 
-            mode="inline" 
-            selectable={false} 
-            className="logout-menu"
-          >
-            <Menu.Item 
-              key="logout" 
-              icon={<LogoutOutlined />}
-              className={animateItems ? 'animate-in' : ''}
-              style={{ transitionDelay: animateItems ? '200ms' : '0ms' }}
-            >
-              {!collapsed && 'Logout'}
-            </Menu.Item>
-          </Menu>
+            {/* User dropdown menu */}
+            <div className={`user-dropdown ${userMenuVisible ? 'visible' : ''}`}>
+              <div className="dropdown-menu">
+                <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); }}>
+                  <UserSwitchOutlined /> <span>Profile</span>
+                </div>
+                <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); }}>
+                  <SettingOutlined /> <span>Settings</span>
+                </div>
+                <div className="dropdown-item logout" onClick={(e) => { e.stopPropagation(); handleLogout(); }}>
+                  <LogoutOutlined /> <span>Logout</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Sider>
 
