@@ -21,7 +21,8 @@ import {
   Row,
   Col,
   Checkbox,
-  DatePicker
+  DatePicker,
+  Breadcrumb
 } from 'antd';
 import {
   UserOutlined,
@@ -34,7 +35,8 @@ import {
   MoreOutlined,
   InboxOutlined,
   EllipsisOutlined,
-  FilterOutlined
+  FilterOutlined,
+  HomeOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../styles/Employees.css';
@@ -671,12 +673,21 @@ const Employees = () => {
 
   return (
     <div className="ant-employees-container">
-      <Title level={2}>Employees Management</Title>
+      {/* Add Breadcrumb navigation here */}
+      <Breadcrumb className="employee-breadcrumb">
+        <Breadcrumb.Item href="/">
+          <HomeOutlined />
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          Employees
+        </Breadcrumb.Item>
+      </Breadcrumb>
       <Card>
         <div className="ant-page-header-wrapper">
           <div className="ant-page-header">
             {/* Left side: Export and Import buttons */}
             <div className="header-left-content">
+            <Title level={2}>Employees</Title>
               <Button 
                 type="primary" 
                 icon={<FileExcelOutlined />} 

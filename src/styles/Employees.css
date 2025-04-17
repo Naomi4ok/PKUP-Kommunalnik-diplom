@@ -44,7 +44,7 @@
 
 .ant-add-button {
   margin-bottom: 0;
-  height: 50px;
+  height: 45px;
   white-space: nowrap; /* Prevent button text from wrapping */
   transition: all 0.3s ease;
   position: relative;
@@ -213,17 +213,6 @@ button.ant-add-button.ant-btn-primary:hover {
   position: relative;
 }
 
-.employees-search-bar-container::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: #1890ff;
-  transition: width 0.3s ease;
-}
-
 .employees-search-bar-container:focus-within::after {
   width: 100%;
 }
@@ -251,6 +240,14 @@ button.ant-add-button.ant-btn-primary:hover {
 .ant-filter-button.active {
   background-color: #ffffff !important; /* Changed from #1890ff to #6d88db */
   color: #8340ff !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
+  animation: pulse 2s infinite;
+  border-color: #8340ff !important;
+}
+
+.ant-filter-button:active {
+  background-color: #8340ff !important; /* Changed from #1890ff to #6d88db */
+  color: #ffffff !important;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
   animation: pulse 2s infinite;
   border-color: #8340ff !important;
@@ -409,7 +406,7 @@ button.ant-add-button.ant-btn-primary:hover {
 
 /* Ensure search input has the same height as buttons with enhanced styling */
 .employees-search-bar-container .search-input {
-  height: 50px;
+  height: 43px;
   box-sizing: border-box;
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
@@ -686,4 +683,19 @@ h2 {
   color: #1890ff;
   background-color: #e6f7ff;
   transform: rotate(90deg);
+}
+
+/* Add these styles to your existing Employees.css file */
+.employee-breadcrumb {
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.employee-breadcrumb a {
+  color: #1890ff;
+  transition: color 0.3s;
+}
+
+.employee-breadcrumb a:hover {
+  color: #40a9ff;
 }

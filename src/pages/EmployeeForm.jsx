@@ -349,15 +349,6 @@ const EmployeeForm = () => {
         </div>
         
         <Spin spinning={loading}>
-          {/* Employee Photo Upload Section - Moved to the top */}
-          <div className="avatar-upload-section">
-            <AvatarUploadForm
-              onAvatarUpload={handleAvatarUpload}
-              maxSizeInMB={5}
-              initialImageUrl={photoPreviewUrl}
-            />
-          </div>
-          
           <Form
             form={form}
             layout="vertical"
@@ -365,133 +356,157 @@ const EmployeeForm = () => {
             initialValues={initialValues}
             className="employee-form"
           >
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="firstName"
-                  label="First Name"
-                  rules={[{ required: true, message: 'Please enter first name' }]}
-                >
-                  <Input placeholder="Enter first name" />
-                </Form.Item>
+            {/* Two-column layout with avatar on left, form fields on right */}
+            <Row gutter={32}>
+              {/* Left column: Avatar upload */}
+              <Col xs={24} md={8}>
+                <div className="avatar-upload-section-left">
+                  <AvatarUploadForm
+                    onAvatarUpload={handleAvatarUpload}
+                    maxSizeInMB={5}
+                    initialImageUrl={photoPreviewUrl}
+                  />
+                </div>
               </Col>
               
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="lastName"
-                  label="Last Name"
-                  rules={[{ required: true, message: 'Please enter last name' }]}
-                >
-                  <Input placeholder="Enter last name" />
-                </Form.Item>
+              {/* Right column: Basic info fields */}
+              <Col xs={24} md={16}>
+                <div className="basic-info-section">
+                  <Row gutter={16}>
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        name="firstName"
+                        label="First Name"
+                        rules={[{ required: true, message: 'Please enter first name' }]}
+                      >
+                        <Input placeholder="Enter first name" />
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        name="lastName"
+                        label="Last Name"
+                        rules={[{ required: true, message: 'Please enter last name' }]}
+                      >
+                        <Input placeholder="Enter last name" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  
+                  <Row gutter={16}>
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        name="position"
+                        label="Position"
+                      >
+                        <Select
+                          showSearch
+                          placeholder="Select or enter position"
+                          optionFilterProp="children"
+                          allowClear
+                          mode="tags"
+                        >
+                          {positions.map(position => (
+                            <Option key={position} value={position}>
+                              {position}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        name="department"
+                        label="Department"
+                      >
+                        <Select
+                          showSearch
+                          placeholder="Select or enter department"
+                          optionFilterProp="children"
+                          allowClear
+                          mode="tags"
+                        >
+                          {departments.map(department => (
+                            <Option key={department} value={department}>
+                              {department}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </div>
               </Col>
             </Row>
             
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
+            {/* Full-width fields below the two columns */}
+            <Row className="additional-fields-section">
+              <Col xs={24}>
                 <Form.Item
-                  name="position"
-                  label="Position"
+                  label="Contact Details (Phone)"
+                  rules={[{ validator: validatePhoneNumber }]}
                 >
-                  <Select
-                    showSearch
-                    placeholder="Select or enter position"
-                    optionFilterProp="children"
-                    allowClear
-                    mode="tags"
-                  >
-                    {positions.map(position => (
-                      <Option key={position} value={position}>
-                        {position}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="department"
-                  label="Department"
-                >
-                  <Select
-                    showSearch
-                    placeholder="Select or enter department"
-                    optionFilterProp="children"
-                    allowClear
-                    mode="tags"
-                  >
-                    {departments.map(department => (
-                      <Option key={department} value={department}>
-                        {department}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-            
-            <Form.Item
-              label="Contact Details (Phone)"
-              rules={[{ validator: validatePhoneNumber }]}
-            >
-              <div className="phone-input-wrapper">
-                <Input 
-                  ref={inputRef}
-                  value={phoneValue}
-                  onChange={handlePhoneChange}
-                  className="phone-input"
-                />
-                {phoneValue === '+375' && (
-                  <div className="phone-placeholder">
-                    <span className="prefix">+375</span>
-                    <span className="format">(XX)YYY-YY-YY</span>
+                  <div className="phone-input-wrapper">
+                    <Input 
+                      ref={inputRef}
+                      value={phoneValue}
+                      onChange={handlePhoneChange}
+                      className="phone-input"
+                    />
+                    {phoneValue === '+375' && (
+                      <div className="phone-placeholder">
+                        <span className="prefix">+375</span>
+                        <span className="format">(XX)YYY-YY-YY</span>
+                      </div>
+                    )}
                   </div>
+                </Form.Item>
+                
+                <Form.Item
+                  name="workScheduleType"
+                  label="Work Schedule Type"
+                  rules={[{ required: true, message: 'Please select work schedule type' }]}
+                >
+                  <Select 
+                    placeholder="Select work schedule type"
+                    onChange={handleWorkScheduleTypeChange}
+                  >
+                    <Option value="Flexible">Flexible</Option>
+                    <Option value="Shift Work">Shift Work</Option>
+                    <Option value="Custom">Custom Schedule</Option>
+                  </Select>
+                </Form.Item>
+                
+                {showTimeRangePicker && (
+                  <Form.Item
+                    label="Select Work Hours"
+                    required={true}
+                  >
+                    <TimeRangePicker 
+                      label=""
+                      onChange={handleTimeRangeChange}
+                      initialFromTime={timeRange.from}
+                      initialToTime={timeRange.to}
+                      required={true}
+                    />
+                  </Form.Item>
                 )}
-              </div>
-            </Form.Item>
-            
-            <Form.Item
-              name="workScheduleType"
-              label="Work Schedule Type"
-              rules={[{ required: true, message: 'Please select work schedule type' }]}
-            >
-              <Select 
-                placeholder="Select work schedule type"
-                onChange={handleWorkScheduleTypeChange}
-              >
-                <Option value="Flexible">Flexible</Option>
-                <Option value="Shift Work">Shift Work</Option>
-                <Option value="Custom">Custom Schedule</Option>
-              </Select>
-            </Form.Item>
-            
-            {showTimeRangePicker && (
-              <Form.Item
-                label="Select Work Hours"
-                required={true}
-              >
-                <TimeRangePicker 
-                  label=""
-                  onChange={handleTimeRangeChange}
-                  initialFromTime={timeRange.from}
-                  initialToTime={timeRange.to}
-                  required={true}
-                />
-              </Form.Item>
-            )}
-            
-            <Form.Item
-              name="status"
-              label="Employee Status"
-              rules={[{ required: true, message: 'Please select employee status' }]}
-            >
-              <Select placeholder="Select status">
-                <Option value="Active">Active</Option>
-                <Option value="On Leave">On Leave</Option>
-                <Option value="Terminated">Terminated</Option>
-              </Select>
-            </Form.Item>
+                
+                <Form.Item
+                  name="status"
+                  label="Employee Status"
+                  rules={[{ required: true, message: 'Please select employee status' }]}
+                >
+                  <Select placeholder="Select status">
+                    <Option value="Active">Active</Option>
+                    <Option value="On Leave">On Leave</Option>
+                    <Option value="Terminated">Terminated</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
             
             <Form.Item className="form-actions">
               <Space>

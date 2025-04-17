@@ -114,10 +114,6 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5, initialImageUrl = n
         </div>
         
         {error && <p className="error-message">{error}</p>}
-        
-        <p className="help-text">
-          Supported formats: JPEG, PNG, GIF, WEBP. Maximum size: {maxSizeInMB}MB
-        </p>
       </div>
     </div>
   );
