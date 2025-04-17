@@ -1,5 +1,5 @@
 .ant-employees-container {
-  padding: 24px;
+  padding: 6px 24px 0px 24px;
   max-width: 1200px;
   margin: 0 auto;
   animation: fadeIn 0.5s ease-out;
@@ -90,39 +90,41 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 .ant-export-button {
-  background-color: #F5F5F5; /* Light gray color for buttons */
+  border-color: #d9d9d9;
+  background-color: #ffffff;
   color: black;
-  height: 50px;
+  height: 45px;
   width: 110px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: none;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
 }
 
 .ant-import-button {
-  background-color: #F5F5F5; /* Light gray color for buttons */
+  border-color: #d9d9d9;
+  background-color: #ffffff;
   color: black;
-  height: 50px;
+  height: 45px;
   width: 110px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: none;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
 }
 
 .ant-export-button:hover {
-  background-color: #1890ff;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+  color: #40a9ff !important;
+  border-color: #40a9ff !important;
+  background: #ffffff !important;
+  transform: translateY(-3px);
 }
 
 .ant-import-button:hover {
-  background-color: #1890ff;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+  color: #40a9ff !important;
+  border-color: #40a9ff !important;
+  background: #ffffff !important;
+  transform: translateY(-3px);
 }
 
 /* Add ripple effect for buttons */
@@ -227,47 +229,31 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 .ant-filter-button {
-  background-color: #6d88db !important; /* Changed from #F5F5F5 to #6d88db */
-  color: white !important; /* Changed from black to white for better contrast */
-  height: 50px;
+  border-color: #d9d9d9;
+  background-color: #ffffff;
+  color: black;
+  height: 45px;
   width: 110px;
-  box-shadow: none;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  border-color: #6d88db !important; /* Match border color to background */
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
 }
 
 .ant-filter-button:hover {
-  background-color: #5b76c7 !important; /* Slightly darker shade for hover state */
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(109, 136, 219, 0.3); /* Updated shadow color to match new button color */
-  border-color: #5b76c7 !important; /* Match border color on hover */
+  color: #8340ff !important;
+  border-color: #8340ff !important;
+  background: #ffffff !important;
+  transform: translateY(-3px);
 }
 
 /* Active filter button with pulsing glow effect */
 .ant-filter-button.active {
-  background-color: #6d88db !important; /* Changed from #1890ff to #6d88db */
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(109, 136, 219, 0.3); /* Updated shadow color */
+  background-color: #ffffff !important; /* Changed from #1890ff to #6d88db */
+  color: #8340ff !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
   animation: pulse 2s infinite;
-  border-color: #6d88db !important;
-}
-
-/* Add active/pressed state styling */
-.ant-filter-button:active {
-  background-color: #4a64ad !important; /* Even darker for active/pressed state */
-  border-color: #4a64ad !important;
-  color: white !important;
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* Override any focus styles that might be changing the color */
-.ant-filter-button:focus {
-  background-color: #6d88db !important;
-  border-color: #6d88db !important;
-  color: white !important;
+  border-color: #8340ff !important;
 }
 
 /* Update pulse animation to use the new color */

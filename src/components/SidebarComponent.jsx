@@ -135,6 +135,16 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
   // Toggle user dropdown menu
   const toggleUserMenu = () => {
     setUserMenuVisible(!userMenuVisible);
+  
+    if (!userMenuVisible && collapsed) {
+      const dropdown = document.querySelector('.user-dropdown');
+      if (dropdown) {
+        const rect = dropdown.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+          dropdown.style.left = `${window.innerWidth - rect.width - 10}px`; // Adjust to fit within the viewport
+        }
+      }
+    }
   };
 
   // Handle logout

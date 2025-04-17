@@ -9,7 +9,7 @@
   background-color: #fff !important; /* Override Antd theme */
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Hide overflow initially */
+  overflow: visible; /* Allow dropdown menus to render outside */
   transition: width 0.3s cubic-bezier(0.2, 0, 0, 1) !important; /* Smooth collapse */
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -214,6 +214,7 @@
   position: absolute;
   top: calc(100% + 5px); /* Position below the user section */
   left: 0;
+  z-index: 110; /* Ensure it's above other elements */
   width: 100%;
   background-color: #fff;
   border-radius: 6px;
@@ -264,14 +265,17 @@
 
 /* Handle dropdown in collapsed state */
 .ant-layout-sider-collapsed .user-dropdown {
-  left: 80px; /* Position to the right of collapsed sidebar */
-  width: 200px; /* Fixed width when dropdown appears outside */
+  position: fixed; /* Detach from sidebar container */
+  top: 300px; /* Adjust based on sidebar height */
+  left: 10px; /* Position to align with collapsed sidebar */
+  width: 200px; /* Fixed width */
+  z-index: 110; /* Ensure visibility over other elements */
 }
 
 /* === Custom Collapse Trigger Button === */
 .sidebar-collapse-btn {
   position: fixed;
-  top: 16px; /* Position near the top */
+  top: 29px; /* Position near the top */
   z-index: 101; /* Above the sidebar */
   width: 32px;
   height: 32px;
@@ -322,11 +326,10 @@
 }
 
 @media (max-width: 768px) {
-   /* Further adjustments for smaller tablets/phones if necessary */
-   /* For dropdown positioning on mobile */
-   .ant-layout-sider-collapsed .user-dropdown {
-     left: 70px;
-   }
+  .ant-layout-sider-collapsed .user-dropdown {
+    left: 50%; /* Center the dropdown */
+    transform: translateX(-50%);
+  }
 }
 
 /* Mobile backdrop - styling only, visibility controlled by parent state */

@@ -1,40 +1,92 @@
 .employee-form-container {
-  padding: 24px;
-  max-width: 900px;
+  padding: 32px;
+  max-width: 1000px;
   margin: 0 auto;
+  background-color: #f7f9fc;
+  min-height: 100vh;
 }
 
 .employee-form-card {
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  border: none;
+  overflow: hidden;
 }
 
 .employee-form-breadcrumb {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.employee-form-breadcrumb a {
+  color: #1890ff;
+  transition: color 0.3s;
+}
+
+.employee-form-breadcrumb a:hover {
+  color: #40a9ff;
 }
 
 .employee-form-header {
   display: flex;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .employee-form-title {
   margin-bottom: 0 !important;
-  margin-left: 16px;
+  margin-left: 24px;
+  color: #2c3e50;
+  font-weight: 600;
 }
 
 .back-button {
   display: flex;
   align-items: center;
+  height: 40px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  background-color: #f5f5f5;
+  transform: translateX(-3px);
 }
 
 .employee-form .ant-form-item {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .employee-form .ant-form-item-label {
   font-weight: 500;
+  padding-bottom: 8px;
+}
+
+.employee-form .ant-form-item-label > label {
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.employee-form .ant-input,
+.employee-form .ant-select-selector {
+  border-radius: 8px;
+  padding: 8px 12px;
+  height: auto;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.employee-form .ant-input:hover,
+.employee-form .ant-select-selector:hover {
+  border-color: #b3d4fc;
+}
+
+.employee-form .ant-input:focus,
+.employee-form .ant-select-selector:focus {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 /* Remove the old ant design upload styles */
@@ -44,17 +96,53 @@
 
 /* Add styles for avatar upload section */
 .avatar-upload-section {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  background-color: #f9fafc;
+  border-radius: 8px;
+  border: 1px dashed #e2e8f0;
 }
 
 .form-actions {
-  margin-top: 32px;
+  margin-top: 40px;
   text-align: right;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.form-actions .ant-btn {
+  border-radius: 8px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 500;
+}
+
+.ant-select-single {
+  height: 40px;
+}
+
+.form-actions .ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  border: none;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.25);
+  transition: all 0.3s;
+}
+
+.form-actions .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #1890ff);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.3);
 }
 
 /* Phone input styling */
 .phone-input-wrapper {
   position: relative;
+}
+
+.phone-input-wrapper .ant-input {
+  padding-left: 14px;
 }
 
 .phone-placeholder {
@@ -66,7 +154,7 @@
   pointer-events: none;
   display: flex;
   align-items: center;
-  padding: 0 11px; /* Match Ant Design's input padding */
+  padding: 0 14px; /* Match updated input padding */
 }
 
 .phone-placeholder .prefix {
@@ -76,8 +164,10 @@
 .phone-placeholder .format {
   opacity: 0.5;
   margin-left: 22px;
+  color: #8c9bab;
 }
 
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .employee-form-container {
     padding: 16px;
@@ -101,4 +191,51 @@
   .avatar-upload-section {
     margin-bottom: 24px;
   }
+  
+  .employee-form .ant-form-item {
+    margin-bottom: 20px;
+  }
+}
+
+/* Custom Select Styles */
+.employee-form .ant-select-selection-item {
+  padding: 2px 4px;
+}
+
+.employee-form .ant-select-dropdown {
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.employee-form .ant-select-item {
+  padding: 10px 12px;
+  transition: background 0.2s;
+}
+
+.employee-form .ant-select-item-option-selected {
+  background-color: #e6f7ff;
+}
+
+/* Card padding */
+.employee-form-card .ant-card-body {
+  padding: 32px;
+}
+
+/* Time range picker styles */
+.employee-form .ant-time-picker {
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* Status labels */
+.employee-form .ant-select-selection-item[title="Active"] {
+  color: #52c41a;
+}
+
+.employee-form .ant-select-selection-item[title="On Leave"] {
+  color: #faad14;
+}
+
+.employee-form .ant-select-selection-item[title="Terminated"] {
+  color: #f5222d;
 }

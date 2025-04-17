@@ -87,7 +87,7 @@
 }
 
 .home-container {
-  padding: 12px;
+  padding: 6px 24px 0px 24px;
   max-width: 1600px; /* Increased from 1400px to 1600px */
   width: 98%; /* Increased from 95% to 98% */
   margin: 0 auto;

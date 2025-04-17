@@ -99,9 +99,6 @@ function App() {
               <Route path="/schedule" element={<PlaceholderPage title="Schedule" />} />
             </Routes>
           </Content>
-          <Footer style={{ textAlign: 'center' }}>
-            PKUP Kommunalnik ©2025 Created by Naomi4ok
-          </Footer>
         </Layout>
       </Layout>
     </Router>
