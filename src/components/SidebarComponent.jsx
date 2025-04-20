@@ -11,8 +11,10 @@ import {
   MenuFoldOutlined,
   SettingOutlined,
   UserSwitchOutlined,
+  AppstoreOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
-import Logo from './Logo'; // Assuming Logo component exists
+import Logo from './Logo'; // Предполагаем, что компонент Logo существует
 import './SidebarComponent.css';
 
 const { Sider } = Layout;
@@ -25,12 +27,12 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
   const [userMenuVisible, setUserMenuVisible] = useState(false);
   const userMenuRef = useRef(null);
   
-  // Handle menu animation when expanding/collapsing
+  // Обработка анимации меню при раскрытии/сворачивании
   useEffect(() => {
-    // Reset animation state when collapse changes
+    // Сбросить состояние анимации при изменении collapse
     setAnimateItems(false);
     
-    // Set timeout to trigger animations after sidebar transition
+    // Установить таймаут для запуска анимации после перехода боковой панели
     const timer = setTimeout(() => {
       setAnimateItems(true);
     }, 100);
@@ -38,10 +40,10 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     return () => clearTimeout(timer);
   }, [collapsed]);
 
-  // Handle mobile visibility
+  // Обработка мобильной видимости
   useEffect(() => {
     const handleResize = () => {
-      // If screen is small, handle mobile behavior
+      // Если экран маленький, обрабатываем мобильное поведение
       if (window.innerWidth < 768) {
         setMobileVisible(!collapsed);
       }
@@ -53,7 +55,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [collapsed]);
 
-  // Close dropdown when clicking outside
+  // Закрыть выпадающее меню при клике снаружи
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -67,35 +69,35 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     };
   }, []);
 
-  // Define all menu items
+  // Определить все пункты меню
   const allMenuItems = [
     {
       key: 'home',
       icon: <HomeOutlined />,
-      label: 'Home',
+      label: 'Главная',
       children: [
-        { key: '/', label: 'Dashboard', path: '/' },
-        { key: '/employees', label: 'Employees', path: '/employees' },
+        { key: '/', label: 'Общее', path: '/', icon: <AppstoreOutlined /> },
+        { key: '/employees', label: 'Сотрудники', path: '/employees', icon: <TeamOutlined /> },
       ],
     },
     {
-      key: '/dashboard', // Use path as key for simpler selection logic
+      key: '/dashboard', // Используем путь как ключ для более простой логики выбора
       icon: <DashboardOutlined />,
-      label: 'Dashboard',
+      label: 'Панель управления',
       path: '/dashboard',
     },
     {
-      key: '/schedule', // Use path as key
+      key: '/schedule', // Используем путь как ключ
       icon: <CalendarOutlined />,
-      label: 'Schedule',
+      label: 'Расписание',
       path: '/schedule',
     },
   ];
 
-  // Determine selected keys based on the current path
+  // Определить выбранные ключи на основе текущего пути
   const getSelectedKeys = () => {
     const currentPath = location.pathname;
-    // Find the item or child item matching the current path
+    // Найти элемент или дочерний элемент, соответствующий текущему пути
     for (const item of allMenuItems) {
       if (item.path === currentPath) {
         return [item.key];
@@ -103,18 +105,18 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       if (item.children) {
         for (const child of item.children) {
           if (child.path === currentPath) {
-            // Return the child key and the parent key for defaultOpenKeys logic
+            // Вернуть дочерний ключ и родительский ключ для логики defaultOpenKeys
             return [child.key];
           }
         }
       }
     }
-    // Default fallback if no match (e.g., root path handled by 'home' submenu)
+    // Запасной вариант по умолчанию, если совпадений нет (например, корневой путь обрабатывается подменю 'home')
     if (currentPath === '/') return ['/'];
-    return [currentPath]; // Fallback to path itself if no direct match
+    return [currentPath]; // Возврат к самому пути, если нет прямого совпадения
   };
 
-  // Determine default open keys (for submenus)
+  // Определить ключи открытия по умолчанию (для подменю)
   const getDefaultOpenKeys = () => {
     const currentPath = location.pathname;
     for (const item of allMenuItems) {
@@ -122,17 +124,17 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         return [item.key];
       }
     }
-    // Keep 'home' open by default if its children aren't active, or adjust as needed
+    // Держать 'home' открытым по умолчанию, если его дочерние элементы не активны, или настроить по необходимости
     return ['home'];
   };
 
-  // Handle collapse toggle with animation
+  // Обработка переключения сворачивания с анимацией
   const toggleCollapsed = () => {
-    setAnimateItems(false); // Reset animation state
+    setAnimateItems(false); // Сбросить состояние анимации
     setCollapsed(!collapsed);
   };
 
-  // Toggle user dropdown menu
+  // Переключить выпадающее меню пользователя
   const toggleUserMenu = () => {
     setUserMenuVisible(!userMenuVisible);
   
@@ -141,23 +143,23 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       if (dropdown) {
         const rect = dropdown.getBoundingClientRect();
         if (rect.right > window.innerWidth) {
-          dropdown.style.left = `${window.innerWidth - rect.width - 10}px`; // Adjust to fit within the viewport
+          dropdown.style.left = `${window.innerWidth - rect.width - 10}px`; // Подгонка, чтобы уместиться в области просмотра
         }
       }
     }
   };
 
-  // Handle logout
+  // Обработка выхода из системы
   const handleLogout = () => {
-    // Add your logout logic here
-    console.log('User logged out');
+    // Добавьте сюда логику выхода из системы
+    console.log('Пользователь вышел из системы');
     setUserMenuVisible(false);
   };
 
-  // Render menu items recursively with animation delay
+  // Рендеринг пунктов меню рекурсивно с задержкой анимации
   const renderMenuItems = (items) => {
     return items.map((item, index) => {
-      // Add staggered animation delay
+      // Добавить постепенную задержку анимации
       const animationDelay = animateItems ? `${index * 50}ms` : '0ms';
       const itemStyle = { transitionDelay: animationDelay };
       
@@ -175,6 +177,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
                 key={child.key} 
                 style={{ transitionDelay: `${(index * 50) + (childIndex * 30)}ms` }}
                 className={animateItems ? 'animate-in' : ''}
+                icon={child.icon} // Добавлена иконка для подпунктов
               >
                 <Link to={child.path}>{child.label}</Link>
               </Menu.Item>
@@ -195,7 +198,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     });
   };
 
-  // Add backdrop for mobile
+  // Добавить фон для мобильной версии
   const handleBackdropClick = () => {
     if (window.innerWidth < 768) {
       setCollapsed(true);
@@ -204,7 +207,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
 
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Мобильный фон */}
       {!collapsed && mobileVisible && (
         <div 
           className={`mobile-sidebar-backdrop ${!collapsed && mobileVisible ? 'visible' : ''}`} 
@@ -224,7 +227,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         collapsedWidth={80}
       >
         <div className="sidebar-header">
-          {/* Ensure Logo component adapts to collapsed state */}
+          {/* Убедитесь, что компонент Logo адаптируется к свернутому состоянию */}
           <Logo collapsed={collapsed} lightTheme={true} />
         </div>
 
@@ -242,7 +245,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
 
         <div className={`sidebar-footer ${animateItems ? 'animate-in' : ''}`}>
 
-          {/* User profile section with dropdown */}
+          {/* Раздел профиля пользователя с выпадающим меню */}
           <div 
             ref={userMenuRef}
             className={`sidebar-user ${animateItems ? 'animate-in' : ''} ${userMenuVisible ? 'active' : ''}`}
@@ -256,22 +259,22 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
             />
             {!collapsed && (
               <div className={`user-info ${animateItems ? 'animate-in' : ''}`}>
-                <div className="user-name">Admin User</div>
-                <div className="user-role">Administrator</div>
+                <div className="user-name">Администратор</div>
+                <div className="user-role">Администратор</div>
               </div>
             )}
 
-            {/* User dropdown menu */}
+            {/* Выпадающее меню пользователя */}
             <div className={`user-dropdown ${userMenuVisible ? 'visible' : ''}`}>
               <div className="dropdown-menu">
                 <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); }}>
-                  <UserSwitchOutlined /> <span>Profile</span>
+                  <UserSwitchOutlined /> <span>Профиль</span>
                 </div>
                 <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); }}>
-                  <SettingOutlined /> <span>Settings</span>
+                  <SettingOutlined /> <span>Настройки</span>
                 </div>
                 <div className="dropdown-item logout" onClick={(e) => { e.stopPropagation(); handleLogout(); }}>
-                  <LogoutOutlined /> <span>Logout</span>
+                  <LogoutOutlined /> <span>Выход</span>
                 </div>
               </div>
             </div>
@@ -279,13 +282,13 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         </div>
       </Sider>
 
-      {/* Custom Collapse Trigger Button with animation */}
+      {/* Кнопка переключения сворачивания с анимацией */}
       <Button
         type="default"
         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         onClick={toggleCollapsed}
         className={`sidebar-collapse-btn ${collapsed ? 'collapsed' : ''}`}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={collapsed ? 'Развернуть боковую панель' : 'Свернуть боковую панель'}
       />
     </>
   );

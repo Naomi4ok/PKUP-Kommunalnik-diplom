@@ -744,7 +744,10 @@ const Employees = () => {
   <div className={`filter-panel ${showFilters ? 'visible' : ''}`}>
     <div className="filter-panel-header">
       <h4>Filter Employees</h4>
-      <Button type="link" onClick={resetFilters}>Reset all filters</Button>
+      <Button 
+      className="ant-filreset-button"
+      type="link"
+      onClick={resetFilters}>Reset all filters</Button>
     </div>
     
     <Row gutter={[16, 16]}>

@@ -42,6 +42,12 @@
   height: 40px;
 }
 
+.ant-filreset-button {
+  border-radius: 6px;
+  background-color: #fff2f2 !important;
+  color: #f14d4d !important;
+}
+
 .ant-add-button {
   margin-bottom: 0;
   height: 45px;
@@ -49,44 +55,24 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  background-color: #7db660 !important; /* Added !important to override any other styles */
+  background-color: #19cc00 !important; /* Added !important to override any other styles */
   color: white !important; /* Ensuring text is white for better contrast */
-  border-color: #7db660 !important; /* Match border color to background */
+  border-color: #19cc00 !important; /* Match border color to background */
   box-shadow: none;
 }
 
 .ant-add-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(125, 182, 96, 0.3);
-  background-color: #6ba551 !important; /* Slightly darker shade for hover state with !important */
-  border-color: #6ba551 !important; /* Match border color on hover */
-}
-
-/* Add active/pressed state styling */
-.ant-add-button:active,
-.ant-add-button.ant-btn-primary:active {
-  background-color: #5c9346 !important; /* Even darker for active/pressed state */
-  border-color: #5c9346 !important;
-  color: white !important;
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4px 10px rgba(125, 182, 96, 0.3);
+  background-color: #6ba551 !important;
+  border-color: #6ba551 !important; */
 }
 
 /* Override any focus styles that might be changing the color */
 .ant-add-button:focus {
-  background-color: #7db660 !important;
-  border-color: #7db660 !important;
+  background-color: #15b800 !important;
+  border-color: #15b800 !important;
   color: white !important;
-}
-
-/* Ensure that the button remains green even when it has the ant-btn-primary class */
-button.ant-add-button.ant-btn-primary {
-  background-color: #7db660 !important;
-  border-color: #7db660 !important;
-}
-
-button.ant-add-button.ant-btn-primary:hover {
-  background-color: #6ba551 !important;
-  border-color: #6ba551 !important;
 }
 
 .ant-export-button {
@@ -114,15 +100,15 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 .ant-export-button:hover {
-  color: #40a9ff !important;
-  border-color: #40a9ff !important;
+  color: #0AB101 !important;
+  border-color: #0AB101 !important;
   background: #ffffff !important;
   transform: translateY(-3px);
 }
 
 .ant-import-button:hover {
-  color: #40a9ff !important;
-  border-color: #40a9ff !important;
+  color: #0AB101 !important;
+  border-color: #0AB101 !important;
   background: #ffffff !important;
   transform: translateY(-3px);
 }
@@ -182,7 +168,7 @@ button.ant-add-button.ant-btn-primary:hover {
 
 .ant-employee-photo:hover {
   transform: scale(1.15);
-  border-color: #7db660;
+  border-color: #0AB101;
   filter: brightness(1.1);
 }
 
@@ -201,7 +187,7 @@ button.ant-add-button.ant-btn-primary:hover {
 
 .ant-employee-photo-placeholder:hover {
   background-color: #f2f7ee;
-  color: #7db660;
+  color: #0AB101;
   transform: scale(1.1);
 }
 
@@ -230,8 +216,8 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 .ant-filter-button:hover {
-  color: #8340ff !important;
-  border-color: #8340ff !important;
+  color: #0AB101 !important;
+  border-color: #0AB101 !important;
   background: #ffffff !important;
   transform: translateY(-3px);
 }
@@ -239,18 +225,10 @@ button.ant-add-button.ant-btn-primary:hover {
 /* Active filter button with pulsing glow effect */
 .ant-filter-button.active {
   background-color: #ffffff !important; /* Changed from #1890ff to #6d88db */
-  color: #8340ff !important;
+  color: #0AB101 !important;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
   animation: pulse 2s infinite;
-  border-color: #8340ff !important;
-}
-
-.ant-filter-button:active {
-  background-color: #8340ff !important; /* Changed from #1890ff to #6d88db */
-  color: #ffffff !important;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
-  animation: pulse 2s infinite;
-  border-color: #8340ff !important;
+  border-color: #0AB101 !important;
 }
 
 /* Update pulse animation to use the new color */
@@ -312,7 +290,7 @@ button.ant-add-button.ant-btn-primary:hover {
 .filter-panel-header h4 {
   margin: 0;
   font-size: 16px;
-  color: #1890ff;
+  color: #0AB101;
   font-weight: 600;
   position: relative;
 }
@@ -324,7 +302,7 @@ button.ant-add-button.ant-btn-primary:hover {
   left: 0;
   width: 40px;
   height: 2px;
-  background-color: #1890ff;
+  background-color: #0AB101;
 }
 
 .filter-panel-header button {
@@ -350,7 +328,7 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 .filter-group:hover {
-  background-color: rgba(24, 144, 255, 0.05);
+  background-color: rgb(7 255 0 / 5%);
 }
 
 .filter-group label {
@@ -362,7 +340,7 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 .filter-group:hover label {
-  color: #1890ff;
+  color: #0AB101;
 }
 
 /* Custom select styling to match design */
@@ -372,8 +350,18 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 .filter-group:hover .ant-select-selector {
-  border-color: #1890ff !important;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1) !important;
+  border-color: #0AB101 !important;
+  box-shadow: 0 0 0 2px rgba(24, 255, 43, 0.1) !important;
+}
+
+.ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: rgba(0, 0, 0, 0.88);
+    font-weight: 600;
+    background-color: #efffed !important;
+}
+
+.ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) .ant-select-item-option-state {
+  color: #0AB101;
 }
 
 /* Ripple animation */
@@ -424,7 +412,7 @@ button.ant-add-button.ant-btn-primary:hover {
   padding: 15px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  border-left: 4px solid #1890ff;
+  border-left: 4px solid #0AB101;
 }
 
 .import-instructions ul {
@@ -458,17 +446,17 @@ button.ant-add-button.ant-btn-primary:hover {
 }
 
 tr:hover .employee-name {
-  color: #7db660;
+  color: #0AB101;
 }
 
 tr:hover .employee-position {
-  color: #7db660;
+  color: #47c541;
 }
 
-/* Add subtle row hover effect */
+/* Add subtle row hover effect
 .ant-table-tbody > tr:hover {
   background-color: #f6faf4 !important;
-}
+} */
 
 /* Add subtle column hover effect */
 .ant-table-cell {
@@ -508,8 +496,8 @@ tr:hover .employee-position {
 }
 
 .ant-upload-drag:hover {
-  border-color: #1890ff;
-  background-color: rgba(24, 144, 255, 0.02);
+  border-color: #0AB101 !important;
+  background-color: rgba(24, 255, 74, 0.02);
 }
 
 .ant-upload-drag-icon {
@@ -692,10 +680,14 @@ h2 {
 }
 
 .employee-breadcrumb a {
-  color: #1890ff;
+  color: #0AB101;
   transition: color 0.3s;
 }
 
 .employee-breadcrumb a:hover {
-  color: #40a9ff;
+  color: #078800;
+}
+
+.ant-upload-drag-icon .anticon {
+  color: #0AB101 !important;
 }

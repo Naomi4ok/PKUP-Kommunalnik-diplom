@@ -15,13 +15,13 @@
 }
 
 .search-wrapper:hover {
-  border-color: #40a9ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  border-color: #0AB101;
+  box-shadow: 0 0 0 2px rgb(15 147 20 / 20%);
 }
 
 .search-wrapper:focus-within {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  border-color: #0AB101;
+  box-shadow: 0 0 0 2px rgb(15 147 20 / 20%);
 }
 
 .search-input {

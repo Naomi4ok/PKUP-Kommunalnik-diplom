@@ -76,7 +76,7 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5, initialImageUrl = n
 
   return (
     <div className="avatar-upload-container">
-      <h3>Employee Photo</h3>
+      <h3>Фото сотрудника</h3>
       
       <div className="avatar-upload-form">
         <div className="avatar-preview-container">
@@ -88,7 +88,7 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5, initialImageUrl = n
             />
           ) : (
             <div className="avatar-placeholder">
-              <span>No image selected</span>
+              <span>Нет фото</span>
             </div>
           )}
         </div>
@@ -109,7 +109,7 @@ const AvatarUploadForm = ({ onAvatarUpload, maxSizeInMB = 5, initialImageUrl = n
             className="select-button"
             disabled={isUploading}
           >
-            {previewUrl ? 'Change Image' : 'Select Image'}
+            {previewUrl ? 'Изменить фото' : 'Выбрать фото'}
           </button>
         </div>
         

@@ -80,18 +80,18 @@ const Pagination = ({
       <div className="pagination-results-counter">
         {totalItems > 0 ? (
           <p>
-            Showing <span className="font-medium">{startItem}</span> to{" "}
-            <span className="font-medium">{endItem}</span> of{" "}
-            <span className="font-medium">{totalItems}</span> results
+            Показано от <span className="font-medium">{startItem}</span> до{" "}
+            <span className="font-medium">{endItem}</span> из{" "}
+            <span className="font-medium">{totalItems}</span> результатов
           </p>
         ) : (
-          <p>No results found</p>
+          <p>Результатов не найдено</p>
         )}
       </div>
       
       {/* Center: Page Size Selector */}
       <div className="pagination-size-selector">
-        <span>Show</span>
+        <span>Показано</span>
         <select
           value={pageSize}
           onChange={handlePageSizeChange}
@@ -102,7 +102,7 @@ const Pagination = ({
             </option>
           ))}
         </select>
-        <span>items</span>
+        <span>строк</span>
       </div>
       
       {/* Right: Pagination Buttons */}

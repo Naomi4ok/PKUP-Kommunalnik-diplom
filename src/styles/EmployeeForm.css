@@ -20,12 +20,12 @@
 }
 
 .employee-form-breadcrumb a {
-  color: #1890ff;
+  color: #01b13e;
   transition: color 0.3s;
 }
 
 .employee-form-breadcrumb a:hover {
-  color: #40a9ff;
+  color: #00812d;
 }
 
 .employee-form-header {
@@ -42,6 +42,21 @@
   color: #2c3e50;
   font-weight: 600;
 }
+
+.employee-submit-button {
+  background-color: #19cc00;
+}
+
+.employee-submit-button:hover {
+  background-color: #19cc00 !important;
+}
+
+.employee-submit-button:active {
+  background-color: #15b800 !important;
+  border-color: #15b800 !important;
+  color: white !important;
+}
+
 
 .back-button {
   display: flex;
@@ -129,7 +144,6 @@
 }
 
 .form-actions .ant-btn-primary:hover {
-  background: linear-gradient(135deg, #40a9ff, #1890ff);
   transform: translateY(-2px);
 }
 

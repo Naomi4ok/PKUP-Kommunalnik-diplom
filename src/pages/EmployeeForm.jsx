@@ -28,7 +28,7 @@ const { Title } = Typography;
 const { Option } = Select;
 
 const EmployeeForm = () => {
-  const { id } = useParams(); // Get employee ID from URL if editing
+  const { id } = useParams(); // Получение ID сотрудника из URL при редактировании
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -39,16 +39,16 @@ const EmployeeForm = () => {
   const [timeRange, setTimeRange] = useState({ from: '', to: '' });
   const [showTimeRangePicker, setShowTimeRangePicker] = useState(false);
   
-  // Photo state
+  // Состояние для фото
   const [employeePhoto, setEmployeePhoto] = useState(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState(null);
   
-  // Phone input refs and state
+  // Refs и состояние для ввода телефона
   const inputRef = useRef(null);
   const [phoneValue, setPhoneValue] = useState('+375');
   const [cursorPosition, setCursorPosition] = useState(4);
   
-  // Load employee data if editing
+  // Загрузка данных сотрудника при редактировании
   useEffect(() => {
     fetchPositionsAndDepartments();
     
@@ -58,18 +58,18 @@ const EmployeeForm = () => {
     }
   }, [id]);
 
-  // Fetch all unique positions and departments
+  // Получение всех уникальных должностей и отделов
   const fetchPositionsAndDepartments = async () => {
     try {
       const response = await fetch('/api/employees');
       
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
       }
       
       const data = await response.json();
       
-      // Extract unique positions and departments
+      // Извлечение уникальных должностей и отделов
       const uniquePositions = Array.from(
         new Set(data.map(emp => emp.Position).filter(Boolean))
       );
@@ -82,39 +82,39 @@ const EmployeeForm = () => {
       setDepartments(uniqueDepartments);
       
     } catch (err) {
-      message.error(`Failed to fetch positions and departments: ${err.message}`);
+      message.error(`Не удалось загрузить должности и отделы: ${err.message}`);
     }
   };
 
-  // Fetch employee data for editing
+  // Получение данных сотрудника для редактирования
   const fetchEmployeeData = async (employeeId) => {
     try {
       setLoading(true);
       const response = await fetch(`/api/employees/${employeeId}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
       }
       
       const employee = await response.json();
       
-      // Split full name into first and last name
+      // Разделение полного имени на имя и фамилию
       const nameParts = employee.Full_Name ? employee.Full_Name.split(' ') : ['', ''];
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
       
-      // Determine work schedule type and value
-      let workScheduleType = 'Flexible'; // Default to Flexible
+      // Определение типа рабочего графика и значения
+      let workScheduleType = 'Гибкий'; // По умолчанию Гибкий
       let initialTimeRange = { from: '', to: '' };
       
       if (employee.Work_Schedule === 'Flexible' || employee.Work_Schedule === 'Shift Work') {
-        workScheduleType = employee.Work_Schedule;
+        workScheduleType = employee.Work_Schedule === 'Flexible' ? 'Гибкий' : 'Сменный';
         setShowTimeRangePicker(false);
       } else if (employee.Work_Schedule) {
-        // Check if it looks like a time range format (contains "to")
+        // Проверка, похоже ли на формат временного диапазона (содержит "to")
         const timeRangeMatch = employee.Work_Schedule.match(/(\d+:\d+\s*(?:AM|PM)?)\s*to\s*(\d+:\d+\s*(?:AM|PM)?)/i);
         if (timeRangeMatch) {
-          workScheduleType = 'Custom';
+          workScheduleType = 'Свой';
           initialTimeRange = { 
             from: timeRangeMatch[1].trim(),
             to: timeRangeMatch[2].trim()
@@ -122,74 +122,94 @@ const EmployeeForm = () => {
           setTimeRange(initialTimeRange);
           setShowTimeRangePicker(true);
         } else {
-          // If it doesn't match any known format, default to Custom
-          workScheduleType = 'Custom';
+          // Если не соответствует известному формату, по умолчанию "Свой"
+          workScheduleType = 'Свой';
           setShowTimeRangePicker(true);
         }
       }
       
-      // Set initial form values
+      // Установка начальных значений формы
       const formValues = {
         firstName,
         lastName,
         position: employee.Position || '',
         department: employee.Department || '',
-        status: employee.Status || 'Active',
+        status: employee.Status === 'Active' ? 'Активен' : 
+                employee.Status === 'On Leave' ? 'В отпуске' : 
+                employee.Status === 'Terminated' ? 'Уволен' : 
+                employee.Status || 'Активен',
         workScheduleType,
       };
       
       setInitialValues(formValues);
       form.setFieldsValue(formValues);
       
-      // Set phone number if available
+      // Установка номера телефона, если доступен
       if (employee.Contact_Details) {
         setPhoneValue(employee.Contact_Details);
       }
       
-      // If employee has a photo, set the preview URL
+      // Если у сотрудника есть фото, устанавливаем URL предпросмотра
       if (employee.Photo) {
         const imageUrl = `data:image/jpeg;base64,${employee.Photo}`;
         setPhotoPreviewUrl(imageUrl);
       }
       
     } catch (err) {
-      message.error(`Failed to fetch employee data: ${err.message}`);
+      message.error(`Не удалось загрузить данные сотрудника: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle form submission
+  // Обработка отправки формы
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
       
-      // Create FormData object to handle file upload
+      // Создание объекта FormData для обработки загрузки файла
       const formData = new FormData();
       
-      // Combine first and last name
+      // Объединение имени и фамилии
       const fullName = `${values.firstName} ${values.lastName}`.trim();
       formData.append('fullName', fullName);
       formData.append('position', values.position || '');
       formData.append('department', values.department || '');
       formData.append('contactDetails', phoneValue);
       
-      // Handle work schedule based on selection
+      // Обработка рабочего графика на основе выбора
       let workSchedule = '';
       
-      if (values.workScheduleType === 'Flexible' || values.workScheduleType === 'Shift Work') {
-        workSchedule = values.workScheduleType;
-      } else if (values.workScheduleType === 'Custom') {
-        // Format the time range as "from to to"
+      // Преобразование русских значений в английские для обработки на сервере
+      const scheduleTypeMap = {
+        'Гибкий': 'Flexible',
+        'Сменный': 'Shift Work',
+        'Свой': 'Custom'
+      };
+      
+      const workScheduleTypeEng = scheduleTypeMap[values.workScheduleType] || values.workScheduleType;
+      
+      if (workScheduleTypeEng === 'Flexible' || workScheduleTypeEng === 'Shift Work') {
+        workSchedule = workScheduleTypeEng;
+      } else if (workScheduleTypeEng === 'Custom') {
+        // Форматирование временного диапазона как "from to to"
         if (timeRange.from && timeRange.to) {
           workSchedule = `${timeRange.from} to ${timeRange.to}`;
         }
       }
       
       formData.append('workSchedule', workSchedule);
-      formData.append('status', values.status || 'Active');
       
-      // Add the photo file if it exists
+      // Преобразование статуса сотрудника в английский
+      const statusMap = {
+        'Активен': 'Active',
+        'В отпуске': 'On Leave',
+        'Уволен': 'Terminated'
+      };
+      
+      formData.append('status', statusMap[values.status] || values.status || 'Active');
+      
+      // Добавление файла фото, если он существует
       if (employeePhoto && employeePhoto.selectedImage) {
         formData.append('photo', employeePhoto.selectedImage);
       }
@@ -197,13 +217,13 @@ const EmployeeForm = () => {
       let response;
       
       if (isEditing) {
-        // Update existing employee
+        // Обновление существующего сотрудника
         response = await fetch(`/api/employees/${id}`, {
           method: 'PUT',
           body: formData
         });
       } else {
-        // Add new employee
+        // Добавление нового сотрудника
         response = await fetch('/api/employees', {
           method: 'POST',
           body: formData
@@ -211,39 +231,39 @@ const EmployeeForm = () => {
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
       }
 
-      // Success message
-      message.success(`Employee ${isEditing ? 'updated' : 'added'} successfully!`);
+      // Сообщение об успехе
+      message.success(`Сотрудник успешно ${isEditing ? 'обновлен' : 'добавлен'}!`);
       
-      // Navigate back to the employees list
+      // Переход обратно к списку сотрудников
       navigate('/employees');
       
     } catch (err) {
-      message.error(`Failed to ${isEditing ? 'update' : 'add'} employee: ${err.message}`);
+      message.error(`Не удалось ${isEditing ? 'обновить' : 'добавить'} сотрудника: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle avatar upload
+  // Обработка загрузки аватара
   const handleAvatarUpload = (photoData) => {
     setEmployeePhoto(photoData);
   };
 
-  // Phone number formatter for Belarus format
+  // Форматирование номера телефона в белорусском формате
   const formatPhoneNumber = (value) => {
-    // Make sure value starts with +375
+    // Убедимся, что значение начинается с +375
     if (!value.startsWith('+375')) {
       value = '+375' + value.replace(/^\+375/, '');
     }
     
-    // Remove all non-digit characters after the +375 prefix
+    // Удаляем все нецифровые символы после префикса +375
     const prefix = '+375';
     const phoneDigits = value.substring(prefix.length).replace(/[^\d]/g, '');
     
-    // Apply formatting based on the number of digits entered
+    // Применяем форматирование в зависимости от количества введенных цифр
     if (phoneDigits.length === 0) {
       return prefix;
     } else if (phoneDigits.length <= 2) {
@@ -255,66 +275,66 @@ const EmployeeForm = () => {
     } else if (phoneDigits.length <= 9) {
       return `${prefix}(${phoneDigits.substring(0, 2)})${phoneDigits.substring(2, 5)}-${phoneDigits.substring(5, 7)}-${phoneDigits.substring(7)}`;
     } else {
-      // Limit to 9 digits (2 for area code, 7 for number)
+      // Ограничиваем до 9 цифр (2 для кода региона, 7 для номера)
       return `${prefix}(${phoneDigits.substring(0, 2)})${phoneDigits.substring(2, 5)}-${phoneDigits.substring(5, 7)}-${phoneDigits.substring(7, 9)}`;
     }
   };
 
-  // Handle phone input change
+  // Обработка изменения телефонного ввода
   const handlePhoneChange = (e) => {
-    // Save cursor position before update
+    // Сохраняем позицию курсора перед обновлением
     const selectionStart = e.target.selectionStart;
     
     const { value } = e.target;
     
-    // Format the phone number
+    // Форматируем номер телефона
     const formattedValue = formatPhoneNumber(value);
     
-    // Update the state
+    // Обновляем состояние
     setPhoneValue(formattedValue);
     
-    // Calculate cursor position adjustment based on added formatting characters
+    // Рассчитываем корректировку позиции курсора на основе добавленных символов форматирования
     let newPosition = selectionStart;
     
-    // Check if the cursor is at a position where a format character was just added
+    // Проверяем, находится ли курсор в позиции, где только что был добавлен символ форматирования
     if (formattedValue.length > value.length) {
-      // If formatting added characters, adjust cursor position forward
+      // Если форматирование добавило символы, корректируем позицию курсора вперед
       newPosition = Math.min(formattedValue.length, selectionStart + (formattedValue.length - value.length));
     }
     
-    // Store cursor position to apply after render
+    // Сохраняем позицию курсора для применения после рендеринга
     setCursorPosition(newPosition);
   };
 
-  // Update cursor position after value change
+  // Обновление позиции курсора после изменения значения
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
     }
   }, [phoneValue, cursorPosition]);
 
-  // Handle work schedule type change
+  // Обработка изменения типа рабочего графика
   const handleWorkScheduleTypeChange = (value) => {
     form.setFieldsValue({ workScheduleType: value });
-    setShowTimeRangePicker(value === 'Custom');
+    setShowTimeRangePicker(value === 'Свой');
   };
 
-  // Handle time range change from TimeRangePicker
+  // Обработка изменения временного диапазона из TimeRangePicker
   const handleTimeRangeChange = (range) => {
     setTimeRange(range);
   };
 
-  // Validate the phone number
+  // Проверка номера телефона
   const validatePhoneNumber = (_, value) => {
     if (!phoneValue || phoneValue === '+375') {
-      return Promise.reject('Please enter a phone number');
+      return Promise.reject('Пожалуйста, введите номер телефона');
     }
     
-    // Check if the phone number matches the Belarus format
+    // Проверяем, соответствует ли номер телефона белорусскому формату
     const isValid = /^\+375\(\d{2}\)\d{3}-\d{2}-\d{2}$/.test(phoneValue);
     
     if (!isValid) {
-      return Promise.reject('Please enter a valid Belarusian phone number: +375(XX)YYY-YY-YY');
+      return Promise.reject('Пожалуйста, введите действительный белорусский номер телефона: +375(XX)YYY-YY-YY');
     }
     
     return Promise.resolve();
@@ -327,10 +347,10 @@ const EmployeeForm = () => {
           <HomeOutlined />
         </Breadcrumb.Item>
         <Breadcrumb.Item href="/employees">
-          Employees
+          Сотрудники
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          {isEditing ? 'Edit Employee' : 'Add Employee'}
+          {isEditing ? 'Редактирование сотрудника' : 'Добавление сотрудника'}
         </Breadcrumb.Item>
       </Breadcrumb>
 
@@ -341,14 +361,14 @@ const EmployeeForm = () => {
             onClick={() => navigate('/employees')}
             className="back-button"
           >
-            Back to Employees
+            Назад к списку сотрудников
           </Button>
           <Title level={2} className="employee-form-title">
-            {isEditing ? 'Edit Employee' : 'Add Employee'}
+            {isEditing ? 'Редактирование сотрудника' : 'Добавление сотрудника'}
           </Title>
         </div>
         
-        <Spin spinning={loading}>
+        <Spin spinning={loading} tip="Загрузка...">
           <Form
             form={form}
             layout="vertical"
@@ -356,9 +376,9 @@ const EmployeeForm = () => {
             initialValues={initialValues}
             className="employee-form"
           >
-            {/* Two-column layout with avatar on left, form fields on right */}
+            {/* Двухколоночный макет с аватаром слева, полями формы справа */}
             <Row gutter={32}>
-              {/* Left column: Avatar upload */}
+              {/* Левая колонка: загрузка аватара */}
               <Col xs={24} md={8}>
                 <div className="avatar-upload-section-left">
                   <AvatarUploadForm
@@ -369,27 +389,27 @@ const EmployeeForm = () => {
                 </div>
               </Col>
               
-              {/* Right column: Basic info fields */}
+              {/* Правая колонка: поля основной информации */}
               <Col xs={24} md={16}>
                 <div className="basic-info-section">
                   <Row gutter={16}>
                     <Col xs={24} md={12}>
                       <Form.Item
                         name="firstName"
-                        label="First Name"
-                        rules={[{ required: true, message: 'Please enter first name' }]}
+                        label="Имя"
+                        rules={[{ required: true, message: 'Пожалуйста, введите имя' }]}
                       >
-                        <Input placeholder="Enter first name" />
+                        <Input placeholder="Введите имя" />
                       </Form.Item>
                     </Col>
                     
                     <Col xs={24} md={12}>
                       <Form.Item
                         name="lastName"
-                        label="Last Name"
-                        rules={[{ required: true, message: 'Please enter last name' }]}
+                        label="Фамилия"
+                        rules={[{ required: true, message: 'Пожалуйста, введите фамилию' }]}
                       >
-                        <Input placeholder="Enter last name" />
+                        <Input placeholder="Введите фамилию" />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -398,11 +418,11 @@ const EmployeeForm = () => {
                     <Col xs={24} md={12}>
                       <Form.Item
                         name="position"
-                        label="Position"
+                        label="Должность"
                       >
                         <Select
                           showSearch
-                          placeholder="Select or enter position"
+                          placeholder="Выберите или введите должность"
                           optionFilterProp="children"
                           allowClear
                           mode="tags"
@@ -419,11 +439,11 @@ const EmployeeForm = () => {
                     <Col xs={24} md={12}>
                       <Form.Item
                         name="department"
-                        label="Department"
+                        label="Отдел"
                       >
                         <Select
                           showSearch
-                          placeholder="Select or enter department"
+                          placeholder="Выберите или введите отдел"
                           optionFilterProp="children"
                           allowClear
                           mode="tags"
@@ -441,11 +461,11 @@ const EmployeeForm = () => {
               </Col>
             </Row>
             
-            {/* Full-width fields below the two columns */}
+            {/* Поля на всю ширину под двумя колонками */}
             <Row className="additional-fields-section">
               <Col xs={24}>
                 <Form.Item
-                  label="Contact Details (Phone)"
+                  label="Контактные данные (Телефон)"
                   rules={[{ validator: validatePhoneNumber }]}
                 >
                   <div className="phone-input-wrapper">
@@ -466,22 +486,22 @@ const EmployeeForm = () => {
                 
                 <Form.Item
                   name="workScheduleType"
-                  label="Work Schedule Type"
-                  rules={[{ required: true, message: 'Please select work schedule type' }]}
+                  label="Тип рабочего графика"
+                  rules={[{ required: true, message: 'Пожалуйста, выберите тип рабочего графика' }]}
                 >
                   <Select 
-                    placeholder="Select work schedule type"
+                    placeholder="Выберите тип рабочего графика"
                     onChange={handleWorkScheduleTypeChange}
                   >
-                    <Option value="Flexible">Flexible</Option>
-                    <Option value="Shift Work">Shift Work</Option>
-                    <Option value="Custom">Custom Schedule</Option>
+                    <Option value="Гибкий">Гибкий</Option>
+                    <Option value="Сменный">Сменный</Option>
+                    <Option value="Свой">Свой график</Option>
                   </Select>
                 </Form.Item>
                 
                 {showTimeRangePicker && (
                   <Form.Item
-                    label="Select Work Hours"
+                    label="Выберите рабочие часы"
                     required={true}
                   >
                     <TimeRangePicker 
@@ -496,13 +516,13 @@ const EmployeeForm = () => {
                 
                 <Form.Item
                   name="status"
-                  label="Employee Status"
-                  rules={[{ required: true, message: 'Please select employee status' }]}
+                  label="Статус сотрудника"
+                  rules={[{ required: true, message: 'Пожалуйста, выберите статус сотрудника' }]}
                 >
-                  <Select placeholder="Select status">
-                    <Option value="Active">Active</Option>
-                    <Option value="On Leave">On Leave</Option>
-                    <Option value="Terminated">Terminated</Option>
+                  <Select placeholder="Выберите статус">
+                    <Option value="Активен">Активен</Option>
+                    <Option value="В отпуске">В отпуске</Option>
+                    <Option value="Уволен">Уволен</Option>
                   </Select>
                 </Form.Item>
               </Col>
@@ -510,19 +530,20 @@ const EmployeeForm = () => {
             
             <Form.Item className="form-actions">
               <Space>
-                <Button 
+                <Button
+                  className="employee-submit-button" 
                   type="primary" 
                   htmlType="submit" 
                   icon={<SaveOutlined />}
                   size="large"
                 >
-                  {isEditing ? 'Update Employee' : 'Add Employee'}
+                  {isEditing ? 'Обновить сотрудника' : 'Добавить сотрудника'}
                 </Button>
                 <Button 
                   onClick={() => navigate('/employees')}
                   size="large"
                 >
-                  Cancel
+                  Отмена
                 </Button>
               </Space>
             </Form.Item>

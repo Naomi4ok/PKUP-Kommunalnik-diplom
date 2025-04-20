@@ -61,7 +61,7 @@
   }
   
   .pagination-size-selector select:focus {
-    border-color: #00aaff;
+    border-color: #01B13E;
     outline: none;
     box-shadow: 0 0 0 3px #1890ff17;
   }
@@ -81,13 +81,13 @@
   }
   
   .pagination-button.active {
-    background-color: #f3f8f0;
-    color: #7eaf50;
+    background-color: #e0fcdc;
+    color: #0ab101;
   }
   
   .pagination-button:not(.active):not(.disabled):hover {
-    background-color: #f3f8f0;
-    color: #7eaf50;
+    background-color: #e0fcdc;
+    color: #0ab101;
   }
   
   .pagination-button.disabled {
