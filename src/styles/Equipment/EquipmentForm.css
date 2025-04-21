@@ -1,0 +1,56 @@
+/* EquipmentForm.css - стили для формы оборудования */
+
+.equipment-form-container {
+    padding: 12px;
+    max-width: 1200px;
+    width: 98%;
+    margin: 0 auto;
+  }
+  
+  .equipment-form-breadcrumb {
+    margin-bottom: 16px;
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .form-row .ant-form-item {
+    flex: 1;
+    margin-bottom: 16px;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  
+  /* Отзывчивый дизайн */
+  @media (max-width: 768px) {
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    .form-row .ant-form-item {
+      width: 100%;
+    }
+  }
+
+  .equipment-submit-button {
+    background-color: #19cc00;
+  }
+  
+  .equipment-submit-button:hover {
+    background-color: #19cc00 !important;
+  }
+  
+  .equipment-submit-button:active {
+    background-color: #15b800 !important;
+    border-color: #15b800 !important;
+    color: white !important;
+  }
+  

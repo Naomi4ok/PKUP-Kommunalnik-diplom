@@ -1,0 +1,32 @@
+/* Equipment.css - стили для страницы оборудования */
+.ant-equipment-container {
+    padding: 6px 24px 0px 24px;
+    max-width: 1600px;
+    width: 98%;
+    margin: 0 auto;
+  }
+  
+.ant-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0;
+    margin-bottom: 16px;
+  }
+
+  /* Add these styles to your existing Employees.css file */
+.equipment-breadcrumb {
+    margin-bottom: 24px;
+    font-size: 15px;
+  }
+  
+.equipment-breadcrumb a {
+    color: #0AB101;
+    transition: color 0.3s;
+  }
+  
+.equipment-breadcrumb a:hover {
+    color: #078800;
+  }
+  

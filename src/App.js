@@ -1,18 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Layout, Typography, Card, Row, Col } from 'antd';
+import { Layout, Card, Typography, Row, Col, Button } from 'antd';
 import {
-  HomeOutlined,
   UserOutlined,
+  DashboardOutlined,
   CalendarOutlined,
-  DashboardOutlined
+  ToolOutlined
 } from '@ant-design/icons';
 import './App.css';
+
+// Components
+import SidebarComponent from './components/SidebarComponent';
+
+// Pages
 import Employees from './pages/Employee/Employees';
 import EmployeeForm from './pages/Employee/EmployeeForm';
-import SidebarComponent from './components/SidebarComponent'; // Import the sidebar component
+import Equipment from './pages/Equipment/Equipment';
+import EquipmentForm from './pages/Equipment/EquipmentForm';
 
-const { Content, Footer } = Layout;
+const { Content } = Layout;
 const { Title } = Typography;
 
 function App() {
@@ -20,37 +26,36 @@ function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const siteLayoutRef = useRef(null);
   
-  // Check screen size on mount and resize
+  // Проверка размера экрана при монтировании компонента и при изменении размера окна
   useEffect(() => {
-    const checkSize = () => {
-      const isMobileView = window.innerWidth <= 768;
-      setIsMobile(isMobileView);
-      // Auto-collapse sidebar on mobile
-      if (isMobileView) {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+      // Если размер экрана изменился на мобильный, сворачиваем боковую панель
+      if (window.innerWidth <= 768) {
         setCollapsed(true);
       }
     };
     
-    window.addEventListener('resize', checkSize);
-    checkSize(); // Initial check
+    window.addEventListener('resize', checkMobile);
+    checkMobile();
     
-    return () => window.removeEventListener('resize', checkSize);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
-
-  // Handle layout transitions when collapse state changes
+  
+  // Добавление/удаление класса для анимации при изменении collapsed
   useEffect(() => {
     const siteLayout = siteLayoutRef.current;
+    
     if (!siteLayout) return;
     
-    // Add transitioning class
     siteLayout.classList.add('layout-transitioning');
     
-    // Use a more precise listener that only fires once
+    // После завершения перехода удаляем класс transitioning
     const transitionEndHandler = (e) => {
-      // Only trigger when the margin-left property transition ends
-      if (e.propertyName === 'margin-left') {
+      if (e.target === siteLayout) {
         siteLayout.classList.remove('layout-transitioning');
-        siteLayout.removeEventListener('transitionend', transitionEndHandler);
       }
     };
     
@@ -95,6 +100,9 @@ function App() {
               <Route path="/employees" element={<Employees />} />
               <Route path="/employees/add" element={<EmployeeForm />} />
               <Route path="/employees/edit/:id" element={<EmployeeForm />} />
+              <Route path="/equipment" element={<Equipment />} />
+              <Route path="/equipment/add" element={<EquipmentForm />} />
+              <Route path="/equipment/edit/:id" element={<EquipmentForm />} />
               <Route path="/dashboard" element={<PlaceholderPage title="Dashboard" />} />
               <Route path="/schedule" element={<PlaceholderPage title="Schedule" />} />
             </Routes>
@@ -134,6 +142,22 @@ const Home = () => {
             <Card.Meta
               title="Employees"
               description="Manage employee information, positions, departments, and more."
+            />
+          </Card>
+        </Col>
+        
+        {/* Equipment card */}
+        <Col xs={24} sm={12} md={8} lg={8} xl={6}>
+          <Card
+            hoverable
+            cover={<div className="card-icon-container"><ToolOutlined /></div>}
+            actions={[
+              <Link to="/equipment">Manage</Link>,
+            ]}
+          >
+            <Card.Meta
+              title="Equipment"
+              description="Manage equipment, technical conditions, and responsible employees."
             />
           </Card>
         </Col>

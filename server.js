@@ -40,6 +40,29 @@ const db = new sqlite3.Database(path.join(__dirname, 'database/database.db'), (e
       console.log('Employees table created or already exists');
     }
   });
+  
+  // Create Equipment table if it doesn't exist
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Equipment (
+      Equipment_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+      Name TEXT NOT NULL,
+      Type TEXT,
+      Manufacturer TEXT,
+      Model TEXT,
+      Inventory_Number TEXT,
+      Commission_Date TEXT,
+      Responsible_Employee_ID INTEGER,
+      Condition TEXT DEFAULT 'Рабочее',
+      Location TEXT,
+      FOREIGN KEY (Responsible_Employee_ID) REFERENCES Employees(Employee_ID)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('Error creating Equipment table:', err);
+    } else {
+      console.log('Equipment table created or already exists');
+    }
+  });
 });
 
 app.use(express.json());
@@ -199,7 +222,7 @@ app.delete('/api/employees/:id', (req, res) => {
   });
 });
 
-// NEW ENDPOINT: Import employees from Excel
+// Import employees from Excel
 app.post('/api/employees/import', (req, res) => {
   const { employees } = req.body;
   
@@ -237,6 +260,243 @@ app.post('/api/employees/import', (req, res) => {
         successCount++;
       } catch (err) {
         console.error('Error inserting employee:', err);
+        errorCount++;
+      }
+    });
+    
+    stmt.finalize();
+    
+    db.run('COMMIT', (err) => {
+      if (err) {
+        console.error('Error committing transaction:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      res.status(201).json({
+        message: 'Import completed',
+        imported: successCount,
+        failed: errorCount
+      });
+    });
+  });
+});
+
+// API Routes for Equipment
+// GET all equipment
+app.get('/api/equipment', (req, res) => {
+  db.all('SELECT * FROM Equipment', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching equipment:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json(rows);
+  });
+});
+
+// GET equipment by ID
+app.get('/api/equipment/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.get('SELECT * FROM Equipment WHERE Equipment_ID = ?', [id], (err, row) => {
+    if (err) {
+      console.error('Error fetching equipment:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ error: 'Equipment not found' });
+    }
+    
+    res.json(row);
+  });
+});
+
+// POST create new equipment
+app.post('/api/equipment', (req, res) => {
+  const { 
+    name, 
+    type, 
+    manufacturer, 
+    model, 
+    inventoryNumber,
+    commissionDate,
+    responsibleEmployeeId,
+    condition,
+    location
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Equipment name is required' });
+  }
+  
+  const sql = `
+    INSERT INTO Equipment (
+      Name, 
+      Type, 
+      Manufacturer, 
+      Model, 
+      Inventory_Number, 
+      Commission_Date, 
+      Responsible_Employee_ID, 
+      Condition, 
+      Location
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  db.run(sql, [
+    name, 
+    type, 
+    manufacturer, 
+    model, 
+    inventoryNumber, 
+    commissionDate, 
+    responsibleEmployeeId, 
+    condition || 'Рабочее', 
+    location
+  ], function(err) {
+    if (err) {
+      console.error('Error creating equipment:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.status(201).json({ 
+      message: 'Equipment created successfully',
+      equipmentId: this.lastID 
+    });
+  });
+});
+
+// PUT update equipment
+app.put('/api/equipment/:id', (req, res) => {
+  const { id } = req.params;
+  const { 
+    name, 
+    type, 
+    manufacturer, 
+    model, 
+    inventoryNumber,
+    commissionDate,
+    responsibleEmployeeId,
+    condition,
+    location
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Equipment name is required' });
+  }
+  
+  const sql = `
+    UPDATE Equipment 
+    SET Name = ?, 
+        Type = ?, 
+        Manufacturer = ?, 
+        Model = ?, 
+        Inventory_Number = ?, 
+        Commission_Date = ?, 
+        Responsible_Employee_ID = ?, 
+        Condition = ?, 
+        Location = ?
+    WHERE Equipment_ID = ?
+  `;
+  
+  db.run(sql, [
+    name, 
+    type, 
+    manufacturer, 
+    model, 
+    inventoryNumber, 
+    commissionDate, 
+    responsibleEmployeeId, 
+    condition || 'Рабочее', 
+    location, 
+    id
+  ], function(err) {
+    if (err) {
+      console.error('Error updating equipment:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Equipment not found' });
+    }
+    
+    res.json({ message: 'Equipment updated successfully' });
+  });
+});
+
+// DELETE equipment
+app.delete('/api/equipment/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.run('DELETE FROM Equipment WHERE Equipment_ID = ?', [id], function(err) {
+    if (err) {
+      console.error('Error deleting equipment:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Equipment not found' });
+    }
+    
+    res.json({ message: 'Equipment deleted successfully' });
+  });
+});
+
+// Import equipment from Excel
+app.post('/api/equipment/import', (req, res) => {
+  const { equipment } = req.body;
+  
+  if (!equipment || !Array.isArray(equipment) || equipment.length === 0) {
+    return res.status(400).json({ error: 'No equipment data provided or invalid format' });
+  }
+  
+  // Begin a transaction to ensure all inserts succeed or fail together
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+    
+    const stmt = db.prepare(`
+      INSERT INTO Equipment (
+        Name, 
+        Type, 
+        Manufacturer, 
+        Model, 
+        Inventory_Number, 
+        Commission_Date, 
+        Responsible_Employee_ID, 
+        Condition, 
+        Location
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    equipment.forEach(item => {
+      if (!item.name) {
+        errorCount++;
+        return; // Skip this record
+      }
+      
+      try {
+        stmt.run(
+          item.name,
+          item.type || '',
+          item.manufacturer || '',
+          item.model || '',
+          item.inventoryNumber || '',
+          item.commissionDate || null,
+          item.responsibleEmployeeId || null,
+          item.condition || 'Рабочее',
+          item.location || ''
+        );
+        successCount++;
+      } catch (err) {
+        console.error('Error inserting equipment:', err);
         errorCount++;
       }
     });
