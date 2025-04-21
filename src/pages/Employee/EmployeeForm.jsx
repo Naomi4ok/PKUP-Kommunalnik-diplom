@@ -20,9 +20,9 @@ import {
   HomeOutlined,
   ArrowLeftOutlined
 } from '@ant-design/icons';
-import '../styles/EmployeeForm.css';
-import TimeRangePicker from '../components/TimeRangePicker';
-import AvatarUploadForm from '../components/AvatarUploadForm';
+import '../../styles/Employee/EmployeeForm.css';
+import TimeRangePicker from '../../components/TimeRangePicker';
+import AvatarUploadForm from '../../components/AvatarUploadForm';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -86,6 +86,32 @@ const EmployeeForm = () => {
     }
   };
 
+  // Перевод английских типов графиков работы на русский
+  const translateWorkScheduleToRussian = (workSchedule) => {
+    switch(workSchedule) {
+      case 'Flexible':
+        return 'Гибкий';
+      case 'Shift Work':
+        return 'Сменный';
+      default:
+        return workSchedule;
+    }
+  };
+
+  // Перевод русских типов графиков работы на английский
+  const translateWorkScheduleToEnglish = (workSchedule) => {
+    switch(workSchedule) {
+      case 'Гибкий':
+        return 'Flexible';
+      case 'Сменный':
+        return 'Shift Work';
+      case 'Свой':
+        return 'Custom';
+      default:
+        return workSchedule;
+    }
+  };
+
   // Получение данных сотрудника для редактирования
   const fetchEmployeeData = async (employeeId) => {
     try {
@@ -108,7 +134,7 @@ const EmployeeForm = () => {
       let initialTimeRange = { from: '', to: '' };
       
       if (employee.Work_Schedule === 'Flexible' || employee.Work_Schedule === 'Shift Work') {
-        workScheduleType = employee.Work_Schedule === 'Flexible' ? 'Гибкий' : 'Сменный';
+        workScheduleType = translateWorkScheduleToRussian(employee.Work_Schedule);
         setShowTimeRangePicker(false);
       } else if (employee.Work_Schedule) {
         // Проверка, похоже ли на формат временного диапазона (содержит "to")
@@ -180,14 +206,8 @@ const EmployeeForm = () => {
       // Обработка рабочего графика на основе выбора
       let workSchedule = '';
       
-      // Преобразование русских значений в английские для обработки на сервере
-      const scheduleTypeMap = {
-        'Гибкий': 'Flexible',
-        'Сменный': 'Shift Work',
-        'Свой': 'Custom'
-      };
-      
-      const workScheduleTypeEng = scheduleTypeMap[values.workScheduleType] || values.workScheduleType;
+      // Получение английского значения типа графика для сервера
+      const workScheduleTypeEng = translateWorkScheduleToEnglish(values.workScheduleType);
       
       if (workScheduleTypeEng === 'Flexible' || workScheduleTypeEng === 'Shift Work') {
         workSchedule = workScheduleTypeEng;

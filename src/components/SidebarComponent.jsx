@@ -13,6 +13,13 @@ import {
   UserSwitchOutlined,
   AppstoreOutlined,
   TeamOutlined,
+  ToolOutlined,
+  CarOutlined,
+  DatabaseOutlined,
+  PartitionOutlined,
+  ExperimentOutlined,
+  SettingFilled,
+  CarryOutOutlined,
 } from '@ant-design/icons';
 import Logo from './Logo'; // Предполагаем, что компонент Logo существует
 import './SidebarComponent.css';
@@ -72,13 +79,16 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
   // Определить все пункты меню
   const allMenuItems = [
     {
-      key: 'home',
+      key: '/', // Используем путь как ключ для более простой логики выбора
       icon: <HomeOutlined />,
       label: 'Главная',
-      children: [
-        { key: '/', label: 'Общее', path: '/', icon: <AppstoreOutlined /> },
-        { key: '/employees', label: 'Сотрудники', path: '/employees', icon: <TeamOutlined /> },
-      ],
+      path: '/',
+    },
+    {
+      key: '/employees', // Используем путь как ключ
+      icon: <TeamOutlined />,
+      label: 'Сотрудники',
+      path: '/employees',
     },
     {
       key: '/dashboard', // Используем путь как ключ для более простой логики выбора
@@ -91,6 +101,31 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       icon: <CalendarOutlined />,
       label: 'Расписание',
       path: '/schedule',
+    },
+    {
+      key: 'equipment',
+      icon: <ToolOutlined />,
+      label: 'Техника',
+      children: [
+        { key: '/equipment', label: 'Оборудование', path: '/equipment', icon: <SettingFilled /> },
+        { key: '/vehicles', label: 'Транспорт', path: '/vehicles', icon: <CarOutlined /> },
+      ],
+    },
+    {
+      key: 'warehouse',
+      icon: <DatabaseOutlined />,
+      label: 'Склад',
+      children: [
+        { key: '/tools', label: 'Инструменты', path: '/tools', icon: <ToolOutlined /> },
+        { key: '/parts', label: 'Запчасти', path: '/parts', icon: <PartitionOutlined /> },
+        { key: '/materials', label: 'Материалы', path: '/materials', icon: <AppstoreOutlined /> },
+      ],
+    },
+    {
+      key: '/processes', // Используем путь как ключ
+      icon: <ExperimentOutlined />,
+      label: 'Производственные процессы',
+      path: '/processes',
     },
   ];
 
@@ -111,7 +146,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         }
       }
     }
-    // Запасной вариант по умолчанию, если совпадений нет (например, корневой путь обрабатывается подменю 'home')
+    // Запасной вариант по умолчанию, если совпадений нет
     if (currentPath === '/') return ['/'];
     return [currentPath]; // Возврат к самому пути, если нет прямого совпадения
   };
@@ -124,8 +159,8 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         return [item.key];
       }
     }
-    // Держать 'home' открытым по умолчанию, если его дочерние элементы не активны, или настроить по необходимости
-    return ['home'];
+    // По умолчанию ничего не открыто
+    return [];
   };
 
   // Обработка переключения сворачивания с анимацией

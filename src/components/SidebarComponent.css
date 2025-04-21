@@ -141,9 +141,9 @@
 }
 
 /* Submenu adjustments */
-.ant-menu-submenu-title {
+.ant-menu-submenu-selected.ant-menu-submenu-selected>.ant-menu-submenu-title {
   color: #0ab101 !important;
-  font-weight: 500; /* Slightly bolder submenu titles */
+  font-weight: 500;
 }
 .ant-menu-submenu .ant-menu-item {
   margin-left: 16px !important; /* Indent submenu items */

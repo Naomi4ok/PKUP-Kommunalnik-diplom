@@ -39,9 +39,9 @@ import {
   HomeOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
-import '../styles/Employees.css';
-import SearchBar from '../components/SearchBar';
-import Pagination from '../components/Pagination';
+import '../../styles/Employee/Employees.css';
+import SearchBar from '../../components/SearchBar';
+import Pagination from '../../components/Pagination';
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -63,13 +63,14 @@ const Employees = () => {
   const [previewTitle, setPreviewTitle] = useState('');
   const [importError, setImportError] = useState('');
   
-  // New state for filter functionality
+  // Новый стейт для функциональности фильтров
   const [showFilters, setShowFilters] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [positions, setPositions] = useState([]);
-  const [statuses, setStatuses] = useState(['Active', 'On Leave', 'Terminated']);
+  // Русские статусы
+  const [statuses, setStatuses] = useState(['Активен', 'В отпуске', 'Уволен']);
   
-  // Filter values
+  // Значения фильтров
   const [filterValues, setFilterValues] = useState({
     departments: [],
     positions: [],
@@ -77,20 +78,20 @@ const Employees = () => {
     workSchedule: []
   });
   
-  // Search query
+  // Поисковой запрос
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch employees on component mount
+  // Загрузка сотрудников при монтировании компонента
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  // Update filtered employees when employees change or filters change
+  // Обновление отфильтрованных сотрудников при изменении списка сотрудников или фильтров
   useEffect(() => {
     applyFiltersAndSearch();
   }, [employees, filterValues, searchQuery]);
 
-  // Extract unique departments and positions from employees data
+  // Извлечение уникальных отделов и должностей из данных о сотрудниках
   useEffect(() => {
     if (employees.length > 0) {
       const uniqueDepartments = Array.from(
@@ -105,30 +106,100 @@ const Employees = () => {
     }
   }, [employees]);
 
-  // Fetch all employees from the database
+  // Перевод статусов с английского на русский
+  const translateStatusToRussian = (status) => {
+    if (!status) return 'Активен'; // По умолчанию
+    
+    switch(status) {
+      case 'Active': 
+        return 'Активен';
+      case 'On Leave': 
+        return 'В отпуске';
+      case 'Terminated': 
+        return 'Уволен';
+      default:
+        return status; // Если статус уже на русском или другой
+    }
+  };
+
+  // Перевод графика работы с английского на русский
+  const translateWorkScheduleToRussian = (schedule) => {
+    if (!schedule) return '';
+    
+    switch(schedule) {
+      case 'Flexible': 
+        return 'Гибкий';
+      case 'Shift Work': 
+        return 'Сменный';
+      default:
+        // Если это временной диапазон или другая строка, оставляем как есть
+        return schedule;
+    }
+  };
+
+  // Перевод статусов с русского на английский (для API)
+  const translateStatusToEnglish = (status) => {
+    if (!status) return 'Active'; // По умолчанию
+    
+    switch(status) {
+      case 'Активен': 
+        return 'Active';
+      case 'В отпуске': 
+        return 'On Leave';
+      case 'Уволен': 
+        return 'Terminated';
+      default:
+        return status; // Если статус уже на английском или другой
+    }
+  };
+
+  // Перевод графика работы с русского на английский
+  const translateWorkScheduleToEnglish = (schedule) => {
+    if (!schedule) return '';
+    
+    switch(schedule) {
+      case 'Гибкий': 
+        return 'Flexible';
+      case 'Сменный': 
+        return 'Shift Work';
+      default:
+        // Если это временной диапазон или другая строка, оставляем как есть
+        return schedule;
+    }
+  };
+
+  // Загрузка всех сотрудников из базы данных
   const fetchEmployees = async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/employees');
       
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
       }
       
       const data = await response.json();
-      setEmployees(data);
+      
+      // Преобразование английских статусов и графиков работы в русские при получении данных
+      const translatedData = data.map(employee => ({
+        ...employee,
+        Status: translateStatusToRussian(employee.Status),
+        Work_Schedule: translateWorkScheduleToRussian(employee.Work_Schedule)
+      }));
+      
+      setEmployees(translatedData);
     } catch (err) {
-      message.error(`Failed to fetch employees: ${err.message}`);
+      message.error(`Не удалось загрузить данные о сотрудниках: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Apply both filters and search
+  // Применение фильтров и поиска
   const applyFiltersAndSearch = () => {
     let filtered = [...employees];
     
-    // Apply search query
+    // Применение поискового запроса
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(employee => {
@@ -143,39 +214,43 @@ const Employees = () => {
       });
     }
     
-    // Apply department filter
+    // Применение фильтра отдела
     if (filterValues.departments.length > 0) {
       filtered = filtered.filter(employee => 
         filterValues.departments.includes(employee.Department)
       );
     }
     
-    // Apply position filter
+    // Применение фильтра должности
     if (filterValues.positions.length > 0) {
       filtered = filtered.filter(employee => 
         filterValues.positions.includes(employee.Position)
       );
     }
     
-    // Apply status filter
+    // Применение фильтра статуса
     if (filterValues.statuses.length > 0) {
       filtered = filtered.filter(employee => 
         filterValues.statuses.includes(employee.Status)
       );
     }
     
-    // Apply work schedule filter (basic implementation - can be enhanced)
+    // Применение фильтра по графику работы
     if (filterValues.workSchedule.length > 0) {
       filtered = filtered.filter(employee => {
-        if (filterValues.workSchedule.includes('Flexible') && employee.Work_Schedule === 'Flexible') {
+        if (filterValues.workSchedule.includes('Гибкий') && 
+            (employee.Work_Schedule === 'Гибкий' || employee.Work_Schedule === 'Flexible')) {
           return true;
         }
-        if (filterValues.workSchedule.includes('Shift Work') && employee.Work_Schedule === 'Shift Work') {
+        if (filterValues.workSchedule.includes('Сменный') && 
+            (employee.Work_Schedule === 'Сменный' || employee.Work_Schedule === 'Shift Work')) {
           return true;
         }
-        if (filterValues.workSchedule.includes('Custom') && 
+        if (filterValues.workSchedule.includes('Индивидуальный') && 
             employee.Work_Schedule && 
+            employee.Work_Schedule !== 'Гибкий' && 
             employee.Work_Schedule !== 'Flexible' && 
+            employee.Work_Schedule !== 'Сменный' && 
             employee.Work_Schedule !== 'Shift Work') {
           return true;
         }
@@ -186,12 +261,12 @@ const Employees = () => {
     setFilteredEmployees(filtered);
   };
 
-  // Toggle filter visibility
+  // Переключение видимости фильтров
   const toggleFilters = () => {
     setShowFilters(!showFilters);
   };
 
-  // Handle filter changes
+  // Обработка изменений фильтров
   const handleFilterChange = (filterType, values) => {
     setFilterValues(prev => ({
       ...prev,
@@ -199,7 +274,7 @@ const Employees = () => {
     }));
   };
 
-  // Reset all filters
+  // Сброс всех фильтров
   const resetFilters = () => {
     setFilterValues({
       departments: [],
@@ -209,228 +284,237 @@ const Employees = () => {
     });
   };
 
-  // Handle search functionality
+  // Обработка функции поиска
   const handleSearch = (query) => {
     setSearchQuery(query);
   };
 
-  // Handle avatar preview
+  // Обработка предпросмотра фото
   const handlePreview = (photo, name) => {
     if (photo) {
       setPreviewImage(`data:image/jpeg;base64,${photo}`);
-      setPreviewTitle(name || 'Employee Photo');
+      setPreviewTitle(name || 'Фото сотрудника');
       setPreviewVisible(true);
     }
   };
 
-  // Handle closing the preview modal
+  // Закрытие модального окна предпросмотра
   const handlePreviewCancel = () => {
     setPreviewVisible(false);
   };
 
-  // Export employees to Excel
+  // Экспорт сотрудников в Excel
   const exportToExcel = () => {
     try {
-      // Create a clean dataset without photos and with formatted data
+      // Создание набора данных без фотографий и с форматированными данными
       const exportData = employees.map(employee => {
-        // Split full name into first and last name if possible
+        // Разделение полного имени на имя и фамилию, если возможно
         const nameParts = employee.Full_Name ? employee.Full_Name.split(' ') : ['', ''];
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
         
         return {
-          'First Name': firstName,
-          'Last Name': lastName,
-          'Position': employee.Position || '',
-          'Department': employee.Department || '',
-          'Contact Details': employee.Contact_Details || '',
-          'Work Schedule': employee.Work_Schedule || '',
-          'Status': employee.Status || 'Active'
+          'Имя': firstName,
+          'Фамилия': lastName,
+          'Должность': employee.Position || '',
+          'Отдел': employee.Department || '',
+          'Контактные данные': employee.Contact_Details || '',
+          'График работы': employee.Work_Schedule || '',
+          'Статус': employee.Status || 'Активен'
         };
       });
       
-      // Create worksheet from data
+      // Создание рабочего листа из данных
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       
-      // Set column widths
+      // Установка ширины столбцов
       const wscols = [
-        { wch: 15 }, // First Name
-        { wch: 20 }, // Last Name
-        { wch: 20 }, // Position
-        { wch: 20 }, // Department
-        { wch: 30 }, // Contact Details
-        { wch: 20 }, // Work Schedule
-        { wch: 15 }  // Status
+        { wch: 15 }, // Имя
+        { wch: 20 }, // Фамилия
+        { wch: 20 }, // Должность
+        { wch: 20 }, // Отдел
+        { wch: 30 }, // Контактные данные
+        { wch: 20 }, // График работы
+        { wch: 15 }  // Статус
       ];
       worksheet['!cols'] = wscols;
       
-      // Create workbook
+      // Создание рабочей книги
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Сотрудники');
       
-      // Generate and download the Excel file
-      const filename = `Employees_${new Date().toISOString().split('T')[0]}.xlsx`;
+      // Генерация и загрузка файла Excel
+      const filename = `Сотрудники_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(workbook, filename);
       
-      message.success('Employees exported successfully!');
+      message.success('Данные о сотрудниках успешно экспортированы!');
     } catch (err) {
-      message.error(`Failed to export employees: ${err.message}`);
+      message.error(`Не удалось экспортировать данные: ${err.message}`);
     }
   };
 
-  // Open import modal
+  // Открытие модального окна импорта
   const showImportModal = () => {
     setImportFileList([]);
-    setImportError(''); // Clear any previous errors
+    setImportError(''); // Очистка предыдущих ошибок
     setImportModalVisible(true);
   };
 
-  // Handle import file change
+  // Обработка изменения файла импорта
   const handleImportFileChange = (info) => {
-    console.log('File changed:', info);
-    setImportFileList(info.fileList.slice(-1)); // Keep only the latest file
+    console.log('Файл изменен:', info);
+    setImportFileList(info.fileList.slice(-1)); // Сохранение только последнего файла
   };
 
-  // Create a template for download
+  // Создание шаблона для загрузки
   const downloadTemplate = () => {
-    // Create sample data
+    // Создание образца данных
     const sampleData = [
       {
-        'First Name': 'John',
-        'Last Name': 'Doe',
-        'Position': 'Manager',
-        'Department': 'IT',
-        'Contact Details': '+375(29)123-45-67',
-        'Work Schedule': '9:00 to 17:00',
-        'Status': 'Active'
+        'Имя': 'Иван',
+        'Фамилия': 'Иванов',
+        'Должность': 'Менеджер',
+        'Отдел': 'ИТ',
+        'Контактные данные': '+375(29)123-45-67',
+        'График работы': 'Гибкий',
+        'Статус': 'Активен'
       },
       {
-        'First Name': 'Jane',
-        'Last Name': 'Smith',
-        'Position': 'Developer',
-        'Department': 'Engineering',
-        'Contact Details': '+375(33)765-43-21',
-        'Work Schedule': 'Flexible',
-        'Status': 'On Leave'
+        'Имя': 'Мария',
+        'Фамилия': 'Петрова',
+        'Должность': 'Разработчик',
+        'Отдел': 'Инженерный',
+        'Контактные данные': '+375(33)765-43-21',
+        'График работы': 'Сменный',
+        'Статус': 'В отпуске'
       }
     ];
     
-    // Create worksheet
+    // Создание рабочего листа
     const worksheet = XLSX.utils.json_to_sheet(sampleData);
     
-    // Set column widths
+    // Установка ширины столбцов
     const wscols = [
-      { wch: 15 }, // First Name
-      { wch: 20 }, // Last Name
-      { wch: 20 }, // Position
-      { wch: 20 }, // Department
-      { wch: 30 }, // Contact Details
-      { wch: 20 }, // Work Schedule
-      { wch: 15 }  // Status
+      { wch: 15 }, // Имя
+      { wch: 20 }, // Фамилия
+      { wch: 20 }, // Должность
+      { wch: 20 }, // Отдел
+      { wch: 30 }, // Контактные данные
+      { wch: 20 }, // График работы
+      { wch: 15 }  // Статус
     ];
     worksheet['!cols'] = wscols;
     
-    // Create workbook
+    // Создание рабочей книги
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Шаблон');
     
-    // Download
-    XLSX.writeFile(workbook, 'Employee_Import_Template.xlsx');
+    // Загрузка
+    XLSX.writeFile(workbook, 'Шаблон_Импорта_Сотрудников.xlsx');
   };
 
-  // Process the imported Excel file
+  // Обработка импортированного Excel-файла
   const handleImport = async () => {
     setImportError('');
     
     if (!importFileList || importFileList.length === 0) {
-      setImportError('Please select an Excel file to import');
-      message.error('Please select an Excel file to import');
+      setImportError('Пожалуйста, выберите Excel-файл для импорта');
+      message.error('Пожалуйста, выберите Excel-файл для импорта');
       return;
     }
 
     const file = importFileList[0].originFileObj;
-    console.log('Processing file:', file);
+    console.log('Обработка файла:', file);
     
     if (!file) {
-      setImportError('Invalid file object');
-      message.error('Invalid file object');
+      setImportError('Неверный файловый объект');
+      message.error('Неверный файловый объект');
       return;
     }
     
     setImporting(true);
 
     try {
-      // Read the Excel file
+      // Чтение Excel-файла
       const reader = new FileReader();
       
       reader.onload = async (e) => {
-        console.log('File loaded successfully');
+        console.log('Файл успешно загружен');
         try {
-          // Parse the Excel data
+          // Разбор данных Excel
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           
-          // Get the first worksheet
+          // Получение первого рабочего листа
           const worksheetName = workbook.SheetNames[0];
           if (!worksheetName) {
-            throw new Error('Excel file has no sheets');
+            throw new Error('Excel-файл не содержит листов');
           }
           
           const worksheet = workbook.Sheets[worksheetName];
           
-          // Convert to JSON - more robust parsing with headers
+          // Конвертация в JSON
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A" });
           
-          console.log('Parsed Excel data:', jsonData);
+          console.log('Разобранные данные Excel:', jsonData);
           
-          // Validate the data structure
-          if (!jsonData || jsonData.length <= 1) { // Account for header row
-            throw new Error('The Excel file is empty or has invalid data');
+          // Проверка структуры данных
+          if (!jsonData || jsonData.length <= 1) { // С учетом строки заголовка
+            throw new Error('Excel-файл пуст или содержит некорректные данные');
           }
           
-          // Find the header row and identify column positions
+          // Поиск строки заголовка и идентификация позиций столбцов
           const headerRow = jsonData[0];
           const columns = {
-            firstName: Object.keys(headerRow).find(key => headerRow[key] === 'First Name'),
-            lastName: Object.keys(headerRow).find(key => headerRow[key] === 'Last Name'),
-            position: Object.keys(headerRow).find(key => headerRow[key] === 'Position'),
-            department: Object.keys(headerRow).find(key => headerRow[key] === 'Department'),
-            contactDetails: Object.keys(headerRow).find(key => headerRow[key] === 'Contact Details'),
-            workSchedule: Object.keys(headerRow).find(key => headerRow[key] === 'Work Schedule'),
-            status: Object.keys(headerRow).find(key => headerRow[key] === 'Status')
+            firstName: Object.keys(headerRow).find(key => headerRow[key] === 'Имя'),
+            lastName: Object.keys(headerRow).find(key => headerRow[key] === 'Фамилия'),
+            position: Object.keys(headerRow).find(key => headerRow[key] === 'Должность'),
+            department: Object.keys(headerRow).find(key => headerRow[key] === 'Отдел'),
+            contactDetails: Object.keys(headerRow).find(key => headerRow[key] === 'Контактные данные'),
+            workSchedule: Object.keys(headerRow).find(key => headerRow[key] === 'График работы'),
+            status: Object.keys(headerRow).find(key => headerRow[key] === 'Статус')
           };
           
           if (!columns.firstName && !columns.lastName) {
-            throw new Error('Excel file is missing First Name or Last Name columns');
+            throw new Error('В Excel-файле отсутствуют столбцы Имя или Фамилия');
           }
           
-          // Map rows to our format, skipping header row
+          // Преобразование строк в наш формат, пропуская строку заголовка
           const employees = jsonData.slice(1).map(row => {
-            // Extract values using identified column positions
+            // Извлечение значений из идентифицированных позиций столбцов
             const firstName = columns.firstName ? row[columns.firstName] || '' : '';
             const lastName = columns.lastName ? row[columns.lastName] || '' : '';
             const fullName = `${firstName} ${lastName}`.trim();
+            
+            // Конвертирование русского статуса в английский для API
+            const status = columns.status ? translateStatusToEnglish(row[columns.status] || 'Активен') : 'Active';
+            
+            // Конвертирование русского графика работы в английский для API
+            let workSchedule = '';
+            if (columns.workSchedule) {
+              workSchedule = translateWorkScheduleToEnglish(row[columns.workSchedule] || '');
+            }
             
             return {
               fullName: fullName,
               position: columns.position ? row[columns.position] || '' : '',
               department: columns.department ? row[columns.department] || '' : '',
               contactDetails: columns.contactDetails ? row[columns.contactDetails] || '' : '',
-              workSchedule: columns.workSchedule ? row[columns.workSchedule] || '' : '',
-              status: columns.status ? row[columns.status] || 'Active' : 'Active'
+              workSchedule: workSchedule,
+              status: status
             };
           });
           
-          // Filter out invalid entries (missing required fields)
+          // Фильтрация недействительных записей (отсутствуют обязательные поля)
           const validEmployees = employees.filter(emp => emp.fullName.trim() !== '');
           
           if (validEmployees.length === 0) {
-            throw new Error('No valid employee data found. Full Name is required.');
+            throw new Error('Действительные данные о сотрудниках не найдены. Полное имя обязательно.');
           }
           
-          console.log('Employees to import:', validEmployees);
+          console.log('Сотрудники для импорта:', validEmployees);
           
-          // Send the data to the server
+          // Отправка данных на сервер
           const response = await fetch('/api/employees/import', {
             method: 'POST',
             headers: {
@@ -439,57 +523,57 @@ const Employees = () => {
             body: JSON.stringify({ employees: validEmployees })
           });
           
-          console.log('Server response status:', response.status);
+          console.log('Статус ответа сервера:', response.status);
           
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Import failed');
+            throw new Error(errorData.error || 'Импорт не удался');
           }
           
           const result = await response.json();
-          console.log('Import result:', result);
+          console.log('Результат импорта:', result);
           
           setImportModalVisible(false);
-          message.success(`Successfully imported ${result.imported} employees`);
+          message.success(`Успешно импортировано ${result.imported} сотрудников`);
           fetchEmployees();
           
         } catch (err) {
-          console.error('Import processing error:', err);
-          setImportError(`Import failed: ${err.message}`);
-          message.error(`Import failed: ${err.message}`);
+          console.error('Ошибка обработки импорта:', err);
+          setImportError(`Импорт не удался: ${err.message}`);
+          message.error(`Импорт не удался: ${err.message}`);
         } finally {
           setImporting(false);
         }
       };
       
       reader.onerror = (error) => {
-        console.error('File reading error:', error);
-        setImportError('Failed to read file');
-        message.error('Failed to read file');
+        console.error('Ошибка чтения файла:', error);
+        setImportError('Не удалось прочитать файл');
+        message.error('Не удалось прочитать файл');
         setImporting(false);
       };
       
       reader.readAsArrayBuffer(file);
       
     } catch (err) {
-      console.error('Import error:', err);
-      setImportError(`Import failed: ${err.message}`);
-      message.error(`Import failed: ${err.message}`);
+      console.error('Ошибка импорта:', err);
+      setImportError(`Импорт не удался: ${err.message}`);
+      message.error(`Импорт не удался: ${err.message}`);
       setImporting(false);
     }
   };
 
-  // Navigate to add employee page
+  // Переход на страницу добавления сотрудника
   const goToAddEmployee = () => {
     navigate('/employees/add');
   };
 
-  // Navigate to edit employee page
+  // Переход на страницу редактирования сотрудника
   const goToEditEmployee = (id) => {
     navigate(`/employees/edit/${id}`);
   };
 
-  // Handle employee deletion
+  // Обработка удаления сотрудника
   const handleDelete = async (id) => {
     try {
       const response = await fetch(`/api/employees/${id}`, {
@@ -497,26 +581,26 @@ const Employees = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
       }
 
-      message.success('Employee deleted successfully!');
+      message.success('Сотрудник успешно удален!');
       fetchEmployees();
     } catch (err) {
-      message.error(`Failed to delete employee: ${err.message}`);
+      message.error(`Не удалось удалить сотрудника: ${err.message}`);
     }
   };
 
-  // Handle page change for custom pagination
+  // Обработка изменения страницы для пользовательской пагинации
   const handlePageChange = (page, newPageSize) => {
     setCurrentPage(page);
     setPageSize(newPageSize);
   };
 
-  // Define table columns
+  // Определение столбцов таблицы
   const columns = [
     {
-      title: 'Photo',
+      title: 'Фото',
       dataIndex: 'Photo',
       key: 'photo',
       width: 80,
@@ -524,7 +608,7 @@ const Employees = () => {
         photo ? (
           <img 
             src={`data:image/jpeg;base64,${photo}`} 
-            alt="Employee" 
+            alt="Сотрудник" 
             className="ant-employee-photo"
             onClick={() => handlePreview(photo, record.Full_Name)}
             style={{ cursor: 'pointer' }}
@@ -537,14 +621,14 @@ const Employees = () => {
       ),
     },
     {
-      title: 'Full Name',
+      title: 'ФИО',
       dataIndex: 'Full_Name',
       key: 'fullName',
       sorter: (a, b) => a.Full_Name.localeCompare(b.Full_Name),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
         <div style={{ padding: 8 }}>
           <Input
-            placeholder="Search name"
+            placeholder="Поиск по имени"
             value={selectedKeys[0]}
             onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
             onPressEnter={() => confirm()}
@@ -558,10 +642,10 @@ const Employees = () => {
               size="small"
               style={{ width: 90 }}
             >
-              Search
+              Поиск
             </Button>
             <Button onClick={() => clearFilters()} size="small" style={{ width: 90 }}>
-              Reset
+              Сброс
             </Button>
           </Space>
         </div>
@@ -578,7 +662,7 @@ const Employees = () => {
       ),
     },
     {
-      title: 'Department',
+      title: 'Отдел',
       dataIndex: 'Department',
       key: 'department',
       filters: Array.from(new Set(employees.map(e => e.Department).filter(Boolean))).map(dept => ({
@@ -588,44 +672,44 @@ const Employees = () => {
       onFilter: (value, record) => record.Department === value,
     },
     {
-      title: 'Contact Details',
+      title: 'Контактные данные',
       dataIndex: 'Contact_Details',
       key: 'contactDetails',
       ellipsis: true,
     },
     {
-      title: 'Work Schedule',
+      title: 'График работы',
       dataIndex: 'Work_Schedule',
       key: 'workSchedule',
       ellipsis: true,
     },
     {
-      title: 'Status',
+      title: 'Статус',
       dataIndex: 'Status',
       key: 'status',
       filters: [
-        { text: 'Active', value: 'Active' },
-        { text: 'On Leave', value: 'On Leave' },
-        { text: 'Terminated', value: 'Terminated' },
+        { text: 'Активен', value: 'Активен' },
+        { text: 'В отпуске', value: 'В отпуске' },
+        { text: 'Уволен', value: 'Уволен' },
       ],
       onFilter: (value, record) => record.Status === value,
       render: (status) => {
         let color = 'green';
-        if (status === 'On Leave') {
+        if (status === 'В отпуске') {
           color = 'gold';
-        } else if (status === 'Terminated') {
+        } else if (status === 'Уволен') {
           color = 'red';
         }
         
         return (
           <Tag color={color}>
-            {status || 'Active'}
+            {status || 'Активен'}
           </Tag>
         );
       },
     },
     {
-      title: 'Actions',
+      title: 'Действия',
       key: 'actions',
       width: 80,
       render: (_, record) => (
@@ -634,7 +718,7 @@ const Employees = () => {
             items: [
               {
                 key: '1',
-                label: 'Edit',
+                label: 'Редактировать',
                 icon: <EditOutlined />,
                 onClick: () => goToEditEmployee(record.Employee_ID)
               },
@@ -642,13 +726,13 @@ const Employees = () => {
                 key: '2',
                 label: 
                   <Popconfirm
-                    title="Delete employee"
-                    description="Are you sure you want to delete this employee?"
+                    title="Удаление сотрудника"
+                    description="Вы уверены, что хотите удалить этого сотрудника?"
                     onConfirm={() => handleDelete(record.Employee_ID)}
-                    okText="Yes"
-                    cancelText="No"
+                    okText="Да"
+                    cancelText="Нет"
                   >
-                    <span className="dropdown-delete-label">Delete</span>
+                    <span className="dropdown-delete-label">Удалить</span>
                   </Popconfirm>,
                 icon: <DeleteOutlined />,
                 danger: true
@@ -668,33 +752,33 @@ const Employees = () => {
     },
   ];
   
-  // Calculate the data to be displayed on the current page
+  // Расчет данных для отображения на текущей странице
   const paginatedData = filteredEmployees.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="ant-employees-container">
-      {/* Add Breadcrumb navigation here */}
+      {/* Добавление хлебных крошек */}
       <Breadcrumb className="employee-breadcrumb">
         <Breadcrumb.Item href="/">
           <HomeOutlined />
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          Employees
+          Сотрудники
         </Breadcrumb.Item>
       </Breadcrumb>
       <Card>
         <div className="ant-page-header-wrapper">
           <div className="ant-page-header">
-            {/* Left side: Export and Import buttons */}
+            {/* Левая сторона: кнопки экспорта и импорта */}
             <div className="header-left-content">
-            <Title level={2}>Employees</Title>
+            <Title level={2}>Сотрудники</Title>
               <Button 
                 type="primary" 
                 icon={<FileExcelOutlined />} 
                 onClick={exportToExcel}
                 className="ant-export-button"
               >
-                Export
+                Экспорт
               </Button>
               <Button 
                 type="primary" 
@@ -702,40 +786,40 @@ const Employees = () => {
                 onClick={showImportModal}
                 className="ant-import-button"
               >
-                Import
+                Импорт
               </Button>
             </div>
             
-            {/* Right side: Search bar, Filter button, and Add Employee button */}
+            {/* Правая сторона: строка поиска, кнопка фильтра и кнопка добавления сотрудника */}
             <div className="header-right-content">
 
-              {/* Filter button - NEW */}
+              {/* Кнопка фильтра */}
               <Button
                 type="primary" 
                 icon={<FilterOutlined />}
                 onClick={toggleFilters}
                 className="ant-filter-button"
               >
-                Filter
+                Фильтр
               </Button>
               
-              {/* Search bar */}
+              {/* Строка поиска */}
               <div className="employees-search-bar-container">
                 <SearchBar 
                   onSearch={handleSearch} 
-                  placeholder="Search employees"
+                  placeholder="Поиск сотрудников"
                   autoFocus={false}
                 />
               </div>
               
-              {/* Add Employee button */}
+              {/* Кнопка добавления сотрудника */}
               <Button 
                 type="primary" 
                 icon={<PlusOutlined />} 
                 onClick={goToAddEmployee}
                 className="ant-add-button"
               >
-                Add Employee
+                Добавить сотрудника
               </Button>
             </div>
           </div>
@@ -743,21 +827,21 @@ const Employees = () => {
           {showFilters && (
   <div className={`filter-panel ${showFilters ? 'visible' : ''}`}>
     <div className="filter-panel-header">
-      <h4>Filter Employees</h4>
+      <h4>Фильтр сотрудников</h4>
       <Button 
       className="ant-filreset-button"
       type="link"
-      onClick={resetFilters}>Reset all filters</Button>
+      onClick={resetFilters}>Сбросить все фильтры</Button>
     </div>
     
     <Row gutter={[16, 16]}>
-      {/* Department filter */}
+      {/* Фильтр по отделу */}
       <Col xs={24} sm={12} md={6}>
         <div className="filter-group">
-          <label>Department</label>
+          <label>Отдел</label>
           <Select
             mode="multiple"
-            placeholder="Select departments"
+            placeholder="Выберите отделы"
             value={filterValues.departments}
             onChange={(values) => handleFilterChange('departments', values)}
             style={{ width: '100%' }}
@@ -770,13 +854,13 @@ const Employees = () => {
         </div>
       </Col>
       
-      {/* Position filter */}
+      {/* Фильтр по должности */}
       <Col xs={24} sm={12} md={6}>
         <div className="filter-group">
-          <label>Position</label>
+          <label>Должность</label>
           <Select
             mode="multiple"
-            placeholder="Select positions"
+            placeholder="Выберите должности"
             value={filterValues.positions}
             onChange={(values) => handleFilterChange('positions', values)}
             style={{ width: '100%' }}
@@ -789,13 +873,13 @@ const Employees = () => {
         </div>
       </Col>
       
-      {/* Status filter */}
+      {/* Фильтр по статусу */}
       <Col xs={24} sm={12} md={6}>
         <div className="filter-group">
-          <label>Status</label>
+          <label>Статус</label>
           <Select
             mode="multiple"
-            placeholder="Select status"
+            placeholder="Выберите статус"
             value={filterValues.statuses}
             onChange={(values) => handleFilterChange('statuses', values)}
             style={{ width: '100%' }}
@@ -808,21 +892,21 @@ const Employees = () => {
         </div>
       </Col>
       
-      {/* Work Schedule filter */}
+      {/* Фильтр по графику работы */}
       <Col xs={24} sm={12} md={6}>
         <div className="filter-group">
-          <label>Work Schedule</label>
+          <label>График работы</label>
           <Select
             mode="multiple"
-            placeholder="Select schedule type"
+            placeholder="Выберите тип графика"
             value={filterValues.workSchedule}
             onChange={(values) => handleFilterChange('workSchedule', values)}
             style={{ width: '100%' }}
             maxTagCount="responsive"
           >
-            <Option value="Flexible">Flexible</Option>
-            <Option value="Shift Work">Shift Work</Option>
-            <Option value="Custom">Custom Schedule</Option>
+            <Option value="Гибкий">Гибкий</Option>
+            <Option value="Сменный">Сменный</Option>
+            <Option value="Индивидуальный">Индивидуальный график</Option>
           </Select>
         </div>
       </Col>
@@ -833,16 +917,16 @@ const Employees = () => {
           <Divider />
           
           <Spin spinning={loading}>
-            {/* Table without built-in pagination */}
+            {/* Таблица без встроенной пагинации */}
             <Table 
               dataSource={paginatedData}
               columns={columns}
               rowKey="Employee_ID"
-              pagination={false} // Disable built-in pagination
+              pagination={false} // Отключение встроенной пагинации
               scroll={{ x: 'max-content' }}
             />
             
-            {/* Custom Pagination Component */}
+            {/* Компонент пользовательской пагинации */}
             <Pagination
               totalItems={filteredEmployees.length}
               currentPage={currentPage}
@@ -854,7 +938,7 @@ const Employees = () => {
         </div>
       </Card>
 
-      {/* Image Preview Modal */}
+      {/* Модальное окно предпросмотра изображения */}
       <Modal
         open={previewVisible}
         title={previewTitle}
@@ -863,24 +947,24 @@ const Employees = () => {
       >
         <div className="employee-photo-preview-container">
           <img 
-            alt="Employee Preview" 
+            alt="Предпросмотр сотрудника" 
             style={{ width: '100%' }} 
             src={previewImage} 
           />
         </div>
       </Modal>
 
-      {/* Import Modal with debugging improvements */}
+      {/* Модальное окно импорта с улучшениями отладки */}
       <Modal
-        title="Import Employees from Excel"
+        title="Импорт сотрудников из Excel"
         open={importModalVisible}
         onCancel={() => setImportModalVisible(false)}
         footer={[
           <Button key="template" onClick={downloadTemplate} style={{ float: 'left' }}>
-            Download Template
+            Скачать шаблон
           </Button>,
           <Button key="cancel" onClick={() => setImportModalVisible(false)}>
-            Cancel
+            Отмена
           </Button>,
           <Button
             key="import"
@@ -889,32 +973,32 @@ const Employees = () => {
             onClick={handleImport}
             disabled={importFileList.length === 0}
           >
-            Import
+            Импорт
           </Button>
         ]}
       >
         <div className="import-instructions">
-          <p>Please upload an Excel file with the following columns:</p>
+          <p>Пожалуйста, загрузите Excel-файл со следующими столбцами:</p>
           <ul>
-            <li><strong>First Name</strong> (required)</li>
-            <li><strong>Last Name</strong></li>
-            <li>Position</li>
-            <li>Department</li>
-            <li>Contact Details</li>
-            <li>Work Schedule</li>
-            <li>Status</li>
+            <li><strong>Имя</strong> (обязательно)</li>
+            <li><strong>Фамилия</strong></li>
+            <li>Должность</li>
+            <li>Отдел</li>
+            <li>Контактные данные</li>
+            <li>График работы</li>
+            <li>Статус</li>
           </ul>
         </div>
 
         {importError && (
           <div className="import-error" style={{ color: 'red', marginBottom: '10px' }}>
-            Error: {importError}
+            Ошибка: {importError}
           </div>
         )}
 
         <Upload.Dragger
           accept=".xlsx,.xls"
-          beforeUpload={() => false} // Prevent auto upload
+          beforeUpload={() => false} // Предотвращение автоматической загрузки
           fileList={importFileList}
           onChange={handleImportFileChange}
           maxCount={1}
@@ -922,9 +1006,9 @@ const Employees = () => {
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
           </p>
-          <p className="ant-upload-text">Click or drag file to this area to upload</p>
+          <p className="ant-upload-text">Нажмите или перетащите файл в эту область для загрузки</p>
           <p className="ant-upload-hint">
-            Support for a single Excel file upload. Ensure your file has the required columns.
+            Поддерживается загрузка одного Excel-файла. Убедитесь, что ваш файл содержит необходимые столбцы.
           </p>
         </Upload.Dragger>
       </Modal>

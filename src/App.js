@@ -8,8 +8,8 @@ import {
   DashboardOutlined
 } from '@ant-design/icons';
 import './App.css';
-import Employees from './pages/Employees';
-import EmployeeForm from './pages/EmployeeForm';
+import Employees from './pages/Employee/Employees';
+import EmployeeForm from './pages/Employee/EmployeeForm';
 import SidebarComponent from './components/SidebarComponent'; // Import the sidebar component
 
 const { Content, Footer } = Layout;
