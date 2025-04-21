@@ -108,7 +108,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       label: 'Техника',
       children: [
         { key: '/equipment', label: 'Оборудование', path: '/equipment', icon: <SettingFilled /> },
-        { key: '/vehicles', label: 'Транспорт', path: '/vehicles', icon: <CarOutlined /> },
+        { key: '/transport', label: 'Транспорт', path: '/transport', icon: <CarOutlined /> },
       ],
     },
     {

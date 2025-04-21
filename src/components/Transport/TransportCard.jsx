@@ -1,142 +1,123 @@
 import React from 'react';
-import { Card, Typography, Tag, Divider, Avatar, Space, Tooltip } from 'antd';
-import { CarOutlined, CalendarOutlined, NumberOutlined, SettingOutlined, UserOutlined, ToolOutlined } from '@ant-design/icons';
+import { Card, Typography, Tag, Dropdown, Menu, Tooltip, Button } from 'antd';
+import { 
+  MoreOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  UserOutlined, 
+  CalendarOutlined, 
+  KeyOutlined,
+  ToolOutlined,
+  FireOutlined,
+  CarOutlined,
+  SettingOutlined
+} from '@ant-design/icons';
 import './TransportCard.css';
 
 const { Text, Title } = Typography;
 
-const TransportCard = ({ 
-  transportData,
-  onClick = () => {},
-  imageBaseUrl = '/images/transports/',
-  logoBaseUrl = '/images/brands/'
-}) => {
-  const {
-    image,
-    brand,
-    brandLogo,
-    model,
-    year,
-    licensePlate,
-    fuelType,
-    transmissionType,
-    purpose,
-    condition,
-    responsiblePerson,
-    lastMaintenanceDate
-  } = transportData;
-
-  // Format date to display in DD.MM.YYYY format
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Не указано';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU');
-  };
-
-  // Helper to determine condition tag color
-  const getConditionColor = (condition) => {
-    switch(condition?.toLowerCase()) {
-      case 'рабочее':
-        return 'success';
-      case 'требует обслуживания':
-        return 'warning';
-      case 'в ремонте':
-        return 'error';
-      case 'списано':
-        return 'default';
-      default:
-        return 'default';
+const TransportCard = ({ data, onEdit, onDelete }) => {
+  // Define status colors
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'Исправен': return 'green';
+      case 'Требует ТО': return 'blue';
+      case 'Ремонтируется': return 'orange';
+      case 'Неисправен': return 'red';
+      default: return 'default';
     }
   };
 
-  // Helper to determine fuel type icon
-  const getFuelTypeIcon = (type) => {
-    switch(type?.toLowerCase()) {
-      case 'дизель':
-        return '🛢️';
-      case 'электрический':
-        return '⚡';
-      case 'бензин':
-        return '⛽';
-      case 'газ':
-        return '💨';
-      default:
-        return '🛢️';
-    }
-  };
+  // Card actions menu
+  const actionsMenu = (
+    <Menu>
+      <Menu.Item key="edit" icon={<EditOutlined />} onClick={onEdit}>
+        Редактировать
+      </Menu.Item>
+      <Menu.Item key="delete" icon={<DeleteOutlined />} onClick={onDelete} danger>
+        Удалить
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
-    <Card 
-      hoverable
+    <Card
       className="transport-card"
+      bodyStyle={{ padding: 0 }}
+      bordered={false}
       cover={
         <div className="transport-card-image-container">
-          <img 
-            src={`${imageBaseUrl}${image}`} 
-            alt={`${brand} ${model}`} 
-            className="transport-card-image"
-          />
-          <div className="transport-card-license">
-            <Tag color="blue" icon={<NumberOutlined />}>{licensePlate}</Tag>
-          </div>
+          {data.imageUrl ? (
+            <img alt={data.model} src={data.imageUrl} className="transport-card-image" />
+          ) : (
+            <div className="transport-card-no-image">
+              <CarOutlined className="no-image-icon" />
+              <div>Нет изображения</div>
+            </div>
+          )}
+          {data.brandLogo && (
+            <div className="transport-card-brand-logo">
+              <img src={data.brandLogo} alt={data.brand} />
+            </div>
+          )}
+          <Tag 
+            className="transport-card-status-tag" 
+            color={getStatusColor(data.technicalCondition)}
+          >
+            {data.technicalCondition}
+          </Tag>
         </div>
       }
-      onClick={onClick}
     >
-      <div className="transport-card-header">
-        <div className="transport-card-brand">
-          <Avatar 
-            src={`${logoBaseUrl}${brandLogo}`} 
-            size="small"
-            className="transport-card-logo"
-          />
-          <Title level={5} className="transport-card-brand-name">{brand}</Title>
-        </div>
-        <Text className="transport-card-year">
-          <CalendarOutlined /> {year}
-        </Text>
-      </div>
-      
-      <Divider className="transport-card-divider" />
-      
-      <Title level={5} className="transport-card-model">
-        <CarOutlined /> {model}
-      </Title>
-      
-      <Space direction="vertical" className="transport-card-specs" size="small">
-        <div className="transport-card-spec-item">
-          <Text type="secondary">Тип топлива:</Text>
-          <Tooltip title={fuelType}>
-            <Text>{getFuelTypeIcon(fuelType)} {fuelType}</Text>
-          </Tooltip>
-        </div>
-        <div className="transport-card-spec-item">
-          <Text type="secondary">Трансмиссия:</Text>
-          <Text>{transmissionType}</Text>
-        </div>
-        <div className="transport-card-spec-item">
-          <Text type="secondary">Назначение:</Text>
-          <Text>{purpose}</Text>
-        </div>
-      </Space>
-      
-      <Divider className="transport-card-divider" />
-      
-      <div className="transport-card-footer">
-        <div className="transport-card-condition">
-          <Text type="secondary">Состояние:</Text>
-          <Tag color={getConditionColor(condition)}>{condition}</Tag>
+      <div className="transport-card-content">
+        <div className="transport-card-header">
+          <Title level={4} className="transport-card-title">{data.brand} {data.model}</Title>
+          <Text className="transport-card-year">{data.year} г.</Text>
         </div>
         
-        <div className="transport-card-responsible">
-          <Text type="secondary">Ответственный:</Text>
-          <Text><UserOutlined /> {responsiblePerson}</Text>
+        <div className="transport-card-details">
+          <div className="transport-card-detail-item">
+            <KeyOutlined className="detail-icon" />
+            <Text>Гос. номер: <span className="detail-value">{data.licenseNumber}</span></Text>
+          </div>
+          
+          <div className="transport-card-detail-item">
+            <CarOutlined className="detail-icon" />
+            <Text>Назначение: <span className="detail-value">{data.purpose}</span></Text>
+          </div>
+          
+          <div className="transport-card-detail-item">
+            <FireOutlined className="detail-icon" />
+            <Text>Топливо: <span className="detail-value">{data.fuelType}</span></Text>
+          </div>
+          
+          <div className="transport-card-detail-item">
+            <ToolOutlined className="detail-icon" />
+            <Text>Трансмиссия: <span className="detail-value">{data.transmissionType}</span></Text>
+          </div>
+          
+          <div className="transport-card-detail-item">
+            <UserOutlined className="detail-icon" />
+            <Text>Ответственный: <span className="detail-value">{data.assignedEmployee}</span></Text>
+          </div>
+          
+          <div className="transport-card-detail-item">
+            <CalendarOutlined className="detail-icon" />
+            <Tooltip title="Дата последнего ТО">
+              <Text>Последнее ТО: <span className="detail-value">{data.lastMaintenance}</span></Text>
+            </Tooltip>
+          </div>
         </div>
         
-        <div className="transport-card-maintenance">
-          <Text type="secondary">Последнее ТО:</Text>
-          <Text><ToolOutlined /> {formatDate(lastMaintenanceDate)}</Text>
-        </div>
+        <Dropdown overlay={actionsMenu} trigger={['click']} placement="bottomCenter">
+          <Button 
+            type="primary" 
+            className="transport-card-actions-button" 
+            icon={<SettingOutlined />}
+          >
+            Действия
+          </Button>
+        </Dropdown>
       </div>
     </Card>
   );

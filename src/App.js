@@ -5,7 +5,8 @@ import {
   UserOutlined,
   DashboardOutlined,
   CalendarOutlined,
-  ToolOutlined
+  ToolOutlined,
+  CarOutlined
 } from '@ant-design/icons';
 import './App.css';
 
@@ -17,6 +18,8 @@ import Employees from './pages/Employee/Employees';
 import EmployeeForm from './pages/Employee/EmployeeForm';
 import Equipment from './pages/Equipment/Equipment';
 import EquipmentForm from './pages/Equipment/EquipmentForm';
+import Transport from './pages/Transport/Transport';
+import TransportForm from './pages/Transport/TransportForm';
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -103,6 +106,9 @@ function App() {
               <Route path="/equipment" element={<Equipment />} />
               <Route path="/equipment/add" element={<EquipmentForm />} />
               <Route path="/equipment/edit/:id" element={<EquipmentForm />} />
+              <Route path="/transport" element={<Transport />} />
+              <Route path="/transport/add" element={<TransportForm />} />
+              <Route path="/transport/edit/:id" element={<TransportForm />} />
               <Route path="/dashboard" element={<PlaceholderPage title="Dashboard" />} />
               <Route path="/schedule" element={<PlaceholderPage title="Schedule" />} />
             </Routes>
@@ -158,6 +164,22 @@ const Home = () => {
             <Card.Meta
               title="Equipment"
               description="Manage equipment, technical conditions, and responsible employees."
+            />
+          </Card>
+        </Col>
+        
+        {/* Transport card */}
+        <Col xs={24} sm={12} md={8} lg={8} xl={6}>
+          <Card
+            hoverable
+            cover={<div className="card-icon-container"><CarOutlined /></div>}
+            actions={[
+              <Link to="/transport">Manage</Link>,
+            ]}
+          >
+            <Card.Meta
+              title="Transportation"
+              description="Manage vehicles, maintenance status, and assignments."
             />
           </Card>
         </Col>

@@ -1,0 +1,151 @@
+/* Enhanced TransportForm.css */
+.transport-form-container {
+    padding: 24px;
+    background-color: #f5f5f5;
+    min-height: calc(100vh - 64px);
+  }
+  
+  .transport-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    background-color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .transport-form-header h2 {
+    margin-bottom: 0;
+    color: #1890ff;
+    font-weight: 600;
+  }
+  
+  .transport-form-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+  }
+  
+  .form-section-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1890ff;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 8px;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+  }
+  
+  .form-actions button {
+    min-width: 120px;
+    height: 40px;
+  }
+  
+  .brand-select-option {
+    display: flex;
+    align-items: center;
+  }
+  
+  .brand-logo {
+    margin-right: 8px;
+    height: 24px;
+    width: auto;
+  }
+  
+  .transport-image-preview {
+    margin-top: 8px;
+  }
+  
+  .summary-section {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .summary-row {
+    display: flex;
+    margin-bottom: 8px;
+  }
+  
+  .summary-label {
+    font-weight: 500;
+    width: 200px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .transport-form-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .form-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .form-actions button {
+      width: 100%;
+    }
+    
+    .transport-form-card {
+      padding: 16px 8px;
+    }
+  }
+  
+  /* Input customization */
+  .ant-form-item-label > label {
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .ant-select-selector, .ant-input, .ant-input-number, .ant-picker {
+    border-radius: 6px !important;
+  }
+  
+  .ant-upload-list-picture .ant-upload-list-item {
+    border-radius: 6px;
+  }
+  
+  .transport-status-tag {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  
+  .status-operational {
+    color: #52c41a;
+    background: #f6ffed;
+    border: 1px solid #b7eb8f;
+  }
+  
+  .status-maintenance {
+    color: #1890ff;
+    background: #e6f7ff;
+    border: 1px solid #91d5ff;
+  }
+  
+  .status-repair {
+    color: #fa8c16;
+    background: #fff7e6;
+    border: 1px solid #ffd591;
+  }
+  
+  .status-inactive {
+    color: #ff4d4f;
+    background: #fff1f0;
+    border: 1px solid #ffa39e;
+  }

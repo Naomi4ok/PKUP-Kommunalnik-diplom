@@ -1,23 +1,23 @@
 .transport-card {
-  width: 300px;
-  height: 100%;
-  border-radius: 8px;
+  width: 350px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  background-color: #ffffff;
-  margin: 0;
+  box-shadow: 0 0 10px 0px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease;
+  background: #fff;
+  margin-bottom: 20px;
 }
 
 .transport-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .transport-card-image-container {
-  height: 160px;
-  overflow: hidden;
   position: relative;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(45deg, #f0f2f5, #e6e9ed);
 }
 
 .transport-card-image {
@@ -31,70 +31,124 @@
   transform: scale(1.05);
 }
 
-.transport-card-license {
+.transport-card-no-image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #bfbfbf;
+  font-size: 14px;
+}
+
+.no-image-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.transport-card-brand-logo {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-}
-
-.transport-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.transport-card-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.transport-card-brand-name {
-  margin: 0 !important;
-}
-
-.transport-card-logo {
-  background-color: #f5f5f5;
+  top: 150px;
+  left: 15px;
+  width: 40px;
+  height: 40px;
+  border-radius: 25%;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.transport-card-brand-logo img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.transport-card-status-tag {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-weight: 600;
+  padding: 2px 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.transport-card-content {
+  padding: 20px;
+}
+
+.transport-card-header {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transport-card-title {
+  margin: 0 !important;
+  color: #262626;
+  font-weight: 600;
 }
 
 .transport-card-year {
+  font-size: 16px;
   color: #8c8c8c;
+  font-weight: 500;
+  background: #f5f5f5;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.transport-card-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.transport-card-detail-item {
+  display: flex;
+  align-items: center;
   font-size: 14px;
 }
 
-.transport-card-divider {
-  margin: 12px 0;
+.detail-icon {
+  color: #0AB101;
+  margin-right: 10px;
+  font-size: 16px;
 }
 
-.transport-card-model {
-  margin: 0 0 12px 0 !important;
+.detail-value {
+  font-weight: 500;
+  color: #262626;
 }
 
-.transport-card-specs {
+.transport-card-actions-button {
   width: 100%;
+  height: 45px;
+  font-size: 15px;
+  border-radius: 6px;
+  border-color: #d9d9d9;
+  color: #000000;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  box-shadow: none;
 }
 
-.transport-card-spec-item {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  font-size: 14px;
+.transport-card-actions-button:hover {
+  background: #ffffff !important;
+  color: #0AB101 !important;
+  border-color: #0AB101;
+  box-shadow: none;
 }
 
-.transport-card-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.transport-card-condition,
-.transport-card-responsible,
-.transport-card-maintenance {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
+@media (max-width: 576px) {
+  .transport-card {
+    width: 100%;
+  }
 }
