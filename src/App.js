@@ -10,7 +10,7 @@ import {
 import './App.css';
 
 // Components
-import SidebarComponent from './components/SidebarComponent';
+import SidebarComponent from './components/SidebarComponents/SidebarComponent';
 
 // Pages
 import Employees from './pages/Employee/Employees';

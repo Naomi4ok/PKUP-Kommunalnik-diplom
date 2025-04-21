@@ -21,7 +21,7 @@ import {
   SettingFilled,
   CarryOutOutlined,
 } from '@ant-design/icons';
-import Logo from './Logo'; // Предполагаем, что компонент Logo существует
+import Logo from '../Logo'; // Предполагаем, что компонент Logo существует
 import './SidebarComponent.css';
 
 const { Sider } = Layout;
