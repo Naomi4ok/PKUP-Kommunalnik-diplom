@@ -69,6 +69,7 @@ const TransportForm = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedCondition, setSelectedCondition] = useState('Исправен');
   const [customBrandMode, setCustomBrandMode] = useState(false);
+  const [purposes, setPurposes] = useState([]); // Добавляем состояние для хранения списка назначений
   const isEditMode = !!id;
 
   // Fetch employees for dropdown
@@ -91,6 +92,31 @@ const TransportForm = () => {
     };
 
     fetchEmployees();
+  }, []);
+
+  // Получение всех уникальных назначений
+  useEffect(() => {
+    const fetchPurposes = async () => {
+      try {
+        const response = await fetch('/api/transportation');
+        if (!response.ok) {
+          throw new Error('Failed to fetch transportation data');
+        }
+        const data = await response.json();
+        
+        // Извлечение уникальных назначений
+        const uniquePurposes = Array.from(
+          new Set(data.map(transport => transport.Purpose).filter(Boolean))
+        );
+        
+        setPurposes(uniquePurposes);
+      } catch (error) {
+        console.error('Error fetching purposes:', error);
+        // Не показываем ошибку пользователю, просто логируем
+      }
+    };
+
+    fetchPurposes();
   }, []);
 
   // Handle image upload
@@ -231,18 +257,8 @@ const TransportForm = () => {
           if (data.LastMaintenance) {
             // Проверяем формат даты и преобразуем соответственно
             if (typeof data.LastMaintenance === 'string') {
-              // Если дата в строковом формате, проверяем разные варианты
-              if (data.LastMaintenance.includes('GMT') || data.LastMaintenance.includes('T')) {
-                // Для формата с днём недели или ISO
-                maintenanceDate = moment(new Date(data.LastMaintenance));
-              } else if (data.LastMaintenance.includes('.')) {
-                // Для формата DD.MM.YYYY
-                const parts = data.LastMaintenance.split('.');
-                maintenanceDate = moment(`${parts[2]}-${parts[1]}-${parts[0]}`);
-              } else {
-                // Пробуем стандартный парсинг
-                maintenanceDate = moment(data.LastMaintenance);
-              }
+              // Обрабатываем строковый формат даты, независимо от исходного представления
+              maintenanceDate = moment(new Date(data.LastMaintenance));
             } else {
               // Если это не строка, пытаемся обработать как дату
               maintenanceDate = moment(data.LastMaintenance);
@@ -446,39 +462,58 @@ const TransportForm = () => {
                 <Form.Item
                   name="purpose"
                   label="Назначение"
-                  rules={[{ required: true, message: 'Пожалуйста, выберите назначение' }]}
+                  rules={[{ required: true, message: 'Пожалуйста, укажите назначение' }]}
                 >
-                  <Select placeholder="Выберите назначение" size="large">
-                    <Option value="Мусоровоз">Мусоровоз</Option>
-                    <Option value="Грузовик">Грузовик</Option>
-                    <Option value="Трактор">Трактор</Option>
-                    <Option value="Фура">Фура</Option>
-                    <Option value="Техпомощь">Техпомощь</Option>
-                    <Option value="Самосвал">Самосвал</Option>
-                    <Option value="Другое">Другое</Option>
+                  <Select 
+                    placeholder="Введите или выберите назначение" 
+                    size="large"
+                    showSearch
+                    allowClear
+                    mode="tags"
+                  >
+                    {purposes.map(purpose => (
+                      <Option key={purpose} value={purpose}>
+                        {purpose}
+                      </Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>
             </Row>
              <Row gutter={[24, 12]}>
-               <Col xs={24} md={6} lg={6}>
-                 <Form.Item
-                   name="year"
-                   label="Год выпуска"
-                   rules={[
-                     { required: true, message: 'Пожалуйста, введите год выпуска' }, 
-                     { type: 'number', min: 1900, max: new Date().getFullYear() + 1, message: 'Введите корректный год' }
-                   ]}
-                 >
-                   <InputNumber 
-                     style={{ width: '100%' }} 
-                     placeholder="Год" 
-                     size="large"
-                   />
-                 </Form.Item>
-               </Col>
+             <Col xs={24} md={12} lg={8}>
+  <Form.Item
+    name="year"
+    label="Год выпуска"
+    rules={[
+      { required: true, message: 'Пожалуйста, выберите год выпуска' }
+    ]}
+    // Добавляем нормализацию значения, чтобы в форме сохранялся числовой год, а не moment объект
+    getValueProps={(value) => {
+      // Преобразуем числовое значение года в moment объект при загрузке данных
+      return { value: value ? moment().year(value).startOf('year') : undefined };
+    }}
+    getValueFromEvent={(date) => {
+      // Получаем из moment объекта числовое значение года при сохранении
+      return date ? date.year() : null;
+    }}
+  >
+    <DatePicker
+      style={{ width: '100%' }}
+      picker="year"
+      placeholder="Выберите год"
+      size="large"
+      format="YYYY"
+      disabledDate={(current) => {
+        // Отключаем выбор будущих лет (кроме текущего) и годов до 1900
+        return (current && current.year() > new Date().getFullYear()) || 
+               (current && current.year() < 1900);
+      }}
+    />
+  </Form.Item>
+</Col>
                
-               <Col xs={24} md={9} lg={6}>
+<Col xs={24} md={12} lg={8}>
                  <Form.Item
                    name="licenseNumber"
                    label="Гос. номер"
@@ -492,7 +527,7 @@ const TransportForm = () => {
                  </Form.Item>
                </Col>
                
-               <Col xs={24} md={9} lg={12}>
+               <Col xs={24} md={12} lg={8}>
                  <Form.Item
                    name="technicalCondition"
                    label="Техническое состояние"
