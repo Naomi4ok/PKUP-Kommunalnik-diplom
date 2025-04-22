@@ -15,7 +15,7 @@
   }
 
   .ant-transport-container {
-    padding: 6px 30px 0px 30px;
+    padding: 8px 30px 0px 52px;
     max-width: 1600px;
     margin: 0 auto;
     transition: all 0.3s ease;
@@ -28,11 +28,10 @@
   }
 
   .transport-content {
-    margin-right: -25px;
     background: #fff;
     border-radius: 4px;
   }
-  
+
   .loading-container {
     display: flex;
     justify-content: center;

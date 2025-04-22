@@ -9,7 +9,7 @@ import SidebarComponent from './components/SidebarComponents/SidebarComponent';
 import PlaceholderPage from './components/PlaceholderPage'; // Import PlaceholderPage
 
 // Pages
-import Home from './pages/Home/Home'; // Import the new Home component
+import Dashboard from './pages/Dashboard/Dashboard'; // Import the new Home component
 import Employees from './pages/Employee/Employees';
 import EmployeeForm from './pages/Employee/EmployeeForm';
 import Equipment from './pages/Equipment/Equipment';
@@ -95,7 +95,7 @@ function App() {
 
           <Content className="content-area">
             <Routes>
-              <Route path="/" element={<Home />} /> {/* Use imported Home */}
+              <Route path="/" element={<Dashboard />} /> {/* Use imported Home */}
               <Route path="/employees" element={<Employees />} />
               <Route path="/employees/add" element={<EmployeeForm />} />
               <Route path="/employees/edit/:id" element={<EmployeeForm />} />
@@ -106,7 +106,6 @@ function App() {
               <Route path="/transport/add" element={<TransportForm />} />
               <Route path="/transport/edit/:id" element={<TransportForm />} />
               {/* Use imported PlaceholderPage */}
-              <Route path="/dashboard" element={<PlaceholderPage title="Dashboard" />} />
               <Route path="/schedule" element={<PlaceholderPage title="Schedule" />} />
             </Routes>
           </Content>

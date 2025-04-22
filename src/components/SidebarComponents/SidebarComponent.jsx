@@ -80,8 +80,8 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
   const allMenuItems = [
     {
       key: '/', // Используем путь как ключ для более простой логики выбора
-      icon: <HomeOutlined />,
-      label: 'Главная',
+      icon: <DashboardOutlined />,
+      label: 'Панель управления',
       path: '/',
     },
     {
@@ -89,12 +89,6 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       icon: <TeamOutlined />,
       label: 'Сотрудники',
       path: '/employees',
-    },
-    {
-      key: '/dashboard', // Используем путь как ключ для более простой логики выбора
-      icon: <DashboardOutlined />,
-      label: 'Панель управления',
-      path: '/dashboard',
     },
     {
       key: '/schedule', // Используем путь как ключ
@@ -124,7 +118,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     {
       key: '/processes', // Используем путь как ключ
       icon: <ExperimentOutlined />,
-      label: 'Производственные процессы',
+      label: 'Процессы',
       path: '/processes',
     },
   ];
