@@ -35,6 +35,7 @@ import { useNavigate } from 'react-router-dom';
 import TransportCard from '../../components/Transport/TransportCard';
 import '../../styles/Transport/Transport.css';
 import SearchBar from '../../components/SearchBar';
+import Pagination from '../../components/Pagination';
 import * as XLSX from 'xlsx';
 
 const { Title } = Typography;
@@ -55,6 +56,10 @@ const Transport = () => {
   });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Состояние для пагинации
+  const [pageSize, setPageSize] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Для хранения уникальных значений
   const [uniqueEmployees, setUniqueEmployees] = useState([]);
@@ -208,6 +213,8 @@ const Transport = () => {
     }
     
     setFilteredList(result);
+    // При изменении фильтров возвращаемся на первую страницу
+    setCurrentPage(1);
   }, [transportList, searchText, filters]);
 
   // Handle search input
@@ -288,6 +295,15 @@ const Transport = () => {
       assignedEmployee: null
     });
   };
+
+  // Обработка изменения страницы для пользовательской пагинации
+  const handlePageChange = (page, newPageSize) => {
+    setCurrentPage(page);
+    setPageSize(newPageSize);
+  };
+
+  // Расчет данных для отображения на текущей странице
+  const paginatedData = filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Экспорт транспорта в Excel
   const exportToExcel = () => {
@@ -741,17 +757,28 @@ const Transport = () => {
                 <Spin size="large" tip="Загрузка данных..." />
               </div>
             ) : filteredList.length > 0 ? (
-              <Row gutter={[16, 16]}>
-                {filteredList.map((item) => (
-                  <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
-                    <TransportCard 
-                      data={item}
-                      onEdit={() => handleEditTransport(item.id)}
-                      onDelete={() => showDeleteConfirm(item.id)}
-                    />
-                  </Col>
-                ))}
-              </Row>
+              <React.Fragment>
+                <Row gutter={[16, 16]}>
+                  {paginatedData.map((item) => (
+                    <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
+                      <TransportCard 
+                        data={item}
+                        onEdit={() => handleEditTransport(item.id)}
+                        onDelete={() => showDeleteConfirm(item.id)}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+                
+                {/* Компонент пользовательской пагинации */}
+                <Pagination
+                  totalItems={filteredList.length}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                  pageSizeOptions={[8, 20, 50]}
+                  initialPageSize={pageSize}
+                />
+              </React.Fragment>
             ) : (
               <Empty description="Транспортные средства не найдены" />
             )}
