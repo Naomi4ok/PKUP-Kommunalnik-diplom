@@ -80,9 +80,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'database/database.db'), (e
       TechnicalCondition TEXT DEFAULT 'Исправен',
       AssignedEmployee_ID INTEGER,
       LastMaintenance TEXT,
-      NextScheduledService TEXT,
-      RegistrationDate TEXT,
-      Description TEXT,
       FOREIGN KEY (AssignedEmployee_ID) REFERENCES Employees(Employee_ID)
     )
   `, (err) => {
@@ -613,10 +610,7 @@ app.post('/api/transportation', upload.single('image'), (req, res) => {
     transmissionType,
     technicalCondition,
     assignedEmployeeId,
-    lastMaintenance,
-    nextScheduledService,
-    registrationDate,
-    description
+    lastMaintenance
   } = req.body;
   
   const image = req.file ? req.file.buffer : null;
@@ -639,12 +633,9 @@ app.post('/api/transportation', upload.single('image'), (req, res) => {
       TransmissionType,
       TechnicalCondition,
       AssignedEmployee_ID,
-      LastMaintenance,
-      NextScheduledService,
-      RegistrationDate,
-      Description
+      LastMaintenance
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   db.run(sql, [
@@ -659,10 +650,7 @@ app.post('/api/transportation', upload.single('image'), (req, res) => {
     transmissionType,
     technicalCondition || 'Исправен',
     assignedEmployeeId,
-    lastMaintenance,
-    nextScheduledService,
-    registrationDate,
-    description
+    lastMaintenance
   ], function(err) {
     if (err) {
       console.error('Error creating transportation:', err);
@@ -690,10 +678,7 @@ app.put('/api/transportation/:id', upload.single('image'), (req, res) => {
     transmissionType,
     technicalCondition,
     assignedEmployeeId,
-    lastMaintenance,
-    nextScheduledService,
-    registrationDate,
-    description
+    lastMaintenance
   } = req.body;
   
   // Validate required fields
@@ -718,10 +703,7 @@ app.put('/api/transportation/:id', upload.single('image'), (req, res) => {
           TransmissionType = ?,
           TechnicalCondition = ?,
           AssignedEmployee_ID = ?,
-          LastMaintenance = ?,
-          NextScheduledService = ?,
-          RegistrationDate = ?,
-          Description = ?
+          LastMaintenance = ?
       WHERE Transport_ID = ?
     `;
     
@@ -738,9 +720,6 @@ app.put('/api/transportation/:id', upload.single('image'), (req, res) => {
       technicalCondition || 'Исправен',
       assignedEmployeeId,
       lastMaintenance,
-      nextScheduledService,
-      registrationDate,
-      description,
       id
     ], function(err) {
       if (err) {
@@ -768,10 +747,7 @@ app.put('/api/transportation/:id', upload.single('image'), (req, res) => {
           TransmissionType = ?,
           TechnicalCondition = ?,
           AssignedEmployee_ID = ?,
-          LastMaintenance = ?,
-          NextScheduledService = ?,
-          RegistrationDate = ?,
-          Description = ?
+          LastMaintenance = ?
       WHERE Transport_ID = ?
     `;
     
@@ -787,9 +763,6 @@ app.put('/api/transportation/:id', upload.single('image'), (req, res) => {
       technicalCondition || 'Исправен',
       assignedEmployeeId,
       lastMaintenance,
-      nextScheduledService,
-      registrationDate,
-      description,
       id
     ], function(err) {
       if (err) {
@@ -848,12 +821,9 @@ app.post('/api/transportation/import', (req, res) => {
         TransmissionType,
         TechnicalCondition,
         AssignedEmployee_ID,
-        LastMaintenance,
-        NextScheduledService,
-        RegistrationDate,
-        Description
+        LastMaintenance
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     let successCount = 0;
@@ -877,10 +847,7 @@ app.post('/api/transportation/import', (req, res) => {
           item.transmissionType || 'Механическая',
           item.technicalCondition || 'Исправен',
           item.assignedEmployeeId || null,
-          item.lastMaintenance || null,
-          item.nextScheduledService || null,
-          item.registrationDate || null,
-          item.description || ''
+          item.lastMaintenance || null
         );
         successCount++;
       } catch (err) {

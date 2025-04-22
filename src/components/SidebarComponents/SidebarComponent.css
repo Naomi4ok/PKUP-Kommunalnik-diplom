@@ -148,7 +148,7 @@
 .ant-menu-submenu .ant-menu-item {
   margin-left: 16px !important; /* Indent submenu items */
   width: calc(100% - 24px) !important; /* Adjust width for indentation */
-  padding-left: 20px !important; /* Add padding for indentation */
+  padding-left: 30px !important; /* Add padding for indentation */
 }
 /* Remove excessive padding on submenu items when collapsed */
 .ant-layout-sider-collapsed .ant-menu-submenu .ant-menu-item {
@@ -382,4 +382,8 @@
 
 .mobile-sidebar-backdrop.visible {
   display: block;
+}
+
+.ant-menu-sub.ant-menu-inline {
+  background: #f5f6fa !important;
 }
