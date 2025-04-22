@@ -1,0 +1,33 @@
+/* Общие стили контейнера */
+.ant-add-edit-tool-container {
+    width: 100%;
+    padding: 16px;
+  }
+  
+  /* Стили для хлебных крошек */
+  .tool-breadcrumb {
+    margin-bottom: 16px;
+  }
+  
+  /* Стили для формы */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  /* Стили для полей формы */
+  .ant-form-item {
+    margin-bottom: 24px;
+  }
+  
+  /* Адаптивные стили */
+  @media (max-width: 768px) {
+    .ant-card {
+      padding: 12px;
+    }
+  }
+  
+  /* Стили для даты последней проверки */
+  .ant-picker-input {
+    width: 100%;
+  }

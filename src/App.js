@@ -16,7 +16,8 @@ import Equipment from './pages/Equipment/Equipment';
 import EquipmentForm from './pages/Equipment/EquipmentForm';
 import Transport from './pages/Transport/Transport';
 import TransportForm from './pages/Transport/TransportForm';
-
+import Tools from './pages/Tools/Tools';
+import AddEditTool from './pages/Tools/AddEditTool';
 const { Content } = Layout;
 // Removed Title as it's not directly used here anymore
 
@@ -106,6 +107,10 @@ function App() {
               <Route path="/transport/add" element={<TransportForm />} />
               <Route path="/transport/edit/:id" element={<TransportForm />} />
               {/* Use imported PlaceholderPage */}
+              <Route path="/tools" element={<Tools />} />
+              <Route path="/tools/add" element={<AddEditTool />} />
+              <Route path="/tools/edit/:id" element={<AddEditTool />} />
+
               <Route path="/schedule" element={<PlaceholderPage title="Schedule" />} />
             </Routes>
           </Content>
