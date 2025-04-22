@@ -11,7 +11,10 @@ import {
   Empty, 
   Modal, 
   message,
-  Spin
+  Spin,
+  Breadcrumb,
+  Card,
+  Divider
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -20,11 +23,15 @@ import {
   ExportOutlined, 
   MoreOutlined,
   EditOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  HomeOutlined,
+  FileExcelOutlined,
+  ImportOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import TransportCard from '../../components/Transport/TransportCard';
 import '../../styles/Transport/Transport.css';
+import SearchBar from '../../components/SearchBar';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -41,6 +48,7 @@ const Transport = () => {
     brand: null,
   });
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -181,6 +189,11 @@ const Transport = () => {
     setSearchText(value);
   };
   
+  // Toggle filters
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+  
   // Navigate to add form
   const handleAddTransport = () => {
     navigate('/transport/add');
@@ -275,71 +288,147 @@ const Transport = () => {
   );
 
   return (
-    <div className="transport-container">
-      <div className="transport-header">
-        <Title level={2}>Управление транспортом</Title>
-        <div className="transport-actions">
-          <Space size="middle" wrap>
-            <Search
-              placeholder="Поиск транспорта"
-              allowClear
-              onSearch={handleSearch}
-              style={{ width: 250 }}
-              prefix={<SearchOutlined />}
-            />
-            <Dropdown overlay={purposeMenu} trigger={['click']}>
-              <Button icon={<FilterOutlined />}>
-                Назначение {filters.purpose ? `: ${filters.purpose}` : ''}
+    <div className="ant-transport-container">
+      {/* Путь к странице */}
+      <Breadcrumb className="transport-breadcrumb">
+        <Breadcrumb.Item href="/">
+          <HomeOutlined />
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>Транспорт</Breadcrumb.Item>
+      </Breadcrumb>
+      
+      <Card>
+        <div className="ant-page-header-wrapper">
+          <div className="ant-page-header">
+            {/* Левая сторона: заголовок и кнопки экспорта */}
+            <div className="header-left-content">
+              <Title level={2}>Транспорт</Title>
+              <Button 
+                icon={<FileExcelOutlined />} 
+                onClick={() => message.info("Функционал экспорта будет реализован позже")}
+                className="ant-export-button"
+              >
+                Экспорт
               </Button>
-            </Dropdown>
-            <Dropdown overlay={conditionMenu} trigger={['click']}>
-              <Button icon={<FilterOutlined />}>
-                Состояние {filters.condition ? `: ${filters.condition}` : ''}
+              <Button 
+                icon={<ImportOutlined />} 
+                onClick={() => message.info("Функционал импорта будет реализован позже")}
+                className="ant-import-button"
+              >
+                Импорт
               </Button>
-            </Dropdown>
-            <Dropdown overlay={brandMenu} trigger={['click']}>
-              <Button icon={<FilterOutlined />}>
-                Бренд {filters.brand ? `: ${filters.brand}` : ''}
+            </div>
+            
+            {/* Правая сторона: строка поиска, кнопки фильтра и добавления */}
+            <div className="header-right-content">
+              {/* Кнопка фильтра */}
+              <Button
+                type="primary" 
+                icon={<FilterOutlined />}
+                onClick={toggleFilters}
+                className="ant-filter-button"
+              >
+                Фильтр
               </Button>
-            </Dropdown>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
-              onClick={handleAddTransport}
-            >
-              Добавить транспорт
-            </Button>
-            <Button 
-              icon={<ExportOutlined />} 
-              onClick={() => message.info("Функционал экспорта будет реализован позже")}
-            >
-              Экспорт
-            </Button>
-          </Space>
-        </div>
-      </div>
-
-      <div className="transport-content">
-        {loading ? (
-          <div className="loading-container">
-            <Spin size="large" tip="Загрузка данных..." />
-          </div>
-        ) : filteredList.length > 0 ? (
-          <Row gutter={[16, 16]}>
-            {filteredList.map((item) => (
-              <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
-                <TransportCard 
-                  data={item}
-                  onEdit={() => handleEditTransport(item.id)}
-                  onDelete={() => showDeleteConfirm(item.id)}
+              
+              {/* Строка поиска */}
+              <div className="transport-search-bar-container">
+                <SearchBar 
+                  onSearch={handleSearch} 
+                  placeholder="Поиск транспорта"
+                  autoFocus={false}
                 />
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <Empty description="Транспортные средства не найдены" />
-        )}
-      </div>
+              </div>
+              
+              {/* Кнопка добавления транспорта */}
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={handleAddTransport}
+                className="ant-add-button"
+              >
+                Добавить транспорт
+              </Button>
+            </div>
+          </div>
+          
+          {showFilters && (
+            <div className={`filter-panel ${showFilters ? 'visible' : ''}`}>
+              <div className="filter-panel-header">
+                <h4>Фильтр транспорта</h4>
+                <Button 
+                  className="ant-filreset-button"
+                  type="link"
+                  onClick={() => setFilters({ purpose: null, condition: null, brand: null })}>
+                    Сбросить все фильтры
+                </Button>
+              </div>
+              
+              <Row gutter={[16, 16]}>
+                {/* Фильтр по назначению */}
+                <Col xs={24} sm={12} md={8}>
+                  <div className="filter-group">
+                    <label>Назначение</label>
+                    <Dropdown overlay={purposeMenu} trigger={['click']}>
+                      <Button block>
+                        {filters.purpose || 'Все типы'} <FilterOutlined />
+                      </Button>
+                    </Dropdown>
+                  </div>
+                </Col>
+                
+                {/* Фильтр по состоянию */}
+                <Col xs={24} sm={12} md={8}>
+                  <div className="filter-group">
+                    <label>Состояние</label>
+                    <Dropdown overlay={conditionMenu} trigger={['click']}>
+                      <Button block>
+                        {filters.condition || 'Все состояния'} <FilterOutlined />
+                      </Button>
+                    </Dropdown>
+                  </div>
+                </Col>
+                
+                {/* Фильтр по бренду */}
+                <Col xs={24} sm={12} md={8}>
+                  <div className="filter-group">
+                    <label>Бренд</label>
+                    <Dropdown overlay={brandMenu} trigger={['click']}>
+                      <Button block>
+                        {filters.brand || 'Все бренды'} <FilterOutlined />
+                      </Button>
+                    </Dropdown>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          )}
+          
+          <Divider />
+          
+          <div className="transport-content">
+            {loading ? (
+              <div className="loading-container">
+                <Spin size="large" tip="Загрузка данных..." />
+              </div>
+            ) : filteredList.length > 0 ? (
+              <Row gutter={[16, 16]}>
+                {filteredList.map((item) => (
+                  <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
+                    <TransportCard 
+                      data={item}
+                      onEdit={() => handleEditTransport(item.id)}
+                      onDelete={() => showDeleteConfirm(item.id)}
+                    />
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <Empty description="Транспортные средства не найдены" />
+            )}
+          </div>
+        </div>
+      </Card>
 
       <Modal
         title="Подтверждение удаления"

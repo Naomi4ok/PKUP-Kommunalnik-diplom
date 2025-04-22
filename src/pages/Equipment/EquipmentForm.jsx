@@ -11,9 +11,10 @@ import {
   Select,
   Breadcrumb,
   Spin,
-  Divider
+  Divider,
+  Space
 } from 'antd';
-import { HomeOutlined, SaveOutlined, RollbackOutlined } from '@ant-design/icons';
+import { HomeOutlined, SaveOutlined, RollbackOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs'; // Using dayjs instead of moment
 import '../../styles/Equipment/EquipmentForm.css';
 
@@ -185,12 +186,19 @@ const EquipmentForm = () => {
         </Breadcrumb.Item>
       </Breadcrumb>
 
-      <Card>
-        <Title level={2}>
-          {isEditing ? 'Редактирование' : 'Добавление'} оборудования
-        </Title>
-        
-        <Divider />
+      <Card className="equipment-form-card">
+        <div className="equipment-form-header">
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => navigate('/equipment')}
+            className="back-button"
+          >
+            Назад к списку оборудования
+          </Button>
+          <Title level={2} className="equipment-form-title">
+            {isEditing ? 'Редактирование' : 'Добавление'} оборудования
+          </Title>
+        </div>
         
         <Spin spinning={initialLoading}>
           <Form
@@ -342,23 +350,26 @@ const EquipmentForm = () => {
               </Form.Item>
             </div>
             
-            <div className="form-actions">
-              <Button 
-                onClick={handleCancel}
-                icon={<RollbackOutlined />}
-              >
-                Отмена
-              </Button>
-              <Button
-                className="employee-submit-button"  
-                type="primary" 
-                htmlType="submit" 
-                loading={loading}
-                icon={<SaveOutlined />}
-              >
-                {isEditing ? 'Обновить' : 'Добавить'} оборудование
-              </Button>
-            </div>
+            <Form.Item className="form-actions">
+              <Space>
+                <Button
+                  className="equipment-submit-button"  
+                  type="primary" 
+                  htmlType="submit" 
+                  loading={loading}
+                  icon={<SaveOutlined />}
+                  size="large"
+                >
+                  {isEditing ? 'Обновить' : 'Добавить'} оборудование
+                </Button>
+                <Button 
+                  onClick={handleCancel}
+                  size="large"
+                >
+                  Отмена
+                </Button>
+              </Space>
+            </Form.Item>
           </Form>
         </Spin>
       </Card>

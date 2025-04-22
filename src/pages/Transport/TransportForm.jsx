@@ -16,13 +16,14 @@ import {
   Divider,
   Space,
   Avatar,
-  Tag
+  Tag,
+  Breadcrumb
 } from 'antd';
 import { 
   UploadOutlined, 
   SaveOutlined, 
   ArrowLeftOutlined, 
-  CarOutlined,
+  HomeOutlined,
   CalendarOutlined,
   UserOutlined,
   InfoCircleOutlined,
@@ -34,7 +35,6 @@ import '../../styles/Transport/TransportForm.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { TextArea } = Input;
 
 // Brands for dropdown
 const BRANDS = [
@@ -112,7 +112,6 @@ const TransportForm = () => {
             lastMaintenance: data.LastMaintenance ? moment(data.LastMaintenance) : null,
             nextScheduledService: data.NextScheduledService ? moment(data.NextScheduledService) : null,
             registrationDate: data.RegistrationDate ? moment(data.RegistrationDate) : null,
-            description: data.Description
           };
           
           setInitialData(formattedData);
@@ -198,7 +197,6 @@ const TransportForm = () => {
       
       message.success({
         content: `Транспортное средство успешно ${isEditMode ? 'обновлено' : 'добавлено'}`,
-        icon: <CarOutlined />,
       });
       navigate('/transport');
     } catch (error) {
@@ -232,23 +230,33 @@ const TransportForm = () => {
 
   return (
     <div className="transport-form-container">
-      <div className="transport-form-header">
-        <Title level={2}>
-          <CarOutlined style={{ marginRight: 8 }} />
-          {isEditMode ? 'Редактировать транспорт' : 'Добавить транспорт'}
-        </Title>
-        <Button 
-          type="default" 
-          icon={<ArrowLeftOutlined />} 
-          onClick={handleCancel}
-          size="large"
-        >
-          Вернуться к списку
-        </Button>
-      </div>
+      <Breadcrumb className="transport-form-breadcrumb">
+        <Breadcrumb.Item href="/">
+          <HomeOutlined />
+        </Breadcrumb.Item>
+        <Breadcrumb.Item href="/transport">
+          Транспорт
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          {isEditMode ? 'Редактирование транспорта' : 'Добавление транспорта'}
+        </Breadcrumb.Item>
+      </Breadcrumb>
       
-      <Spin spinning={loading} size="large">
-        <Card className="transport-form-card">
+      <Card className="transport-form-card">
+        <Spin spinning={loading} size="large">
+          <div className="transport-form-header">
+            <Button 
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleCancel}
+              className="back-button"
+            >
+              Назад к списку транспорта
+            </Button>
+            <Title level={2} className="transport-form-title">
+              {isEditMode ? 'Редактирование транспорта' : 'Добавление транспорта'}
+            </Title>
+          </div>
+          
           <Form
             form={form}
             layout="vertical"
@@ -515,10 +523,10 @@ const TransportForm = () => {
             
             <Divider />
             
-            {/* Image and description section */}
+            {/* Image section */}
             <div className="form-section-title">
               <InfoCircleOutlined style={{ marginRight: 8 }} />
-              Изображение и описание
+              Изображение транспорта
             </div>
             
             <Row gutter={[24, 12]}>
@@ -543,22 +551,18 @@ const TransportForm = () => {
                   </Upload>
                 </Form.Item>
               </Col>
-              
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="description"
-                  label="Описание"
-                >
-                  <TextArea 
-                    rows={6} 
-                    placeholder="Введите описание транспортного средства" 
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
             </Row>
             
             <div className="form-actions">
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                icon={<SaveOutlined />}
+                size="large"
+                className="transport-submit-button"
+              >
+                {isEditMode ? 'Обновить' : 'Добавить'} транспорт
+              </Button>
               <Button 
                 type="default" 
                 onClick={handleCancel}
@@ -566,18 +570,10 @@ const TransportForm = () => {
               >
                 Отмена
               </Button>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                icon={<SaveOutlined />}
-                size="large"
-              >
-                {isEditMode ? 'Обновить' : 'Сохранить'} транспорт
-              </Button>
             </div>
           </Form>
-        </Card>
-      </Spin>
+        </Spin>
+      </Card>
     </div>
   );
 };

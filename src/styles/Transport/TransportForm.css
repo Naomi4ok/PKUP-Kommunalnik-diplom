@@ -1,151 +1,218 @@
 /* Enhanced TransportForm.css */
 .transport-form-container {
-    padding: 24px;
-    background-color: #f5f5f5;
-    min-height: calc(100vh - 64px);
+  padding: 6px 24px 0px 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: #f7f9fc;
+  min-height: 100vh;
+}
+
+.transport-form-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background-color: #fff;
+  border: none;
+  overflow: hidden;
+}
+
+.transport-form-breadcrumb {
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.transport-form-breadcrumb a {
+  color: #01b13e;
+  transition: color 0.3s;
+}
+
+.transport-form-breadcrumb a:hover {
+  color: #00812d;
+}
+
+.transport-form-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.transport-form-title {
+  margin-bottom: 0 !important;
+  margin-left: 24px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  background-color: #f5f5f5;
+  transform: translateX(-3px);
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.transport-submit-button {
+  background-color: #19cc00;
+}
+
+.transport-submit-button:hover {
+  background-color: #19cc00 !important;
+}
+
+.transport-submit-button:active {
+  background-color: #15b800 !important;
+  border-color: #15b800 !important;
+  color: white !important;
+}
+
+.form-actions .ant-btn {
+  border-radius: 8px;
+  height: 44px;
+  padding: 0 24px;
+  font-weight: 500;
+}
+
+.form-actions .ant-btn-primary:hover {
+  transform: translateY(-2px);
+}
+
+.brand-select-option {
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  margin-right: 8px;
+  height: 24px;
+  width: auto;
+}
+
+/* Ant Design компоненты */
+.ant-form-item {
+  margin-bottom: 28px;
+}
+
+.ant-form-item-label {
+  font-weight: 500;
+  padding-bottom: 8px;
+}
+
+.ant-form-item-label > label {
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.ant-input,
+.ant-select-selector,
+.ant-input-number,
+.ant-picker {
+  border-radius: 8px !important;
+  padding: 8px 12px;
+  height: auto;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.ant-input:hover,
+.ant-select-selector:hover,
+.ant-input-number:hover,
+.ant-picker:hover {
+  border-color: #b3d4fc;
+}
+
+.ant-input:focus,
+.ant-select-selector:focus,
+.ant-input-number:focus,
+.ant-picker:focus {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Статусы транспорта */
+.transport-status-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-operational {
+  color: #52c41a;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+
+.status-maintenance {
+  color: #1890ff;
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+}
+
+.status-repair {
+  color: #fa8c16;
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+}
+
+.status-inactive {
+  color: #ff4d4f;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+}
+
+/* Card padding */
+.transport-form-card .ant-card-body {
+  padding: 32px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .transport-form-container {
+    padding: 16px;
   }
   
   .transport-form-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    background-color: white;
-    padding: 16px 24px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    flex-direction: column;
+    align-items: flex-start;
   }
   
-  .transport-form-header h2 {
-    margin-bottom: 0;
-    color: #1890ff;
-    font-weight: 600;
-  }
-  
-  .transport-form-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 8px;
-  }
-  
-  .form-section-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: #1890ff;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 8px;
+  .transport-form-title {
+    margin-top: 16px;
+    margin-left: 0;
   }
   
   .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 1px solid #f0f0f0;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
   }
   
   .form-actions button {
-    min-width: 120px;
-    height: 40px;
+    width: 100%;
   }
-  
-  .brand-select-option {
-    display: flex;
-    align-items: center;
-  }
-  
-  .brand-logo {
-    margin-right: 8px;
-    height: 24px;
-    width: auto;
-  }
-  
-  .transport-image-preview {
-    margin-top: 8px;
-  }
-  
-  .summary-section {
-    background-color: #f9f9f9;
-    border-radius: 6px;
-    padding: 16px;
-    margin-bottom: 24px;
-  }
-  
-  .summary-row {
-    display: flex;
-    margin-bottom: 8px;
-  }
-  
-  .summary-label {
-    font-weight: 500;
-    width: 200px;
-  }
-  
-  /* Responsive styles */
-  @media (max-width: 768px) {
-    .transport-form-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 16px;
-    }
-    
-    .form-actions {
-      flex-direction: column;
-      width: 100%;
-    }
-    
-    .form-actions button {
-      width: 100%;
-    }
-    
-    .transport-form-card {
-      padding: 16px 8px;
-    }
-  }
-  
-  /* Input customization */
-  .ant-form-item-label > label {
-    font-weight: 500;
-    color: #555;
-  }
-  
-  .ant-select-selector, .ant-input, .ant-input-number, .ant-picker {
-    border-radius: 6px !important;
-  }
-  
-  .ant-upload-list-picture .ant-upload-list-item {
-    border-radius: 6px;
-  }
-  
-  .transport-status-tag {
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-  
-  .status-operational {
-    color: #52c41a;
-    background: #f6ffed;
-    border: 1px solid #b7eb8f;
-  }
-  
-  .status-maintenance {
-    color: #1890ff;
-    background: #e6f7ff;
-    border: 1px solid #91d5ff;
-  }
-  
-  .status-repair {
-    color: #fa8c16;
-    background: #fff7e6;
-    border: 1px solid #ffd591;
-  }
-  
-  .status-inactive {
-    color: #ff4d4f;
-    background: #fff1f0;
-    border: 1px solid #ffa39e;
-  }
+}
+
+
+
