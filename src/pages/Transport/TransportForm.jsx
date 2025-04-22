@@ -10,7 +10,7 @@ import {
   Row, 
   Col, 
   message, 
-  Upload, // Keep Upload import
+  Upload, 
   Spin,
   InputNumber,
   Divider,
@@ -28,7 +28,7 @@ import {
   UserOutlined,
   InfoCircleOutlined,
   ToolOutlined,
-  InboxOutlined // Import InboxOutlined for Dragger
+  InboxOutlined 
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
@@ -36,10 +36,9 @@ import '../../styles/Transport/TransportForm.css';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { Dragger } = Upload; // Destructure Dragger
+const { Dragger } = Upload;
 
-// ... (rest of the imports and component setup remains the same) ...
-
+// Предопределенные бренды с логотипами
 const BRANDS = [
   { value: 'МАЗ', logo: 'https://cdn.worldvectorlogo.com/logos/maz.svg' },
   { value: 'Volvo', logo: 'https://cdn.worldvectorlogo.com/logos/volvo.svg' },
@@ -47,8 +46,10 @@ const BRANDS = [
   { value: 'MAN', logo: 'https://cdn.worldvectorlogo.com/logos/man-logo.svg' },
   { value: 'ГАЗ', logo: 'https://vitterra-yug.ru/image/catalog/manufactures/GAZ.png' },
   { value: 'КАМАЗ', logo: 'https://upload.wikimedia.org/wikipedia/ru/thumb/a/af/KAMAZ_Logo.svg/500px-KAMAZ_Logo.svg.png?20211121025007' },
-  { value: 'Другое', logo: '' }
 ];
+
+// Заглушка для логотипа
+const DEFAULT_LOGO = 'https://super-paket.ru/upload/iblock/d2f/o07y63dolv19fpbllb2b0eetk516iihc.jpg';
 
 const TECH_CONDITION_MAP = {
   'Исправен': { color: 'success', className: 'status-operational' },
@@ -67,9 +68,30 @@ const TransportForm = () => {
   const [brandLogo, setBrandLogo] = useState('');
   const [employees, setEmployees] = useState([]);
   const [selectedCondition, setSelectedCondition] = useState('Исправен');
+  const [customBrandMode, setCustomBrandMode] = useState(false);
   const isEditMode = !!id;
 
-  // ... (useEffect hooks and other functions remain the same) ...
+  // Fetch employees for dropdown
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/employees');
+        if (!response.ok) {
+          throw new Error('Failed to fetch employees');
+        }
+        const data = await response.json();
+        setEmployees(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        message.error('Не удалось загрузить список сотрудников');
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
 
   // Handle image upload
   const handleImageChange = ({ fileList: newFileList }) => {
@@ -79,8 +101,29 @@ const TransportForm = () => {
 
   // Handle brand change to update logo
   const handleBrandChange = (value) => {
+    // Проверяем, является ли выбранный бренд одним из предопределенных
     const brand = BRANDS.find(b => b.value === value);
-    setBrandLogo(brand ? brand.logo : '');
+    if (brand) {
+      setBrandLogo(brand.logo);
+      setCustomBrandMode(false);
+    } else {
+      setBrandLogo(DEFAULT_LOGO); // Используем заглушку для пользовательского бренда
+      setCustomBrandMode(true);
+    }
+  };
+
+  // Переключение в режим ввода пользовательского бренда
+  const handleCustomBrandMode = () => {
+    setCustomBrandMode(true);
+    form.setFieldsValue({ brand: '' }); // Очищаем поле при переключении в режим ручного ввода
+    setBrandLogo(DEFAULT_LOGO);
+  };
+
+  // Обработчик для возврата к выбору из списка
+  const handleSelectListMode = () => {
+    setCustomBrandMode(false);
+    form.setFieldsValue({ brand: BRANDS[0].value }); // Выбираем первый бренд из списка
+    setBrandLogo(BRANDS[0].logo);
   };
 
   // Handle technical condition change
@@ -105,44 +148,33 @@ const TransportForm = () => {
       if (fileList.length > 0 && fileList[0].originFileObj) {
         formData.append('image', fileList[0].originFileObj);
       } else if (fileList.length > 0 && !fileList[0].originFileObj && isEditMode) {
-        // If it's an existing image in edit mode, don't re-append, 
-        // but you might need a way to signal the backend not to delete it.
-        // Or handle image deletion separately. For now, we assume backend keeps image if not replaced.
+        // If it's an existing image in edit mode, don't re-append
       } else if (fileList.length === 0 && isEditMode) {
           // Handle case where user removed the existing image
-          formData.append('remove_image', 'true'); // Example: Signal backend to remove
+          formData.append('remove_image', 'true');
       }
       
       // Format dates if they exist
       const formattedValues = { ...values };
       if (formattedValues.lastMaintenance && moment.isMoment(formattedValues.lastMaintenance)) {
-        formattedValues.lastMaintenance = formattedValues.lastMaintenance.format('YYYY-MM-DD');
-      } else {
-         delete formattedValues.lastMaintenance; // Don't send if empty
-      }
-      // Removed nextScheduledService handling
-      if (formattedValues.registrationDate && moment.isMoment(formattedValues.registrationDate)) {
-        formattedValues.registrationDate = formattedValues.registrationDate.format('YYYY-MM-DD');
-      } else {
-         delete formattedValues.registrationDate;
+        // Изменяем формат даты на DD.MM.YYYY
+        formattedValues.lastMaintenance = formattedValues.lastMaintenance.format('DD.MM.YYYY');
       }
       
       // Add all other form values
       Object.keys(formattedValues).forEach(key => {
-        // Don't append the 'image' field itself from values, handle via fileList
         if (key !== 'image' && formattedValues[key] !== undefined && formattedValues[key] !== null) {
-           // Handle empty strings specifically if needed, e.g., assignedEmployeeId
            if (key === 'assignedEmployeeId' && formattedValues[key] === '') {
-             formData.append(key, ''); // Or handle as null if backend prefers
+             formData.append(key, '');
            } else {
              formData.append(key, formattedValues[key]);
            }
         } else if (key === 'assignedEmployeeId' && formattedValues[key] === null) {
-             formData.append(key, ''); // Send empty string if null/unselected
+             formData.append(key, '');
         }
       });
       
-      // Add brand logo (assuming this is needed by backend)
+      // Add brand logo
       formData.append('brandLogo', brandLogo); 
       
       const url = isEditMode ? `/api/transportation/${id}` : '/api/transportation';
@@ -150,7 +182,7 @@ const TransportForm = () => {
       
       const response = await fetch(url, {
         method: method,
-        body: formData // Sending FormData, no need for Content-Type header usually
+        body: formData
       });
       
       if (!response.ok) {
@@ -175,15 +207,14 @@ const TransportForm = () => {
     }
   };
 
-  // Custom request function for Upload component (optional, if you need more control)
-  // If you use beforeUpload={() => false}, this isn't strictly necessary as upload is manual
+  // Custom request function for Upload component
   const dummyRequest = ({ file, onSuccess }) => {
     setTimeout(() => {
       onSuccess("ok");
     }, 0);
   };
 
-  // Fetch data for edit mode (Modified to handle image state correctly)
+  // Fetch data for edit mode
   useEffect(() => {
     if (isEditMode) {
       setLoading(true);
@@ -195,6 +226,29 @@ const TransportForm = () => {
           return response.json();
         })
         .then(data => {
+          // Преобразуем дату из формата сервера в объект moment
+          let maintenanceDate = null;
+          if (data.LastMaintenance) {
+            // Проверяем формат даты и преобразуем соответственно
+            if (typeof data.LastMaintenance === 'string') {
+              // Если дата в строковом формате, проверяем разные варианты
+              if (data.LastMaintenance.includes('GMT') || data.LastMaintenance.includes('T')) {
+                // Для формата с днём недели или ISO
+                maintenanceDate = moment(new Date(data.LastMaintenance));
+              } else if (data.LastMaintenance.includes('.')) {
+                // Для формата DD.MM.YYYY
+                const parts = data.LastMaintenance.split('.');
+                maintenanceDate = moment(`${parts[2]}-${parts[1]}-${parts[0]}`);
+              } else {
+                // Пробуем стандартный парсинг
+                maintenanceDate = moment(data.LastMaintenance);
+              }
+            } else {
+              // Если это не строка, пытаемся обработать как дату
+              maintenanceDate = moment(data.LastMaintenance);
+            }
+          }
+          
           const formattedData = {
             brand: data.Brand,
             model: data.Model,
@@ -204,36 +258,43 @@ const TransportForm = () => {
             fuelType: data.FuelType,
             transmissionType: data.TransmissionType,
             technicalCondition: data.TechnicalCondition,
-            assignedEmployeeId: data.AssignedEmployee_ID || null, // Ensure null if empty
-            lastMaintenance: data.LastMaintenance ? moment(data.LastMaintenance) : null,
-            // Removed nextScheduledService
-            registrationDate: data.RegistrationDate ? moment(data.RegistrationDate) : null,
-            // Do not set 'image' field value here for the form
+            assignedEmployeeId: data.AssignedEmployee_ID || null,
+            lastMaintenance: maintenanceDate,
           };
           
           setInitialData(formattedData);
-          form.setFieldsValue(formattedData); // Set form values without image
+          form.setFieldsValue(formattedData);
           
-          setBrandLogo(data.BrandLogo || '');
+          // Проверяем, является ли бренд одним из предопределенных
+          const isPredefinedBrand = BRANDS.some(b => b.value === data.Brand);
+          setCustomBrandMode(!isPredefinedBrand);
+          
+          if (data.BrandLogo) {
+            setBrandLogo(data.BrandLogo);
+          } else {
+            setBrandLogo(isPredefinedBrand 
+              ? BRANDS.find(b => b.value === data.Brand)?.logo || DEFAULT_LOGO
+              : DEFAULT_LOGO);
+          }
+          
           setSelectedCondition(data.TechnicalCondition || 'Исправен');
           
           // Set file list for image preview if there's an image URL or Base64 data
-          if (data.Image) { // Assuming data.Image contains the URL or Base64 string
+          if (data.Image) {
              const imageUrl = typeof data.Image === 'string' && data.Image.startsWith('data:image') 
-                ? data.Image // It's base64
-                : `/api/images/${data.Image}`; // Or construct URL if it's just an ID/filename
+                ? data.Image
+                : `data:image/jpeg;base64,${data.Image}`;
 
             setFileList([
               {
-                uid: '-1', // Static uid for existing image
-                name: data.ImageName || 'transport-image.jpg', // Use a real name if available
+                uid: '-1',
+                name: data.ImageName || 'transport-image.jpg',
                 status: 'done',
-                url: imageUrl, 
-                // No originFileObj for existing images from server
+                url: imageUrl,
               }
             ]);
           } else {
-             setFileList([]); // Ensure fileList is empty if no image
+             setFileList([]);
           }
           
           setLoading(false);
@@ -246,19 +307,20 @@ const TransportForm = () => {
         });
     } else {
       // New form defaults
-      const defaultBrand = BRANDS.find(b => b.value === 'МАЗ');
-      setBrandLogo(defaultBrand ? defaultBrand.logo : '');
+      const defaultBrand = BRANDS[0];
+      setBrandLogo(defaultBrand.logo);
       setSelectedCondition('Исправен');
-      setFileList([]); // Start with empty file list for new form
-      form.resetFields(); // Reset form fields for new entry
-      form.setFieldsValue({ // Set default values after reset
+      setFileList([]);
+      setCustomBrandMode(false);
+      form.resetFields();
+      form.setFieldsValue({
          technicalCondition: 'Исправен',
          fuelType: 'Дизель',
          transmissionType: 'Механическая',
-         brand: 'МАЗ'
+         brand: defaultBrand.value
       });
     }
-  }, [id, form, navigate, isEditMode]); // Dependencies
+  }, [id, form, navigate, isEditMode]);
 
 
   return (
@@ -294,7 +356,6 @@ const TransportForm = () => {
             form={form}
             layout="vertical"
             onFinish={handleSubmit}
-            // Remove initialValues from here, set dynamically in useEffect
           >
             {/* Brand and basic info section */}
             <div className="form-section-title">
@@ -302,35 +363,69 @@ const TransportForm = () => {
               Основная информация
             </div>
             
-            {/* ... (Rest of the form fields: Brand, Model, Purpose, etc.) ... */}
-             <Row gutter={[24, 12]}>
+            <Row gutter={[24, 12]}>
               <Col xs={24} md={12} lg={8}>
                 <Form.Item
                   name="brand"
                   label="Бренд"
-                  rules={[{ required: true, message: 'Пожалуйста, выберите бренд' }]}
+                  rules={[{ required: true, message: 'Пожалуйста, укажите бренд' }]}
                 >
-                  <Select 
-                    placeholder="Выберите бренд" 
-                    onChange={handleBrandChange}
-                    size="large"
-                    // ... (dropdownRender remains the same) ...
-                  >
-                    {BRANDS.map(brand => (
-                      <Option key={brand.value} value={brand.value}>
-                        <div className="brand-select-option">
-                          {brand.logo && (
-                            <img 
-                              src={brand.logo} 
-                              alt={brand.value} 
-                              className="brand-logo"
-                            />
-                          )}
-                          {brand.value}
-                        </div>
-                      </Option>
-                    ))}
-                  </Select>
+                  {customBrandMode ? (
+                    <Input 
+                      placeholder="Введите название бренда" 
+                      size="large"
+                      suffix={
+                        <Button 
+                          type="link" 
+                          onClick={handleSelectListMode}
+                          style={{ marginRight: -7 }}
+                        >
+                          Выбрать из списка
+                        </Button>
+                      }
+                    />
+                  ) : (
+                    <Select 
+                      placeholder="Выберите бренд" 
+                      onChange={handleBrandChange}
+                      size="large"
+                      dropdownRender={menu => (
+                        <>
+                          {menu}
+                          <Divider style={{ margin: '8px 0' }} />
+                          <div style={{ padding: '8px', textAlign: 'center' }}>
+                            <Button type="link" onClick={handleCustomBrandMode}>
+                              Ввести другой бренд
+                            </Button>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'center', padding: '8px' }}>
+                            {brandLogo && (
+                              <img 
+                                src={brandLogo}
+                                alt="Brand logo" 
+                                style={{ maxHeight: '40px', maxWidth: '120px' }}
+                              />
+                            )}
+                          </div>
+                        </>
+                      )}
+                    >
+                      {BRANDS.map(brand => (
+                        <Option key={brand.value} value={brand.value}>
+                          <div className="brand-select-option">
+                            {brand.logo && (
+                              <img 
+                                src={brand.logo} 
+                                alt={brand.value} 
+                                className="brand-logo"
+                              />
+                            )}
+                            {brand.value}
+                          </div>
+                        </Option>
+                      ))}
+                    </Select>
+                  )}
                 </Form.Item>
               </Col>
               
@@ -347,31 +442,33 @@ const TransportForm = () => {
                 </Form.Item>
               </Col>
               
-              {/* ... Other fields in this row ... */}
-               <Col xs={24} md={12} lg={8}>
-                 <Form.Item
-                   name="purpose"
-                   label="Назначение"
-                   rules={[{ required: true, message: 'Пожалуйста, выберите назначение' }]}
-                 >
-                   <Select placeholder="Выберите назначение" size="large">
-                     <Option value="Мусоровоз">Мусоровоз</Option>
-                     <Option value="Грузовик">Грузовик</Option>
-                     <Option value="Трактор">Трактор</Option>
-                     <Option value="Фура">Фура</Option>
-                     <Option value="Техпомощь">Техпомощь</Option>
-                     <Option value="Самосвал">Самосвал</Option>
-                     <Option value="Другое">Другое</Option>
-                   </Select>
-                 </Form.Item>
-               </Col>
+              <Col xs={24} md={12} lg={8}>
+                <Form.Item
+                  name="purpose"
+                  label="Назначение"
+                  rules={[{ required: true, message: 'Пожалуйста, выберите назначение' }]}
+                >
+                  <Select placeholder="Выберите назначение" size="large">
+                    <Option value="Мусоровоз">Мусоровоз</Option>
+                    <Option value="Грузовик">Грузовик</Option>
+                    <Option value="Трактор">Трактор</Option>
+                    <Option value="Фура">Фура</Option>
+                    <Option value="Техпомощь">Техпомощь</Option>
+                    <Option value="Самосвал">Самосвал</Option>
+                    <Option value="Другое">Другое</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
             </Row>
              <Row gutter={[24, 12]}>
                <Col xs={24} md={6} lg={6}>
                  <Form.Item
                    name="year"
                    label="Год выпуска"
-                   rules={[{ required: true, message: 'Пожалуйста, введите год выпуска' }, { type: 'number', min: 1900, max: new Date().getFullYear() + 1, message: 'Введите корректный год' }]}
+                   rules={[
+                     { required: true, message: 'Пожалуйста, введите год выпуска' }, 
+                     { type: 'number', min: 1900, max: new Date().getFullYear() + 1, message: 'Введите корректный год' }
+                   ]}
                  >
                    <InputNumber 
                      style={{ width: '100%' }} 
@@ -395,21 +492,7 @@ const TransportForm = () => {
                  </Form.Item>
                </Col>
                
-               <Col xs={24} md={9} lg={6}>
-                 <Form.Item
-                   name="registrationDate"
-                   label="Дата регистрации"
-                 >
-                   <DatePicker 
-                     style={{ width: '100%' }}
-                     format="DD.MM.YYYY"
-                     placeholder="Выберите дату"
-                     size="large"
-                   />
-                 </Form.Item>
-               </Col>
-               
-               <Col xs={24} md={24} lg={6}>
+               <Col xs={24} md={9} lg={12}>
                  <Form.Item
                    name="technicalCondition"
                    label="Техническое состояние"
@@ -438,86 +521,89 @@ const TransportForm = () => {
             <Divider />
             
             {/* Technical specifications section */}
-            {/* Moved lastMaintenance here as the 4th form */}
-             <div className="form-section-title">
-               <ToolOutlined style={{ marginRight: 8 }} />
-               Технические характеристики
-             </div>
+            <div className="form-section-title">
+              <ToolOutlined style={{ marginRight: 8 }} />
+              Технические характеристики
+            </div>
              
-             <Row gutter={[24, 12]}>
-               <Col xs={24} md={12} lg={6}>
-                 <Form.Item
-                   name="fuelType"
-                   label="Тип топлива"
-                   rules={[{ required: true, message: 'Пожалуйста, выберите тип топлива' }]}
-                 >
-                   <Select placeholder="Выберите тип топлива" size="large">
-                     <Option value="Дизель">Дизель</Option>
-                     <Option value="Бензин">Бензин</Option>
-                     <Option value="Газ">Газ</Option>
-                     <Option value="Электрический">Электрический</Option>
-                     <Option value="Гибрид">Гибрид</Option>
-                   </Select>
-                 </Form.Item>
-               </Col>
-               
-               <Col xs={24} md={12} lg={6}>
-                 <Form.Item
-                   name="transmissionType"
-                   label="Тип трансмиссии"
-                   rules={[{ required: true, message: 'Пожалуйста, выберите тип трансмиссии' }]}
-                 >
-                   <Select placeholder="Выберите тип трансмиссии" size="large">
-                     <Option value="Механическая">Механическая</Option>
-                     <Option value="Автоматическая">Автоматическая</Option>
-                     <Option value="Роботизированная">Роботизированная</Option>
-                   </Select>
-                 </Form.Item>
-               </Col>
-               
-               <Col xs={24} md={12} lg={6}>
-                 <Form.Item
-                   name="assignedEmployeeId"
-                   label="Ответственный сотрудник"
-                   // No longer required? If so, remove rules. If required, add rules back.
-                 >
-                   <Select 
-                     placeholder="Выберите сотрудника или оставьте пустым" 
-                     size="large"
-                     showSearch
-                     allowClear // Allow unselecting
-                     optionFilterProp="children"
-                     filterOption={(input, option) =>
-                       option.children[1].toLowerCase().includes(input.toLowerCase())
-                     }
-                   >
-                     {employees.map(emp => (
-                       <Option key={emp.Employee_ID} value={emp.Employee_ID}>
-                         <Space>
-                           <Avatar size="small" src={emp.Avatar || undefined} icon={!emp.Avatar ? <UserOutlined /> : undefined} />
-                           {emp.Full_Name}
-                         </Space>
-                       </Option>
-                     ))}
-                   </Select>
-                 </Form.Item>
-               </Col>
-               
-               {/* Added lastMaintenance field here as the 4th form */}
-               <Col xs={24} md={12} lg={6}>
-                 <Form.Item
-                   name="lastMaintenance"
-                   label="Дата последнего ТО"
-                 >
-                   <DatePicker 
-                     style={{ width: '100%' }}
-                     format="DD.MM.YYYY"
-                     placeholder="Выберите дату"
-                     size="large"
-                   />
-                 </Form.Item>
-               </Col>
-             </Row>
+            <Row gutter={[24, 12]}>
+              <Col xs={24} md={12} lg={6}>
+                <Form.Item
+                  name="fuelType"
+                  label="Тип топлива"
+                  rules={[{ required: true, message: 'Пожалуйста, выберите тип топлива' }]}
+                >
+                  <Select placeholder="Выберите тип топлива" size="large">
+                    <Option value="Дизель">Дизель</Option>
+                    <Option value="Бензин">Бензин</Option>
+                    <Option value="Газ">Газ</Option>
+                    <Option value="Электрический">Электрический</Option>
+                    <Option value="Гибрид">Гибрид</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} md={12} lg={6}>
+                <Form.Item
+                  name="transmissionType"
+                  label="Тип трансмиссии"
+                  rules={[{ required: true, message: 'Пожалуйста, выберите тип трансмиссии' }]}
+                >
+                  <Select placeholder="Выберите тип трансмиссии" size="large">
+                    <Option value="Механическая">Механическая</Option>
+                    <Option value="Автоматическая">Автоматическая</Option>
+                    <Option value="Роботизированная">Роботизированная</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} md={12} lg={6}>
+                <Form.Item
+                  name="assignedEmployeeId"
+                  label="Ответственный сотрудник"
+                >
+                  <Select 
+                    placeholder="Выберите сотрудника" 
+                    size="large"
+                    showSearch
+                    allowClear
+                    optionFilterProp="children"
+                    filterOption={(input, option) => {
+                      return option.children && 
+                        typeof option.children.props.children[1] === 'string' && 
+                        option.children.props.children[1].toLowerCase().includes(input.toLowerCase());
+                    }}
+                  >
+                    {employees.map(emp => (
+                      <Option key={emp.Employee_ID} value={emp.Employee_ID}>
+                        <Space>
+                          <Avatar 
+                            size="small" 
+                            src={emp.Photo ? `data:image/jpeg;base64,${emp.Photo}` : undefined} 
+                            icon={!emp.Photo ? <UserOutlined /> : undefined} 
+                          />
+                          {emp.Full_Name}
+                        </Space>
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} md={12} lg={6}>
+                <Form.Item
+                  name="lastMaintenance"
+                  label="Дата последнего ТО"
+                >
+                  <DatePicker 
+                    style={{ width: '100%' }}
+                    format="DD.MM.YYYY"
+                    placeholder="Выберите дату"
+                    size="large"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <Divider />
             
@@ -528,35 +614,27 @@ const TransportForm = () => {
             </div>
             
             <Row gutter={[24, 12]}>
-              <Col xs={24}> {/* Make dragger full width on small screens */}
-                 {/* Removed Form.Item wrapper for Dragger to allow custom layout if needed */}
-                 {/* Label can be added manually above Dragger if desired */}
-                 <Text style={{ display: 'block', marginBottom: 8 }}>Фотография транспорта (необязательно)</Text>
-                 <Dragger
-                    name="imageFile"
-                    // listType="picture-card" // REMOVE THIS LINE
-                    fileList={fileList}
-                    onChange={handleImageChange}
-                    beforeUpload={() => false}
-                    maxCount={1}
-                    accept="image/*"
-                    customRequest={dummyRequest}
-                    onRemove={() => { setFileList([]); }}
-                    style={{ background: '#fafafa', border: '2px dashed #d9d9d9', padding: '20px' }}
-                 >
-                    {/* The content here (icon and text) is automatically hidden */}
-                    {/* by Dragger when fileList is not empty */}
-                    <p className="ant-upload-drag-icon">
-                      <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">Нажмите или перетащите файл сюда для загрузки</p>
-                    <p className="ant-upload-hint">
-                      Загрузите одно изображение (например, JPG, PNG).
-                    </p>
-                 </Dragger>
-                 {/* Note: Form.Item validation for the image itself might be tricky */}
-                 {/* If image is required, you might need custom validation logic */}
-                 {/* based on fileList state outside of the standard Form.Item rules */}
+              <Col xs={24}>
+                <Text style={{ display: 'block', marginBottom: 8 }}>Фотография транспорта (необязательно)</Text>
+                <Dragger
+                   name="imageFile"
+                   fileList={fileList}
+                   onChange={handleImageChange}
+                   beforeUpload={() => false}
+                   maxCount={1}
+                   accept="image/*"
+                   customRequest={dummyRequest}
+                   onRemove={() => { setFileList([]); }}
+                   style={{ background: '#fafafa', border: '2px dashed #d9d9d9', padding: '20px' }}
+                >
+                   <p className="ant-upload-drag-icon">
+                     <InboxOutlined />
+                   </p>
+                   <p className="ant-upload-text">Нажмите или перетащите файл сюда для загрузки</p>
+                   <p className="ant-upload-hint">
+                     Загрузите одно изображение (например, JPG, PNG).
+                   </p>
+                </Dragger>
               </Col>
             </Row>
             
@@ -566,7 +644,7 @@ const TransportForm = () => {
                 htmlType="submit" 
                 icon={<SaveOutlined />}
                 size="large"
-                loading={loading} // Show loading state on submit button
+                loading={loading}
                 className="transport-submit-button"
               >
                 {isEditMode ? 'Обновить' : 'Добавить'} транспорт
@@ -575,7 +653,7 @@ const TransportForm = () => {
                 type="default" 
                 onClick={handleCancel}
                 size="large"
-                disabled={loading} // Disable cancel while submitting
+                disabled={loading}
               >
                 Отмена
               </Button>
