@@ -182,9 +182,8 @@ const TransportForm = () => {
       
       // Format dates if they exist
       const formattedValues = { ...values };
-      if (formattedValues.lastMaintenance && moment.isMoment(formattedValues.lastMaintenance)) {
-        // Изменяем формат даты на DD.MM.YYYY
-        formattedValues.lastMaintenance = formattedValues.lastMaintenance.format('DD.MM.YYYY');
+      if (formattedValues.lastMaintenance) {
+        formattedValues.lastMaintenance = moment(formattedValues.lastMaintenance).format('DD.MM.YYYY');
       }
       
       // Add all other form values
@@ -255,14 +254,12 @@ const TransportForm = () => {
           // Преобразуем дату из формата сервера в объект moment
           let maintenanceDate = null;
           if (data.LastMaintenance) {
-            // Проверяем формат даты и преобразуем соответственно
-            if (typeof data.LastMaintenance === 'string') {
-              // Обрабатываем строковый формат даты, независимо от исходного представления
-              maintenanceDate = moment(new Date(data.LastMaintenance));
-            } else {
-              // Если это не строка, пытаемся обработать как дату
-              maintenanceDate = moment(data.LastMaintenance);
-            }
+          // сначала пробуем формат "DD.MM.YYYY"
+          maintenanceDate = moment(data.LastMaintenance, 'DD.MM.YYYY', true);
+          // если не прокатило (т.е. дата в ISO или другом формате), подождём moment сам распарсит
+          if (!maintenanceDate.isValid()) {
+          maintenanceDate = moment(data.LastMaintenance);
+          }
           }
           
           const formattedData = {

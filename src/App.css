@@ -169,3 +169,10 @@
   display: block;
   opacity: 1;
 }
+
+.schedule-container {
+  padding: 12px;
+  max-width: 1600px !important; /* Increased from 1400px to 1600px */
+  width: 98%; /* Increased from 95% to 98% */
+  margin: 0 auto;
+}

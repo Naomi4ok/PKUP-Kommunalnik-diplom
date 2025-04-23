@@ -22,6 +22,7 @@ import Spares from './pages/Spares/Spares';
 import SparesForm from './pages/Spares/SparesForm';
 import Materials from './pages/Materials/Materials';
 import MaterialsForm from './pages/Materials/MaterialsForm';
+import Schedule from './pages/Schedule/Schedule';
 const { Content } = Layout;
 // Removed Title as it's not directly used here anymore
 
@@ -123,7 +124,7 @@ function App() {
               <Route path="/materials/add" element={<MaterialsForm />} />
               <Route path="/materials/edit/:id" element={<MaterialsForm />} />
 
-              <Route path="/schedule" element={<PlaceholderPage title="Schedule" />} />
+              <Route path="/schedule" element={<Schedule />} />
             </Routes>
           </Content>
           {/* Footer could go here if needed */}
