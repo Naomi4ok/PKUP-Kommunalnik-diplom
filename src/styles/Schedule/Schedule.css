@@ -1,6 +1,6 @@
 /* Main container */
 .schedule-container {
-    padding: 8px 24px 0px 52px;
+    padding: 9px 59px 24px;
     max-width: 1200px;
     margin: 0 auto;
     animation: fadeIn 0.5s ease-out;
@@ -11,7 +11,41 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .shedule-add-button {
+    margin-bottom: 0;
+    height: 45px;
+    white-space: nowrap; /* Prevent button text from wrapping */
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background-color: #19cc00 !important; /* Added !important to override any other styles */
+    color: white !important; /* Ensuring text is white for better contrast */
+    border-color: #19cc00 !important; /* Match border color to background */
+    box-shadow: none;
+}
+
+.shedule-add-button:hover {
+    transform: translateY(-2px);
+    /* box-shadow: 0 4px 10px rgba(125, 182, 96, 0.3);
+    background-color: #6ba551 !important;
+    border-color: #6ba551 !important; */
+  }
+  
+  /* Override any focus styles that might be changing the color */
+  .shedule-add-button:focus {
+    background-color: #15b800 !important;
+    border-color: #15b800 !important;
+    color: white !important;
+  }
+
+  .schedule-title {
+    display: flex;
+    flex-direction: column;
   }
   
   .breadcrumb-navigation {
@@ -25,13 +59,14 @@
   
   .statistic-card {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
-    border-radius: 8px;
+    border-radius: 12px;
     transition: all 0.3s;
+    height: 100%;
   }
   
   .statistic-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    transform: translateY(-3px);
+    transform: translateY(-5px);
   }
   
   .statistic-card.completed .ant-statistic-title,
@@ -49,43 +84,235 @@
     color: #f5222d;
   }
   
+  .statistic-card.today .ant-statistic-title,
+  .statistic-card.today .ant-statistic-content {
+    color: #722ed1;
+  }
+  
+  .statistic-card.priority .ant-statistic-title,
+  .statistic-card.priority .ant-statistic-content {
+    color: #fa8c16;
+  }
+  
   /* Calendar styling */
   .calendar-card {
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+  }
+  
+  .calendar-header {
+    margin-bottom: 16px;
+    padding: 8px 0;
+  }
+  
+  .cell-content {
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .cell-summary {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
   }
   
   .tasks-list {
     margin: 0;
     padding: 0;
     list-style: none;
-    max-height: 70px;
     overflow-y: auto;
+    max-height: 90px;
   }
   
   .tasks-list li {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     cursor: pointer;
     transition: all 0.2s;
   }
   
   .tasks-list li:hover {
-    opacity: 0.8;
+    opacity: 0.85;
   }
   
-  .task-badge-text {
+  .task-item {
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  
+  .task-mini-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background-color: #f0f5ff;
     font-size: 12px;
+    border-left: 3px solid #1890ff;
+    transition: all 0.2s;
+  }
+  
+  .task-mini-card:hover {
+    background-color: #e6f7ff;
+  }
+  
+  .task-item.scheduled .task-mini-card {
+    border-left-color: #1890ff;
+    background-color: #f0f5ff;
+  }
+  
+  .task-item.in-progress .task-mini-card {
+    border-left-color: #fa8c16;
+    background-color: #fff7e6;
+  }
+  
+  .task-item.completed .task-mini-card {
+    border-left-color: #52c41a;
+    background-color: #f6ffed;
+  }
+  
+  .task-item.delayed .task-mini-card {
+    border-left-color: #f5222d;
+    background-color: #fff1f0;
+  }
+  
+  .task-item.cancelled .task-mini-card {
+    border-left-color: #595959;
+    background-color: #f5f5f5;
+  }
+  
+  .task-mini-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: inline-block;
+    max-width: 75%;
+  }
+  
+  .task-mini-time {
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+  }
+  
+  .more-tasks {
+    font-size: 12px;
+    text-align: center;
+  }
+  
+  /* Week view styles */
+  .week-view-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+  }
+  
+  .week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .week-days {
+    margin-top: 16px;
+  }
+  
+  .week-day {
+    border-right: 1px solid #f0f0f0;
+    padding: 8px;
+    min-height: 150px;
+  }
+  
+  .week-day:last-child {
+    border-right: none;
+  }
+  
+  .week-day.today {
+    background-color: #f0f7ff;
+  }
+  
+  .week-day .day-header {
+    text-align: center;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+  }
+  
+  .week-day .day-name {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .week-day .day-number {
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 4px;
+  }
+  
+  .week-day .day-number.today {
+    color: #1890ff;
+    background-color: #e6f7ff;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  
+  .day-tasks-container {
+    min-height: 80px;
+  }
+  
+  .no-tasks-indicator {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+  }
+  
+  .day-tasks-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .task-tag {
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     max-width: 100%;
+  }
+  
+  .task-tag:hover {
+    opacity: 0.8;
+  }
+  
+  .more-tag {
+    background-color: #f0f0f0;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 4px;
+    color: #666;
+  }
+  
+  .more-tag:hover {
+    background-color: #e6e6e6;
   }
   
   /* Day view styles */
   .day-view-card {
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
   }
@@ -101,104 +328,93 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 16px;
+    padding: 8px 0;
   }
   
   .task-card {
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
     cursor: pointer;
     transition: all 0.3s;
-    border-left: 4px solid #1890ff;
+    border-left: 0;
+    overflow: hidden;
   }
   
   .task-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-3px);
+    transform: translateY(-5px);
   }
   
   .task-card.scheduled {
-    border-left-color: #1890ff;
+    border-top: 3px solid #1890ff;
   }
   
   .task-card.in-progress {
-    border-left-color: #fa8c16;
+    border-top: 3px solid #fa8c16;
   }
   
   .task-card.completed {
-    border-left-color: #52c41a;
+    border-top: 3px solid #52c41a;
   }
   
   .task-card.delayed {
-    border-left-color: #f5222d;
+    border-top: 3px solid #f5222d;
   }
   
-  .task-card.critical {
-    border-left-color: #722ed1;
+  .task-card.cancelled {
+    border-top: 3px solid #595959;
   }
   
-  .task-card-header {
+  .task-card-header-title {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
-  }
-  
-  .task-card-time,
-  .task-card-location,
-  .task-card-process {
-    margin-bottom: 8px;
-  }
-  
-  .task-card-resources {
-    margin-top: 12px;
-    padding-top: 8px;
-    border-top: 1px dashed #f0f0f0;
-  }
-  
-  .task-card-resources > div {
-    margin-bottom: 5px;
-  }
-  
-  .no-tasks {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 40px;
-    text-align: center;
+    gap: 8px;
   }
   
-  .no-tasks button {
-    margin-top: 16px;
+  .task-card-content {
+    padding: 8px 0;
   }
   
-  /* Tabs styling */
-  .schedule-tabs .ant-tabs-nav {
-    margin-bottom: 16px;
+  .task-resources {
+    margin-top: 8px;
   }
   
-  /* Form styling */
-  .task-form .ant-form-item {
-    margin-bottom: 16px;
+  .task-progress {
+    margin: 8px 0;
   }
   
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .schedule-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .schedule-header button {
-      margin-top: 16px;
-    }
-    
-    .day-header {
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .day-tasks {
-      grid-template-columns: 1fr;
-    }
+  /* List view styles */
+  .day-tasks-list {
+    padding: 0 16px;
+  }
+  
+  .task-list-item {
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+    background-color: #fafafa;
+    border-left: 3px solid #1890ff;
+  }
+  
+  .task-list-item:hover {
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+  }
+  
+  .task-list-item.scheduled {
+    border-left-color: #1890ff;
+  }
+  
+  .task-list-item.in-progress {
+    border-left-color: #fa8c16;
+  }
+  
+  .task-list-item.completed {
+    border-left-color: #52c41a;
+  }
+  
+  .task-list-item.delayed {
+    border-left-color: #f5222d;
   }

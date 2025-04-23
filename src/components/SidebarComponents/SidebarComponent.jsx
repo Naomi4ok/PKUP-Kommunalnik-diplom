@@ -93,7 +93,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     {
       key: '/schedule', // Используем путь как ключ
       icon: <CalendarOutlined />,
-      label: 'Расписание',
+      label: 'Процессы',
       path: '/schedule',
     },
     {
