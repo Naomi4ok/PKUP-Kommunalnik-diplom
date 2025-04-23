@@ -1,0 +1,161 @@
+/* MaterialsForm.css - styles for the materials form */
+
+.materials-form-container {
+    padding: 6px 24px 0px 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: #f7f9fc;
+    min-height: 100vh;
+  }
+  
+  .materials-form-card {
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    background-color: #fff;
+    border: none;
+    overflow: hidden;
+  }
+  
+  .materials-form-breadcrumb {
+    margin-bottom: 24px;
+    font-size: 15px;
+  }
+  
+  .materials-form-breadcrumb a {
+    color: #01b13e;
+    transition: color 0.3s;
+  }
+  
+  .materials-form-breadcrumb a:hover {
+    color: #00812d;
+  }
+  
+  .materials-form-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .materials-form-title {
+    margin-bottom: 0 !important;
+    margin-left: 24px;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .form-row .ant-form-item {
+    flex: 1;
+    margin-bottom: 16px;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  
+  .materials-submit-button {
+    background-color: #19cc00;
+  }
+  
+  .materials-submit-button:hover {
+    background-color: #19cc00 !important;
+  }
+  
+  .materials-submit-button:active {
+    background-color: #15b800 !important;
+    border-color: #15b800 !important;
+    color: white !important;
+  }
+  
+  .back-button {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    border-radius: 8px;
+    transition: all 0.3s;
+  }
+  
+  .back-button:hover {
+    background-color: #f5f5f5;
+    transform: translateX(-3px);
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .materials-form-container {
+      padding: 16px;
+    }
+    
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    .form-row .ant-form-item {
+      width: 100%;
+    }
+    
+    .materials-form-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .materials-form-title {
+      margin-top: 16px;
+      margin-left: 0;
+    }
+    
+    .form-actions {
+      text-align: center;
+      justify-content: center;
+    }
+  }
+  
+  /* Form fields styling */
+  .ant-form-item-label > label {
+    color: #2c3e50;
+    font-weight: 500;
+  }
+  
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker {
+    border-radius: 8px !important;
+    transition: all 0.3s ease;
+  }
+  
+  .ant-input:hover,
+  .ant-select-selector:hover,
+  .ant-picker:hover {
+    border-color: #0AB101 !important;
+  }
+  
+  .ant-input:focus,
+  .ant-select-selector:focus,
+  .ant-picker-focused {
+    border-color: #0AB101 !important;
+    box-shadow: 0 0 0 2px rgba(10, 177, 1, 0.1) !important;
+  }
+  
+  .ant-input-number {
+    width: 100%;
+    border-radius: 8px !important;
+  }
+  
+  .ant-input-number:hover {
+    border-color: #0AB101 !important;
+  }
+  
+  .ant-input-number-focused {
+    border-color: #0AB101 !important;
+    box-shadow: 0 0 0 2px rgba(10, 177, 1, 0.1) !important;
+  }

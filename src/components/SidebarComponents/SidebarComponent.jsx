@@ -111,7 +111,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       label: 'Склад',
       children: [
         { key: '/tools', label: 'Инструменты', path: '/tools', icon: <ToolOutlined /> },
-        { key: '/parts', label: 'Запчасти', path: '/parts', icon: <PartitionOutlined /> },
+        { key: '/spares', label: 'Запчасти', path: '/spares', icon: <PartitionOutlined /> },
         { key: '/materials', label: 'Материалы', path: '/materials', icon: <AppstoreOutlined /> },
       ],
     },

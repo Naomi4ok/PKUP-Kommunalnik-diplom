@@ -153,9 +153,13 @@
 /* Статусы транспорта */
 .transport-status-tag {
   font-size: 12px;
-  padding: 2px 8px;
   margin-bottom: 7px;
   border-radius: 4px;
+}
+
+.ant-select-selector {
+  height: 40px !important;
+  padding: 4px 8px !important;
 }
 
 .status-operational {

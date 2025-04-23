@@ -1,4 +1,6 @@
-.tool-form-container {
+/* ToolsForm.css - styles for the tools form */
+
+.tools-form-container {
   padding: 6px 24px 0px 24px;
   max-width: 1000px;
   margin: 0 auto;
@@ -6,7 +8,7 @@
   min-height: 100vh;
 }
 
-.tool-form-card {
+.tools-form-card {
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   background-color: #fff;
@@ -14,21 +16,21 @@
   overflow: hidden;
 }
 
-.tool-form-breadcrumb {
+.tools-form-breadcrumb {
   margin-bottom: 24px;
   font-size: 15px;
 }
 
-.tool-form-breadcrumb a {
+.tools-form-breadcrumb a {
   color: #01b13e;
   transition: color 0.3s;
 }
 
-.tool-form-breadcrumb a:hover {
+.tools-form-breadcrumb a:hover {
   color: #00812d;
 }
 
-.tool-form-header {
+.tools-form-header {
   display: flex;
   align-items: center;
   margin-bottom: 32px;
@@ -36,22 +38,39 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-.tool-form-title {
+.tools-form-title {
   margin-bottom: 0 !important;
   margin-left: 24px;
   color: #2c3e50;
   font-weight: 600;
 }
 
-.tool-submit-button {
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .ant-form-item {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.tools-submit-button {
   background-color: #19cc00;
 }
 
-.tool-submit-button:hover {
+.tools-submit-button:hover {
   background-color: #19cc00 !important;
 }
 
-.tool-submit-button:active {
+.tools-submit-button:active {
   background-color: #15b800 !important;
   border-color: #15b800 !important;
   color: white !important;
@@ -70,116 +89,77 @@
   transform: translateX(-3px);
 }
 
-.tool-form .ant-form-item {
-  margin-bottom: 28px;
-}
-
-.tool-form .ant-form-item-label {
-  font-weight: 500;
-  padding-bottom: 8px;
-}
-
-.tool-form .ant-form-item-label > label {
-  color: #2c3e50;
-  font-size: 15px;
-}
-
-.tool-form .ant-input,
-.tool-form .ant-select-selector,
-.tool-form .ant-input-number,
-.tool-form .ant-picker {
-  border-radius: 8px;
-  padding: 8px 12px;
-  height: auto;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s;
-}
-
-.tool-form .ant-input:hover,
-.tool-form .ant-select-selector:hover,
-.tool-form .ant-input-number:hover,
-.tool-form .ant-picker:hover {
-  border-color: #b3d4fc;
-}
-
-.tool-form .ant-input:focus,
-.tool-form .ant-select-selector:focus,
-.tool-form .ant-input-number-focused,
-.tool-form .ant-picker-focused {
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-}
-
-.form-actions {
-  text-align: right;
-  margin-top: 32px;
-}
-
-.form-actions .ant-btn {
-  border-radius: 8px;
-  height: 44px;
-  padding: 0 24px;
-  font-weight: 500;
-}
-
-.form-actions .ant-btn-primary:hover {
-  transform: translateY(-2px);
-}
-
-/* Custom Select Styles */
-.tool-form .ant-select-selection-item {
-  padding: 2px 4px;
-}
-
-.tool-form .ant-select-dropdown {
-  border-radius: 8px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-.tool-form .ant-select-item {
-  padding: 10px 12px;
-  transition: background 0.2s;
-}
-
-.tool-form .ant-select-item-option-selected {
-  background-color: #e6f7ff;
-}
-
-/* Card padding */
-.tool-form-card .ant-card-body {
-  padding: 32px;
-}
-
-/* Input number custom styles */
-.tool-form .ant-input-number-handler-wrap {
-  border-radius: 0 8px 8px 0;
-}
-
-/* DatePicker custom styles */
-.tool-form .ant-picker-focused {
-  border-color: #40a9ff;
-}
-
-/* Responsive adjustments */
+/* Responsive design */
 @media (max-width: 768px) {
-  .tool-form-container {
+  .tools-form-container {
     padding: 16px;
   }
   
-  .tool-form-header {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-row .ant-form-item {
+    width: 100%;
+  }
+  
+  .tools-form-header {
     flex-direction: column;
     align-items: flex-start;
   }
   
-  .tool-form-title {
+  .tools-form-title {
     margin-top: 16px;
     margin-left: 0;
   }
   
   .form-actions {
     text-align: center;
+    justify-content: center;
   }
-  
-  .tool-form .ant-form-item {
-    margin-bottom: 20px;
-  }
+}
+
+/* Form fields styling */
+.ant-form-item-label > label {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.ant-input,
+.ant-select-selector,
+.ant-picker {
+  border-radius: 8px !important;
+  transition: all 0.3s ease;
+}
+
+.ant-input:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: #0AB101 !important;
+}
+
+.ant-input:focus,
+.ant-select-selector:focus,
+.ant-picker-focused {
+  border-color: #0AB101 !important;
+  box-shadow: 0 0 0 2px rgba(10, 177, 1, 0.1) !important;
+}
+
+.ant-input-number {
+  width: 100%;
+  border-radius: 8px !important;
+}
+
+.ant-input-number:hover {
+  border-color: #0AB101 !important;
+}
+
+.ant-input-number-focused {
+  border-color: #0AB101 !important;
+  box-shadow: 0 0 0 2px rgba(10, 177, 1, 0.1) !important;
+}
+
+.ant-input-number-input {
+  padding: 8px 11px !important;
 }

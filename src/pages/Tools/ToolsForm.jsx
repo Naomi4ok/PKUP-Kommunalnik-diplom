@@ -1,151 +1,125 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form,
   Input,
   Button,
-  Select,
   Card,
-  Typography,
-  Row,
-  Col,
   message,
-  Spin,
-  Space,
+  Typography,
+  DatePicker,
+  Select,
   Breadcrumb,
-  InputNumber,
-  DatePicker
+  Spin,
+  Divider,
+  Space,
+  InputNumber
 } from 'antd';
-import {
-  ToolOutlined,
-  SaveOutlined,
-  HomeOutlined,
-  ArrowLeftOutlined
-} from '@ant-design/icons';
+import { HomeOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 import '../../styles/Tools/ToolsForm.css';
-import moment from 'moment';
 
 const { Title } = Typography;
 const { Option } = Select;
-const { TextArea } = Input;
 
 const ToolsForm = () => {
-  const { id } = useParams(); // Get tool ID from URL when editing
-  const navigate = useNavigate();
   const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = !!id;
+  
   const [loading, setLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [initialValues, setInitialValues] = useState({});
-  const [categories, setCategories] = useState([]);
-  const [storageLocations, setStorageLocations] = useState([]);
+  const [initialLoading, setInitialLoading] = useState(isEditing);
   const [employees, setEmployees] = useState([]);
+  const [categories, setCategories] = useState([
+    'Электроинструмент',
+    'Ручной инструмент',
+    'Измерительный инструмент',
+    'Садовый инструмент',
+    'Строительный инструмент',
+    'Сварочный инструмент',
+    'Прочее'
+  ]);
+  
+  const [locations, setLocations] = useState([
+    'Склад 1',
+    'Склад 2',
+    'Мастерская',
+    'Гараж',
+    'Прочее'
+  ]);
 
-  // Load data when component mounts
+  // Load employees list
   useEffect(() => {
-    fetchCategories();
-    fetchStorageLocations();
-    fetchEmployees();
+    const fetchEmployees = async () => {
+      try {
+        const response = await fetch('/api/employees');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setEmployees(data);
+      } catch (err) {
+        message.error(`Не удалось загрузить данные о сотрудниках: ${err.message}`);
+      }
+    };
     
-    if (id) {
-      setIsEditing(true);
-      fetchToolData(id);
-    }
-  }, [id]);
+    fetchEmployees();
+  }, []);
 
-  // Fetch unique categories
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/tools/categories');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setCategories(data);
-      
-    } catch (err) {
-      message.error(`Failed to load categories: ${err.message}`);
-    }
-  };
-
-  // Fetch unique storage locations
-  const fetchStorageLocations = async () => {
-    try {
-      const response = await fetch('/api/tools/storage-locations');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setStorageLocations(data);
-      
-    } catch (err) {
-      message.error(`Failed to load storage locations: ${err.message}`);
-    }
-  };
-
-  // Fetch employees for the responsible employee dropdown
-  const fetchEmployees = async () => {
-    try {
-      const response = await fetch('/api/employees');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setEmployees(data);
-      
-    } catch (err) {
-      message.error(`Failed to load employees: ${err.message}`);
-    }
-  };
-
-  // Fetch specific tool data when editing
-  const fetchToolData = async (toolId) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/tools/${toolId}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const tool = await response.json();
-      
-      // Format the date if it exists
-      const formattedValues = {
-        name: tool.Name || '',
-        category: tool.Category || '',
-        quantity: tool.Quantity || 1,
-        storageLocation: tool.Storage_Location || '',
-        responsibleEmployeeId: tool.Responsible_Employee_ID || null,
-        lastCheckDate: tool.Last_Check_Date ? moment(tool.Last_Check_Date) : null
+  // Load tool data when editing
+  useEffect(() => {
+    if (isEditing) {
+      const fetchToolDetails = async () => {
+        try {
+          setInitialLoading(true);
+          const response = await fetch(`/api/tools/${id}`);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          // Set form values
+          form.setFieldsValue({
+            name: data.Name,
+            category: data.Category,
+            quantity: data.Quantity,
+            location: data.Location,
+            responsibleEmployeeId: data.Responsible_Employee_ID,
+            lastCheckDate: data.Last_Check_Date ? dayjs(data.Last_Check_Date) : null
+          });
+          
+        } catch (err) {
+          message.error(`Не удалось загрузить информацию об инструменте: ${err.message}`);
+          navigate('/tools');
+        } finally {
+          setInitialLoading(false);
+        }
       };
       
-      setInitialValues(formattedValues);
-      form.setFieldsValue(formattedValues);
-      
-    } catch (err) {
-      message.error(`Failed to load tool data: ${err.message}`);
-    } finally {
-      setLoading(false);
+      fetchToolDetails();
     }
-  };
+  }, [id, isEditing, form, navigate]);
 
   // Handle form submission
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
       
-      // Format date to string if it exists
-      const formattedValues = {
-        ...values,
+      // Prepare data for submission
+      const toolData = {
+        name: values.name,
+        category: values.category,
+        quantity: values.quantity,
+        location: values.location,
+        responsibleEmployeeId: values.responsibleEmployeeId,
         lastCheckDate: values.lastCheckDate ? values.lastCheckDate.format('YYYY-MM-DD') : null
       };
-      
+
       let response;
       
       if (isEditing) {
@@ -153,32 +127,18 @@ const ToolsForm = () => {
         response = await fetch(`/api/tools/${id}`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            name: formattedValues.name,
-            category: formattedValues.category,
-            quantity: formattedValues.quantity,
-            storageLocation: formattedValues.storageLocation,
-            responsibleEmployeeId: formattedValues.responsibleEmployeeId,
-            lastCheckDate: formattedValues.lastCheckDate,
-          }),
+          body: JSON.stringify(toolData)
         });
       } else {
         // Add new tool
         response = await fetch('/api/tools', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            name: formattedValues.name,
-            category: formattedValues.category,
-            quantity: formattedValues.quantity,
-            storageLocation: formattedValues.storageLocation,
-            responsibleEmployeeId: formattedValues.responsibleEmployeeId,
-            lastCheckDate: formattedValues.lastCheckDate,
-          }),
+          body: JSON.stringify(toolData)
         });
       }
 
@@ -187,21 +147,26 @@ const ToolsForm = () => {
       }
 
       // Success message
-      message.success(`Tool successfully ${isEditing ? 'updated' : 'added'}!`);
+      message.success(`Инструмент успешно ${isEditing ? 'обновлен' : 'добавлен'}!`);
       
       // Navigate back to tools list
       navigate('/tools');
       
     } catch (err) {
-      message.error(`Failed to ${isEditing ? 'update' : 'add'} tool: ${err.message}`);
+      message.error(`Не удалось ${isEditing ? 'обновить' : 'добавить'} инструмент: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
+  // Return to tools list
+  const handleCancel = () => {
+    navigate('/tools');
+  };
+
   return (
-    <div className="tool-form-container">
-      <Breadcrumb className="tool-form-breadcrumb">
+    <div className="tools-form-container">
+      <Breadcrumb className="tools-form-breadcrumb">
         <Breadcrumb.Item href="/">
           <HomeOutlined />
         </Breadcrumb.Item>
@@ -209,12 +174,12 @@ const ToolsForm = () => {
           Инструменты
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          {isEditing ? 'Редактирование инструмента' : 'Добавление инструмента'}
+          {isEditing ? 'Редактирование' : 'Добавление'} инструмента
         </Breadcrumb.Item>
       </Breadcrumb>
 
-      <Card className="tool-form-card">
-        <div className="tool-form-header">
+      <Card className="tools-form-card">
+        <div className="tools-form-header">
           <Button 
             icon={<ArrowLeftOutlined />} 
             onClick={() => navigate('/tools')}
@@ -222,141 +187,179 @@ const ToolsForm = () => {
           >
             Назад к списку инструментов
           </Button>
-          <Title level={2} className="tool-form-title">
-            {isEditing ? 'Редактирование инструмента' : 'Добавление инструмента'}
+          <Title level={2} className="tools-form-title">
+            {isEditing ? 'Редактирование' : 'Добавление'} инструмента
           </Title>
         </div>
         
-        <Spin spinning={loading} tip="Загрузка...">
+        <Spin spinning={initialLoading}>
           <Form
             form={form}
             layout="vertical"
             onFinish={handleSubmit}
-            initialValues={initialValues}
-            className="tool-form"
+            initialValues={{
+              quantity: 1
+            }}
           >
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="name"
-                  label="Наименование"
-                  rules={[{ required: true, message: 'Пожалуйста, введите наименование инструмента' }]}
+            {/* Name */}
+            <Form.Item
+              name="name"
+              label="Наименование"
+              rules={[
+                { required: true, message: 'Пожалуйста, введите наименование инструмента' }
+              ]}
+            >
+              <Input placeholder="Введите наименование инструмента" />
+            </Form.Item>
+            
+            <div className="form-row">
+              {/* Category */}
+              <Form.Item
+                name="category"
+                label="Категория"
+                rules={[
+                  { required: true, message: 'Пожалуйста, выберите категорию инструмента' }
+                ]}
+              >
+                <Select 
+                  placeholder="Выберите категорию инструмента"
+                  showSearch
+                  allowClear
+                  dropdownRender={menu => (
+                    <div>
+                      {menu}
+                      <Divider style={{ margin: '4px 0' }} />
+                      <div style={{ display: 'flex', flexWrap: 'nowrap', padding: 8 }}>
+                        <Input
+                          style={{ flex: 'auto' }}
+                          placeholder="Добавить новую категорию"
+                          onPressEnter={(e) => {
+                            const value = e.target.value.trim();
+                            if (value && !categories.includes(value)) {
+                              setCategories([...categories, value]);
+                              form.setFieldsValue({ category: value });
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 >
-                  <Input placeholder="Введите наименование инструмента" />
-                </Form.Item>
-              </Col>
+                  {categories.map(category => (
+                    <Option key={category} value={category}>{category}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
               
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="category"
-                  label="Категория"
+              {/* Quantity */}
+              <Form.Item
+                name="quantity"
+                label="Количество"
+                rules={[
+                  { required: true, message: 'Пожалуйста, укажите количество' }
+                ]}
+              >
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </div>
+            
+            <div className="form-row">
+              {/* Location */}
+              <Form.Item
+                name="location"
+                label="Место хранения"
+                rules={[
+                  { required: true, message: 'Пожалуйста, укажите место хранения' }
+                ]}
+              >
+                <Select 
+                  placeholder="Выберите место хранения"
+                  showSearch
+                  allowClear
+                  dropdownRender={menu => (
+                    <div>
+                      {menu}
+                      <Divider style={{ margin: '4px 0' }} />
+                      <div style={{ display: 'flex', flexWrap: 'nowrap', padding: 8 }}>
+                        <Input
+                          style={{ flex: 'auto' }}
+                          placeholder="Добавить новое место хранения"
+                          onPressEnter={(e) => {
+                            const value = e.target.value.trim();
+                            if (value && !locations.includes(value)) {
+                              setLocations([...locations, value]);
+                              form.setFieldsValue({ location: value });
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 >
-                  <Select
-                    showSearch
-                    placeholder="Выберите или введите категорию"
-                    optionFilterProp="children"
-                    allowClear
-                    mode="tags"
-                  >
-                    {categories.map(category => (
-                      <Option key={category} value={category}>
-                        {category}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="quantity"
-                  label="Количество"
-                  rules={[{ required: true, message: 'Пожалуйста, укажите количество' }]}
-                  initialValue={1}
-                >
-                  <InputNumber 
-                    min={1} 
-                    style={{ width: '100%' }} 
-                    placeholder="Введите количество"
-                  />
-                </Form.Item>
-              </Col>
+                  {locations.map(location => (
+                    <Option key={location} value={location}>{location}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
               
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="storageLocation"
-                  label="Место хранения"
+              {/* Responsible employee */}
+              <Form.Item
+                name="responsibleEmployeeId"
+                label="Ответственный"
+                rules={[
+                  { required: true, message: 'Пожалуйста, выберите ответственного сотрудника' }
+                ]}
+              >
+                <Select
+                  placeholder="Выберите ответственного сотрудника"
+                  showSearch
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }
                 >
-                  <Select
-                    showSearch
-                    placeholder="Выберите или введите место хранения"
-                    optionFilterProp="children"
-                    allowClear
-                    mode="tags"
-                  >
-                    {storageLocations.map(location => (
-                      <Option key={location} value={location}>
-                        {location}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="responsibleEmployeeId"
-                  label="Ответственный сотрудник"
-                >
-                  <Select
-                    showSearch
-                    placeholder="Выберите ответственного сотрудника"
-                    optionFilterProp="children"
-                    allowClear
-                    filterOption={(input, option) =>
-                      option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                    }
-                  >
-                    {employees.map(employee => (
-                      <Option key={employee.Employee_ID} value={employee.Employee_ID}>
-                        {employee.Full_Name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
+                  {employees.map(employee => (
+                    <Option key={employee.Employee_ID} value={employee.Employee_ID}>
+                      {employee.Full_Name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </div>
+            
+            <div className="form-row">
+              {/* Last check date */}
+              <Form.Item
+                name="lastCheckDate"
+                label="Дата последней проверки"
+              >
+                <DatePicker 
+                  style={{ width: '100%' }} 
+                  placeholder="Выберите дату"
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
               
-              <Col xs={24} md={12}>
-                <Form.Item
-                  name="lastCheckDate"
-                  label="Дата последней проверки"
-                >
-                  <DatePicker 
-                    style={{ width: '100%' }} 
-                    format="DD.MM.YYYY"
-                    placeholder="Выберите дату"
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+              {/* Empty item for layout balance */}
+              <div style={{ flex: 1 }}></div>
+            </div>
             
             <Form.Item className="form-actions">
               <Space>
                 <Button
-                  className="tool-submit-button" 
+                  className="tools-submit-button"  
                   type="primary" 
                   htmlType="submit" 
+                  loading={loading}
                   icon={<SaveOutlined />}
                   size="large"
                 >
-                  {isEditing ? 'Обновить инструмент' : 'Добавить инструмент'}
+                  {isEditing ? 'Обновить' : 'Добавить'} инструмент
                 </Button>
                 <Button 
-                  onClick={() => navigate('/tools')}
+                  onClick={handleCancel}
                   size="large"
                 >
                   Отмена

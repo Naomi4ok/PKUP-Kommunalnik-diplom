@@ -389,7 +389,6 @@ const TransportForm = () => {
                   {customBrandMode ? (
                     <Input 
                       placeholder="Введите название бренда" 
-                      size="large"
                       suffix={
                         <Button 
                           type="link" 
@@ -453,20 +452,19 @@ const TransportForm = () => {
                 >
                   <Input 
                     placeholder="Введите модель транспорта" 
-                    size="large"
                   />
                 </Form.Item>
               </Col>
               
               <Col xs={24} md={12} lg={8}>
                 <Form.Item
+                  className="ant-transport-purpose"
                   name="purpose"
                   label="Назначение"
                   rules={[{ required: true, message: 'Пожалуйста, укажите назначение' }]}
                 >
                   <Select 
                     placeholder="Введите или выберите назначение" 
-                    size="large"
                     showSearch
                     allowClear
                     mode="tags"
@@ -502,7 +500,6 @@ const TransportForm = () => {
       style={{ width: '100%' }}
       picker="year"
       placeholder="Выберите год"
-      size="large"
       format="YYYY"
       disabledDate={(current) => {
         // Отключаем выбор будущих лет (кроме текущего) и годов до 1900
@@ -521,8 +518,6 @@ const TransportForm = () => {
                  >
                    <Input 
                      placeholder="Например, А123ВС78" 
-                     size="large"
-                     style={{ textTransform: 'uppercase' }}
                    />
                  </Form.Item>
                </Col>
@@ -568,7 +563,7 @@ const TransportForm = () => {
                   label="Тип топлива"
                   rules={[{ required: true, message: 'Пожалуйста, выберите тип топлива' }]}
                 >
-                  <Select placeholder="Выберите тип топлива" size="large">
+                  <Select placeholder="Выберите тип топлива">
                     <Option value="Дизель">Дизель</Option>
                     <Option value="Бензин">Бензин</Option>
                     <Option value="Газ">Газ</Option>
@@ -584,7 +579,7 @@ const TransportForm = () => {
                   label="Тип трансмиссии"
                   rules={[{ required: true, message: 'Пожалуйста, выберите тип трансмиссии' }]}
                 >
-                  <Select placeholder="Выберите тип трансмиссии" size="large">
+                  <Select placeholder="Выберите тип трансмиссии">
                     <Option value="Механическая">Механическая</Option>
                     <Option value="Автоматическая">Автоматическая</Option>
                     <Option value="Роботизированная">Роботизированная</Option>
@@ -599,7 +594,6 @@ const TransportForm = () => {
                 >
                   <Select 
                     placeholder="Выберите сотрудника" 
-                    size="large"
                     showSearch
                     allowClear
                     optionFilterProp="children"
@@ -634,7 +628,6 @@ const TransportForm = () => {
                     style={{ width: '100%' }}
                     format="DD.MM.YYYY"
                     placeholder="Выберите дату"
-                    size="large"
                   />
                 </Form.Item>
               </Col>

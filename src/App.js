@@ -18,6 +18,10 @@ import Transport from './pages/Transport/Transport';
 import TransportForm from './pages/Transport/TransportForm';
 import Tools from './pages/Tools/Tools';
 import ToolsForm from './pages/Tools/ToolsForm';
+import Spares from './pages/Spares/Spares';
+import SparesForm from './pages/Spares/SparesForm';
+import Materials from './pages/Materials/Materials';
+import MaterialsForm from './pages/Materials/MaterialsForm';
 const { Content } = Layout;
 // Removed Title as it's not directly used here anymore
 
@@ -110,6 +114,14 @@ function App() {
               <Route path="/tools" element={<Tools />} />
               <Route path="/tools/add" element={<ToolsForm />} />
               <Route path="/tools/edit/:id" element={<ToolsForm />} />
+
+              <Route path="/spares" element={<Spares />} />
+              <Route path="/spares/add" element={<SparesForm />} />
+              <Route path="/spares/edit/:id" element={<SparesForm />} />
+
+              <Route path="/materials" element={<Materials />} />
+              <Route path="/materials/add" element={<MaterialsForm />} />
+              <Route path="/materials/edit/:id" element={<MaterialsForm />} />
 
               <Route path="/schedule" element={<PlaceholderPage title="Schedule" />} />
             </Routes>

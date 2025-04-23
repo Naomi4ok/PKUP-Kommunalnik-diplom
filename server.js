@@ -89,6 +89,26 @@ const db = new sqlite3.Database(path.join(__dirname, 'database/database.db'), (e
       console.log('Transportation table created or already exists');
     }
   });
+  
+  // Create Tools table if it doesn't exist
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Tools (
+      Tool_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+      Name TEXT NOT NULL,
+      Category TEXT,
+      Quantity INTEGER DEFAULT 1,
+      Location TEXT,
+      Responsible_Employee_ID INTEGER,
+      Last_Check_Date TEXT,
+      FOREIGN KEY (Responsible_Employee_ID) REFERENCES Employees(Employee_ID)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('Error creating Tools table:', err);
+    } else {
+      console.log('Tools table created or already exists');
+    }
+  });
 });
 
 app.use(express.json());
@@ -872,6 +892,740 @@ app.post('/api/transportation/import', (req, res) => {
     });
   });
 });
+
+// API Routes for Tools
+// GET all tools
+app.get('/api/tools', (req, res) => {
+  db.all('SELECT * FROM Tools', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching tools:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json(rows);
+  });
+});
+
+// GET tool by ID
+app.get('/api/tools/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.get('SELECT * FROM Tools WHERE Tool_ID = ?', [id], (err, row) => {
+    if (err) {
+      console.error('Error fetching tool:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ error: 'Tool not found' });
+    }
+    
+    res.json(row);
+  });
+});
+
+// POST create new tool
+app.post('/api/tools', (req, res) => {
+  const { 
+    name, 
+    category, 
+    quantity, 
+    location, 
+    responsibleEmployeeId,
+    lastCheckDate
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Tool name is required' });
+  }
+  
+  const sql = `
+    INSERT INTO Tools (
+      Name, 
+      Category, 
+      Quantity, 
+      Location, 
+      Responsible_Employee_ID, 
+      Last_Check_Date
+    )
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  
+  db.run(sql, [
+    name, 
+    category, 
+    quantity || 1, 
+    location, 
+    responsibleEmployeeId, 
+    lastCheckDate
+  ], function(err) {
+    if (err) {
+      console.error('Error creating tool:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.status(201).json({ 
+      message: 'Tool created successfully',
+      toolId: this.lastID 
+    });
+  });
+});
+
+// PUT update tool
+app.put('/api/tools/:id', (req, res) => {
+  const { id } = req.params;
+  const { 
+    name, 
+    category, 
+    quantity, 
+    location, 
+    responsibleEmployeeId,
+    lastCheckDate
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Tool name is required' });
+  }
+  
+  const sql = `
+    UPDATE Tools 
+    SET Name = ?, 
+        Category = ?, 
+        Quantity = ?, 
+        Location = ?, 
+        Responsible_Employee_ID = ?, 
+        Last_Check_Date = ?
+    WHERE Tool_ID = ?
+  `;
+  
+  db.run(sql, [
+    name, 
+    category, 
+    quantity || 1, 
+    location, 
+    responsibleEmployeeId, 
+    lastCheckDate,
+    id
+  ], function(err) {
+    if (err) {
+      console.error('Error updating tool:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Tool not found' });
+    }
+    
+    res.json({ message: 'Tool updated successfully' });
+  });
+});
+
+// DELETE tool
+app.delete('/api/tools/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.run('DELETE FROM Tools WHERE Tool_ID = ?', [id], function(err) {
+    if (err) {
+      console.error('Error deleting tool:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Tool not found' });
+    }
+    
+    res.json({ message: 'Tool deleted successfully' });
+  });
+});
+
+// Import tools from Excel
+app.post('/api/tools/import', (req, res) => {
+  const { tools } = req.body;
+  
+  if (!tools || !Array.isArray(tools) || tools.length === 0) {
+    return res.status(400).json({ error: 'No tools data provided or invalid format' });
+  }
+  
+  // Begin a transaction to ensure all inserts succeed or fail together
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+    
+    const stmt = db.prepare(`
+      INSERT INTO Tools (
+        Name, 
+        Category, 
+        Quantity, 
+        Location, 
+        Responsible_Employee_ID, 
+        Last_Check_Date
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    tools.forEach(item => {
+      if (!item.name) {
+        errorCount++;
+        return; // Skip this record
+      }
+      
+      try {
+        stmt.run(
+          item.name,
+          item.category || '',
+          item.quantity || 1,
+          item.location || '',
+          item.responsibleEmployeeId || null,
+          item.lastCheckDate || null
+        );
+        successCount++;
+      } catch (err) {
+        console.error('Error inserting tool:', err);
+        errorCount++;
+      }
+    });
+    
+    stmt.finalize();
+    
+    db.run('COMMIT', (err) => {
+      if (err) {
+        console.error('Error committing transaction:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      res.status(201).json({
+        message: 'Import completed',
+        imported: successCount,
+        failed: errorCount
+      });
+    });
+  });
+});
+
+db.run(`
+  CREATE TABLE IF NOT EXISTS Spares (
+    Spare_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Quantity INTEGER DEFAULT 0,
+    Unit_Cost REAL DEFAULT 0,
+    Total_Cost REAL DEFAULT 0,
+    Last_Replenishment_Date TEXT,
+    Location TEXT,
+    Supplier TEXT,
+    Status TEXT DEFAULT 'В наличии'
+  )
+`, (err) => {
+  if (err) {
+    console.error('Error creating Spares table:', err);
+  } else {
+    console.log('Spares table created or already exists');
+  }
+});
+
+// API Routes for Spares
+// GET all spares
+app.get('/api/spares', (req, res) => {
+  db.all('SELECT * FROM Spares', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching spares:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json(rows);
+  });
+});
+
+// GET spare by ID
+app.get('/api/spares/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.get('SELECT * FROM Spares WHERE Spare_ID = ?', [id], (err, row) => {
+    if (err) {
+      console.error('Error fetching spare:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ error: 'Spare part not found' });
+    }
+    
+    res.json(row);
+  });
+});
+
+// POST create new spare
+app.post('/api/spares', (req, res) => {
+  const { 
+    name, 
+    quantity, 
+    unitCost, 
+    totalCost, 
+    lastReplenishmentDate,
+    location,
+    supplier,
+    status
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Spare part name is required' });
+  }
+  
+  // Calculate total cost if not provided
+  const calculatedTotalCost = totalCost || (quantity * unitCost);
+  
+  const sql = `
+    INSERT INTO Spares (
+      Name, 
+      Quantity, 
+      Unit_Cost, 
+      Total_Cost, 
+      Last_Replenishment_Date, 
+      Location, 
+      Supplier, 
+      Status
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  db.run(sql, [
+    name, 
+    quantity || 0, 
+    unitCost || 0, 
+    calculatedTotalCost || 0, 
+    lastReplenishmentDate, 
+    location, 
+    supplier, 
+    status || 'В наличии'
+  ], function(err) {
+    if (err) {
+      console.error('Error creating spare part:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.status(201).json({ 
+      message: 'Spare part created successfully',
+      spareId: this.lastID 
+    });
+  });
+});
+
+// PUT update spare
+app.put('/api/spares/:id', (req, res) => {
+  const { id } = req.params;
+  const { 
+    name, 
+    quantity, 
+    unitCost, 
+    totalCost, 
+    lastReplenishmentDate,
+    location,
+    supplier,
+    status
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Spare part name is required' });
+  }
+  
+  // Calculate total cost if not provided
+  const calculatedTotalCost = totalCost || (quantity * unitCost);
+  
+  const sql = `
+    UPDATE Spares 
+    SET Name = ?, 
+        Quantity = ?, 
+        Unit_Cost = ?, 
+        Total_Cost = ?, 
+        Last_Replenishment_Date = ?, 
+        Location = ?, 
+        Supplier = ?, 
+        Status = ?
+    WHERE Spare_ID = ?
+  `;
+  
+  db.run(sql, [
+    name, 
+    quantity || 0, 
+    unitCost || 0, 
+    calculatedTotalCost || 0, 
+    lastReplenishmentDate, 
+    location, 
+    supplier, 
+    status || 'В наличии', 
+    id
+  ], function(err) {
+    if (err) {
+      console.error('Error updating spare part:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Spare part not found' });
+    }
+    
+    res.json({ message: 'Spare part updated successfully' });
+  });
+});
+
+// DELETE spare
+app.delete('/api/spares/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.run('DELETE FROM Spares WHERE Spare_ID = ?', [id], function(err) {
+    if (err) {
+      console.error('Error deleting spare part:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Spare part not found' });
+    }
+    
+    res.json({ message: 'Spare part deleted successfully' });
+  });
+});
+
+// Import spares from Excel
+app.post('/api/spares/import', (req, res) => {
+  const { spares } = req.body;
+  
+  if (!spares || !Array.isArray(spares) || spares.length === 0) {
+    return res.status(400).json({ error: 'No spare parts data provided or invalid format' });
+  }
+  
+  // Begin a transaction to ensure all inserts succeed or fail together
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+    
+    const stmt = db.prepare(`
+      INSERT INTO Spares (
+        Name, 
+        Quantity, 
+        Unit_Cost, 
+        Total_Cost, 
+        Last_Replenishment_Date, 
+        Location, 
+        Supplier, 
+        Status
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    spares.forEach(item => {
+      if (!item.name) {
+        errorCount++;
+        return; // Skip this record
+      }
+      
+      // Calculate total cost if not provided
+      const quantity = item.quantity || 0;
+      const unitCost = item.unitCost || 0;
+      const totalCost = item.totalCost || (quantity * unitCost);
+      
+      try {
+        stmt.run(
+          item.name,
+          quantity,
+          unitCost,
+          totalCost,
+          item.lastReplenishmentDate || null,
+          item.location || '',
+          item.supplier || '',
+          item.status || 'В наличии'
+        );
+        successCount++;
+      } catch (err) {
+        console.error('Error inserting spare part:', err);
+        errorCount++;
+      }
+    });
+    
+    stmt.finalize();
+    
+    db.run('COMMIT', (err) => {
+      if (err) {
+        console.error('Error committing transaction:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      res.status(201).json({
+        message: 'Import completed',
+        imported: successCount,
+        failed: errorCount
+      });
+    });
+  });
+});
+
+db.run(`
+  CREATE TABLE IF NOT EXISTS Materials (
+    Material_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    Quantity INTEGER DEFAULT 0,
+    Unit_Cost REAL DEFAULT 0,
+    Total_Cost REAL DEFAULT 0,
+    Last_Replenishment_Date TEXT,
+    Location TEXT,
+    Supplier TEXT,
+    Status TEXT DEFAULT 'В наличии'
+  )
+`, (err) => {
+  if (err) {
+    console.error('Error creating Materials table:', err);
+  } else {
+    console.log('Materials table created or already exists');
+  }
+});
+
+// API Routes for Materials
+// GET all materials
+app.get('/api/materials', (req, res) => {
+  db.all('SELECT * FROM Materials', [], (err, rows) => {
+    if (err) {
+      console.error('Error fetching materials:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json(rows);
+  });
+});
+
+// GET material by ID
+app.get('/api/materials/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.get('SELECT * FROM Materials WHERE Material_ID = ?', [id], (err, row) => {
+    if (err) {
+      console.error('Error fetching material:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ error: 'Material not found' });
+    }
+    
+    res.json(row);
+  });
+});
+
+// POST create new material
+app.post('/api/materials', (req, res) => {
+  const { 
+    name, 
+    quantity, 
+    unitCost, 
+    totalCost, 
+    lastReplenishmentDate,
+    location,
+    supplier,
+    status
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Material name is required' });
+  }
+  
+  // Calculate total cost if not provided
+  const calculatedTotalCost = totalCost || (quantity * unitCost);
+  
+  const sql = `
+    INSERT INTO Materials (
+      Name, 
+      Quantity, 
+      Unit_Cost, 
+      Total_Cost, 
+      Last_Replenishment_Date, 
+      Location, 
+      Supplier, 
+      Status
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  db.run(sql, [
+    name, 
+    quantity || 0, 
+    unitCost || 0, 
+    calculatedTotalCost || 0, 
+    lastReplenishmentDate, 
+    location, 
+    supplier, 
+    status || 'В наличии'
+  ], function(err) {
+    if (err) {
+      console.error('Error creating material:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.status(201).json({ 
+      message: 'Material created successfully',
+      materialId: this.lastID 
+    });
+  });
+});
+
+// PUT update material
+app.put('/api/materials/:id', (req, res) => {
+  const { id } = req.params;
+  const { 
+    name, 
+    quantity, 
+    unitCost, 
+    totalCost, 
+    lastReplenishmentDate,
+    location,
+    supplier,
+    status
+  } = req.body;
+  
+  // Validate required fields
+  if (!name) {
+    return res.status(400).json({ error: 'Material name is required' });
+  }
+  
+  // Calculate total cost if not provided
+  const calculatedTotalCost = totalCost || (quantity * unitCost);
+  
+  const sql = `
+    UPDATE Materials 
+    SET Name = ?, 
+        Quantity = ?, 
+        Unit_Cost = ?, 
+        Total_Cost = ?, 
+        Last_Replenishment_Date = ?, 
+        Location = ?, 
+        Supplier = ?, 
+        Status = ?
+    WHERE Material_ID = ?
+  `;
+  
+  db.run(sql, [
+    name, 
+    quantity || 0, 
+    unitCost || 0, 
+    calculatedTotalCost || 0, 
+    lastReplenishmentDate, 
+    location, 
+    supplier, 
+    status || 'В наличии', 
+    id
+  ], function(err) {
+    if (err) {
+      console.error('Error updating material:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Material not found' });
+    }
+    
+    res.json({ message: 'Material updated successfully' });
+  });
+});
+
+// DELETE material
+app.delete('/api/materials/:id', (req, res) => {
+  const { id } = req.params;
+  
+  db.run('DELETE FROM Materials WHERE Material_ID = ?', [id], function(err) {
+    if (err) {
+      console.error('Error deleting material:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Material not found' });
+    }
+    
+    res.json({ message: 'Material deleted successfully' });
+  });
+});
+
+// Import materials from Excel
+app.post('/api/materials/import', (req, res) => {
+  const { materials } = req.body;
+  
+  if (!materials || !Array.isArray(materials) || materials.length === 0) {
+    return res.status(400).json({ error: 'No materials data provided or invalid format' });
+  }
+  
+  // Begin a transaction to ensure all inserts succeed or fail together
+  db.serialize(() => {
+    db.run('BEGIN TRANSACTION');
+    
+    const stmt = db.prepare(`
+      INSERT INTO Materials (
+        Name, 
+        Quantity, 
+        Unit_Cost, 
+        Total_Cost, 
+        Last_Replenishment_Date, 
+        Location, 
+        Supplier, 
+        Status
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    materials.forEach(item => {
+      if (!item.name) {
+        errorCount++;
+        return; // Skip this record
+      }
+      
+      // Calculate total cost if not provided
+      const quantity = item.quantity || 0;
+      const unitCost = item.unitCost || 0;
+      const totalCost = item.totalCost || (quantity * unitCost);
+      
+      try {
+        stmt.run(
+          item.name,
+          quantity,
+          unitCost,
+          totalCost,
+          item.lastReplenishmentDate || null,
+          item.location || '',
+          item.supplier || '',
+          item.status || 'В наличии'
+        );
+        successCount++;
+      } catch (err) {
+        console.error('Error inserting material:', err);
+        errorCount++;
+      }
+    });
+    
+    stmt.finalize();
+    
+    db.run('COMMIT', (err) => {
+      if (err) {
+        console.error('Error committing transaction:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      res.status(201).json({
+        message: 'Import completed',
+        imported: successCount,
+        failed: errorCount
+      });
+    });
+  });
+});
+
 
 // Catch-all handler to serve React's index.html
 app.get('*', (req, res) => {
