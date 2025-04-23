@@ -34,9 +34,14 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
+import 'moment/locale/ru'; // Импортируем русскую локализацию moment
+import locale from 'antd/es/date-picker/locale/ru_RU'; // Импортируем русскую локализацию для DatePicker
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../../styles/Schedule/Schedule.css';
+
+// Устанавливаем русскую локализацию для moment
+moment.locale('ru');
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -382,7 +387,7 @@ const Schedule = () => {
       <div className="schedule-header">
         <Title level={2}>Расписание задач</Title>
         <Button
-          className="shedule-add-button"  
+          className="schedule-add-button"  
           type="primary" 
           icon={<PlusOutlined />} 
           onClick={showAddTaskModal}
@@ -444,6 +449,7 @@ const Schedule = () => {
               <Calendar 
                 dateCellRender={dateCellRender} 
                 onSelect={onSelect}
+                locale={locale} // Добавляем русскую локализацию для календаря
               />
             </Card>
           </TabPane>
@@ -457,6 +463,7 @@ const Schedule = () => {
                   value={moment(selectedDate)} 
                   onChange={(date) => onSelect(date)}
                   format="DD.MM.YYYY"
+                  locale={locale} // Добавляем русскую локализацию для DatePicker
                 />
               </div>
               
@@ -563,7 +570,11 @@ const Schedule = () => {
                 label="Дата"
                 rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
               >
-                <DatePicker style={{ width: '100%' }} format="DD.MM.YYYY" />
+                <DatePicker 
+                  style={{ width: '100%' }} 
+                  format="DD.MM.YYYY" 
+                  locale={locale} // Добавляем русскую локализацию
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -575,6 +586,7 @@ const Schedule = () => {
                 <TimePicker.RangePicker 
                   style={{ width: '100%' }} 
                   format="HH:mm"
+                  locale={locale} // Добавляем русскую локализацию
                 />
               </Form.Item>
             </Col>
