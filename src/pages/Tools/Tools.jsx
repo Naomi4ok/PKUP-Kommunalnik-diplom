@@ -515,16 +515,14 @@ const Tool = () => {
       ),
       onFilter: (value, record) => record.Name.toLowerCase().includes(value.toLowerCase()),
     },
-    {
-      title: 'Категория',
-      dataIndex: 'Category',
-      key: 'category',
-      filters: categories.map(category => ({
-        text: category,
-        value: category,
-      })),
-      onFilter: (value, record) => record.Category === value,
-    },
+{
+  title: 'Категория',
+  dataIndex: 'Category',
+  key: 'category',
+  render: v =>
+    Array.isArray(v) ? v.join(', ')
+  : (v && typeof v === 'object' ? v.value || v.label : v || ''),
+},
     {
       title: 'Количество',
       dataIndex: 'Quantity',
@@ -608,9 +606,9 @@ const Tool = () => {
   const paginatedData = filteredTools.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="ant-tool-container">
+    <div className="ant-tools-container">
       {/* Добавление хлебных крошек */}
-      <Breadcrumb className="tool-breadcrumb">
+      <Breadcrumb className="tools-breadcrumb">
         <Breadcrumb.Item href="/">
           <HomeOutlined />
         </Breadcrumb.Item>
@@ -655,7 +653,7 @@ const Tool = () => {
               </Button>
               
               {/* Строка поиска */}
-              <div className="tool-search-bar-container">
+              <div className="tools-search-bar-container">
                 <SearchBar 
                   onSearch={handleSearch} 
                   placeholder="Поиск инструментов"

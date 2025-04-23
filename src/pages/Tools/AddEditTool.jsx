@@ -13,9 +13,9 @@ import {
   Divider,
   Space,
   Typography,
-  Spin
+  Spin,
 } from 'antd';
-import { HomeOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
+import { HomeOutlined, SaveOutlined, UndoOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import '../../styles/Tools/AddEditTool.css';
 
@@ -175,8 +175,8 @@ const AddEditTool = () => {
   };
   
   return (
-    <div className="ant-add-edit-tool-container">
-      <Breadcrumb className="tool-breadcrumb">
+    <div className="ant-add-edit-tools-container">
+      <Breadcrumb className="tools-breadcrumb">
         <Breadcrumb.Item href="/">
           <HomeOutlined />
         </Breadcrumb.Item>
@@ -188,9 +188,19 @@ const AddEditTool = () => {
         </Breadcrumb.Item>
       </Breadcrumb>
       
-      <Card>
-        <Title level={2}>{isEditing ? 'Редактирование' : 'Добавление'} инструмента</Title>
-        <Divider />
+      <Card className="tools-form-card">
+      <div className="tools-form-header">
+      <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => navigate('/tools')}
+            className="back-button"
+          >
+            Назад к списку инструментов
+          </Button>
+          <Title level={2} className="tools-form-title">
+          {isEditing ? 'Редактирование' : 'Добавление'} инструмента
+        </Title>
+        </div>
         
         <Spin spinning={loading}>
           <Form
@@ -280,11 +290,10 @@ const AddEditTool = () => {
               />
             </Form.Item>
             
-            <Divider />
-            
             <Form.Item className="form-actions">
               <Space>
                 <Button
+                  className="tools-submit-button"  
                   type="primary"
                   icon={<SaveOutlined />}
                   htmlType="submit"

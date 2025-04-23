@@ -1,137 +1,14 @@
 /* Общие стили контейнера */
-.ant-tool-container {
-    width: 100%;
-    padding: 16px;
-  }
+.ant-tools-container {
+  padding: 8px 24px 0px 52px;
+  max-width: 1600px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
   
   /* Стили для хлебных крошек */
-  .tool-breadcrumb {
+  .tools-breadcrumb {
     margin-bottom: 16px;
   }
   
-  /* Стили заголовка страницы */
-  .ant-page-header-wrapper {
-    width: 100%;
-  }
   
-  .ant-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 0;
-    flex-wrap: wrap;
-  }
-  
-  /* Стили для левой и правой части заголовка */
-  .header-left-content, .header-right-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  
-  .header-right-content {
-    flex-wrap: wrap;
-  }
-  
-  /* Стили для кнопок */
-  .ant-export-button, .ant-import-button, .ant-filter-button, .ant-add-button {
-    margin-left: 8px;
-    white-space: nowrap;
-  }
-  
-  /* Стили для контейнера поиска */
-  .tool-search-bar-container {
-    margin: 0 8px;
-    width: 240px;
-  }
-  
-  /* Стили для панели фильтров */
-  .filter-panel {
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    padding: 16px;
-    margin-bottom: 16px;
-    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-  }
-  
-  .filter-panel.visible {
-    max-height: 500px;
-    opacity: 1;
-  }
-  
-  .filter-panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-  
-  .filter-panel-header h4 {
-    margin: 0;
-  }
-  
-  .filter-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 8px;
-  }
-  
-  .filter-group label {
-    margin-bottom: 4px;
-    font-weight: 500;
-  }
-  
-  /* Стили для карточек и контейнеров */
-  .employee-name {
-    font-weight: 500;
-  }
-  
-  .employee-position {
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.45);
-  }
-  
-  /* Стили для кнопки действий */
-  .action-more-button {
-    padding: 4px 8px;
-  }
-  
-  /* Стили для выпадающего меню с удалением */
-  .dropdown-delete-label {
-    color: inherit;
-  }
-  
-  /* Стили для импорта */
-  .import-instructions {
-    margin-bottom: 16px;
-  }
-  
-  .import-instructions ul {
-    padding-left: 20px;
-  }
-  
-  /* Адаптивные стили */
-  @media (max-width: 768px) {
-    .ant-page-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .header-left-content, .header-right-content {
-      width: 100%;
-      margin-bottom: 16px;
-    }
-    
-    .tool-search-bar-container {
-      width: 100%;
-      margin: 8px 0;
-    }
-    
-    .ant-export-button, .ant-import-button, .ant-filter-button, .ant-add-button {
-      margin: 4px;
-    }
-  }
