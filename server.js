@@ -2,14 +2,16 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const db = require('./database/db');
-const dbSchedule = require('./database/db_schedule'); // Add this line
+const dbSchedule = require('./database/db_schedule');
+const dbUsers = require('./database/db_users'); // Add this line
 const employeeRoutes = require('./routes/employees');
 const equipmentRoutes = require('./routes/equipment');
 const transportationRoutes = require('./routes/transportation');
 const toolsRoutes = require('./routes/tools');
 const sparesRoutes = require('./routes/spares');
 const materialsRoutes = require('./routes/materials');
-const scheduleRoutes = require('./routes/schedule'); // Add this line
+const scheduleRoutes = require('./routes/schedule');
+const { router: authRoutes } = require('./routes/auth'); // Add this line
 
 // Инициализация приложения
 const app = express();
@@ -24,19 +26,21 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // Создание таблиц для модуля расписания
-dbSchedule.createScheduleTable(); // Add this line
+dbSchedule.createScheduleTable();
+dbUsers.createUsersTable(); // Add this line
 
 // Статические файлы React
 app.use(express.static(path.join(__dirname, 'build')));
 
 // Регистрация маршрутов API
+app.use('/api/auth', authRoutes); // Add this line
 app.use('/api/employees', employeeRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/transportation', transportationRoutes);
 app.use('/api/tools', toolsRoutes);
 app.use('/api/spares', sparesRoutes);
 app.use('/api/materials', materialsRoutes);
-app.use('/api/schedule', scheduleRoutes); // Add this line
+app.use('/api/schedule', scheduleRoutes);
 
 // Маршрут для обслуживания React приложения
 app.get('*', (req, res) => {

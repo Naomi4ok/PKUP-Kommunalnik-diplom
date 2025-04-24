@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Removed Link as it's not directly used here anymore
-import { Layout } from 'antd'; // Removed Card, Typography, Row, Col, Button
-// Removed specific icons previously only used in Home component
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Layout } from 'antd';
 import './App.css';
 
 // Components
 import SidebarComponent from './components/SidebarComponents/SidebarComponent';
-import PlaceholderPage from './components/PlaceholderPage'; // Import PlaceholderPage
+import PlaceholderPage from './components/PlaceholderPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
-import Dashboard from './pages/Dashboard/Dashboard'; // Import the new Home component
+import Dashboard from './pages/Dashboard/Dashboard';
 import Employees from './pages/Employee/Employees';
 import EmployeeForm from './pages/Employee/EmployeeForm';
 import Equipment from './pages/Equipment/Equipment';
@@ -23,8 +23,13 @@ import SparesForm from './pages/Spares/SparesForm';
 import Materials from './pages/Materials/Materials';
 import MaterialsForm from './pages/Materials/MaterialsForm';
 import Schedule from './pages/Schedule/Schedule';
+import Auth from './pages/Auth/Auth';
+import UserManagement from './components/UserManagement/UserManagement';
+
+// Context
+import { AuthProvider } from './context/AuthContext';
+
 const { Content } = Layout;
-// Removed Title as it's not directly used here anymore
 
 function App() {
   const [collapsed, setCollapsed] = useState(false);
@@ -58,7 +63,6 @@ function App() {
     siteLayout.classList.add('layout-transitioning');
 
     // Use setTimeout to remove the class after the transition duration
-    // This is a simpler alternative to transitionend listener if duration is fixed
     const timer = setTimeout(() => {
       siteLayout.classList.remove('layout-transitioning');
     }, 200); // Match transition duration in App.css (0.2s)
@@ -75,67 +79,158 @@ function App() {
   };
 
   return (
-    <Router>
-      <Layout style={{ minHeight: '100vh' }}>
-        <SidebarComponent
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-        />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          
+          <Route path="/*" element={
+            <Layout style={{ minHeight: '100vh' }}>
+              <SidebarComponent
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+              />
 
-        {/* Mobile backdrop */}
-        {isMobile && !collapsed && (
-          <div
-            className="mobile-sidebar-backdrop visible"
-            onClick={handleBackdropClick}
-          />
-        )}
+              {/* Mobile backdrop */}
+              {isMobile && !collapsed && (
+                <div
+                  className="mobile-sidebar-backdrop visible"
+                  onClick={handleBackdropClick}
+                />
+              )}
 
-        <Layout
-          className={`site-layout ${collapsed ? 'sidebar-collapsed' : ''}`}
-          ref={siteLayoutRef}
-          // Add style for margin transition
-          style={{ marginLeft: collapsed ? (isMobile ? 0 : 80) : (isMobile ? 0 : 200) }}
-        >
-          {/* Header could go here if needed */}
-          {/* <Header className="site-layout-background" style={{ padding: 0 }} /> */}
+              <Layout
+                className={`site-layout ${collapsed ? 'sidebar-collapsed' : ''}`}
+                ref={siteLayoutRef}
+                style={{ marginLeft: collapsed ? (isMobile ? 0 : 80) : (isMobile ? 0 : 200) }}
+              >
+                <Content className="content-area">
+                  <Routes>
+                    <Route path="/" element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/employees" element={
+                      <ProtectedRoute>
+                        <Employees />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/employees/add" element={
+                      <ProtectedRoute>
+                        <EmployeeForm />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/employees/edit/:id" element={
+                      <ProtectedRoute>
+                        <EmployeeForm />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/equipment" element={
+                      <ProtectedRoute>
+                        <Equipment />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/equipment/add" element={
+                      <ProtectedRoute>
+                        <EquipmentForm />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/equipment/edit/:id" element={
+                      <ProtectedRoute>
+                        <EquipmentForm />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/transport" element={
+                      <ProtectedRoute>
+                        <Transport />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/transport/add" element={
+                      <ProtectedRoute>
+                        <TransportForm />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/transport/edit/:id" element={
+                      <ProtectedRoute>
+                        <TransportForm />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/tools" element={
+                      <ProtectedRoute>
+                        <Tools />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/tools/add" element={
+                      <ProtectedRoute>
+                        <ToolsForm />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/tools/edit/:id" element={
+                      <ProtectedRoute>
+                        <ToolsForm />
+                      </ProtectedRoute>
+                    } />
 
-          <Content className="content-area">
-            <Routes>
-              <Route path="/" element={<Dashboard />} /> {/* Use imported Home */}
-              <Route path="/employees" element={<Employees />} />
-              <Route path="/employees/add" element={<EmployeeForm />} />
-              <Route path="/employees/edit/:id" element={<EmployeeForm />} />
-              <Route path="/equipment" element={<Equipment />} />
-              <Route path="/equipment/add" element={<EquipmentForm />} />
-              <Route path="/equipment/edit/:id" element={<EquipmentForm />} />
-              <Route path="/transport" element={<Transport />} />
-              <Route path="/transport/add" element={<TransportForm />} />
-              <Route path="/transport/edit/:id" element={<TransportForm />} />
-              {/* Use imported PlaceholderPage */}
-              <Route path="/tools" element={<Tools />} />
-              <Route path="/tools/add" element={<ToolsForm />} />
-              <Route path="/tools/edit/:id" element={<ToolsForm />} />
+                    <Route path="/spares" element={
+                      <ProtectedRoute>
+                        <Spares />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/spares/add" element={
+                      <ProtectedRoute>
+                        <SparesForm />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/spares/edit/:id" element={
+                      <ProtectedRoute>
+                        <SparesForm />
+                      </ProtectedRoute>
+                    } />
 
-              <Route path="/spares" element={<Spares />} />
-              <Route path="/spares/add" element={<SparesForm />} />
-              <Route path="/spares/edit/:id" element={<SparesForm />} />
+                    <Route path="/materials" element={
+                      <ProtectedRoute>
+                        <Materials />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/materials/add" element={
+                      <ProtectedRoute>
+                        <MaterialsForm />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/materials/edit/:id" element={
+                      <ProtectedRoute>
+                        <MaterialsForm />
+                      </ProtectedRoute>
+                    } />
 
-              <Route path="/materials" element={<Materials />} />
-              <Route path="/materials/add" element={<MaterialsForm />} />
-              <Route path="/materials/edit/:id" element={<MaterialsForm />} />
-
-              <Route path="/schedule" element={<Schedule />} />
-            </Routes>
-          </Content>
-          {/* Footer could go here if needed */}
-          {/* <Footer style={{ textAlign: 'center' }}>Kommunalnik Pro ©2024</Footer> */}
-        </Layout>
-      </Layout>
-    </Router>
+                    <Route path="/schedule" element={
+                      <ProtectedRoute>
+                        <Schedule />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/users" element={
+                      <ProtectedRoute>
+                        <UserManagement />
+                      </ProtectedRoute>
+                    } />
+                    
+                    {/* Redirect any unknown paths to the dashboard */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Content>
+              </Layout>
+            </Layout>
+          } />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
-
-// Removed Home component definition
-// Removed PlaceholderPage component definition
 
 export default App;

@@ -1,0 +1,61 @@
+.user-management-container {
+  padding: 8px 24px 0px 52px;
+  max-width: 1600px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .page-header h1 {
+    margin: 0;
+    font-size: 24px;
+  }
+  
+  .add-user-button {
+    background-color: #1890ff;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  
+  .status-badge.active {
+    background-color: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+  }
+  
+  .status-badge.inactive {
+    background-color: #fff1f0;
+    color: #ff4d4f;
+    border: 1px solid #ffa39e;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  
+  .no-access-container {
+    text-align: center;
+    padding: 50px;
+  }
+  
+  .no-access-container h2 {
+    color: #ff4d4f;
+  }

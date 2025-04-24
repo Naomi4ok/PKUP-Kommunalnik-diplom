@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Layout, Menu, Avatar, Divider, Button, Dropdown } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HomeOutlined,
   UserOutlined,
@@ -23,16 +23,19 @@ import {
 } from '@ant-design/icons';
 import Logo from '../Logo'; // Предполагаем, что компонент Logo существует
 import './SidebarComponent.css';
+import { AuthContext } from '../../context/AuthContext'; // Add this import
 
 const { Sider } = Layout;
 const { SubMenu } = Menu;
 
 const SidebarComponent = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
+  const navigate = useNavigate(); // Add this for navigation
   const [animateItems, setAnimateItems] = useState(false);
   const [mobileVisible, setMobileVisible] = useState(false);
   const [userMenuVisible, setUserMenuVisible] = useState(false);
   const userMenuRef = useRef(null);
+  const { logout, user } = useContext(AuthContext); // Add this for authentication
   
   // Обработка анимации меню при раскрытии/сворачивании
   useEffect(() => {
@@ -76,6 +79,13 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     };
   }, []);
 
+  // Add logout handler
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+    setUserMenuVisible(false);
+  };
+
   // Определить все пункты меню
   const allMenuItems = [
     {
@@ -114,12 +124,6 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         { key: '/spares', label: 'Запчасти', path: '/spares', icon: <PartitionOutlined /> },
         { key: '/materials', label: 'Материалы', path: '/materials', icon: <AppstoreOutlined /> },
       ],
-    },
-    {
-      key: '/processes', // Используем путь как ключ
-      icon: <ExperimentOutlined />,
-      label: 'Процессы',
-      path: '/processes',
     },
   ];
 
@@ -176,13 +180,6 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         }
       }
     }
-  };
-
-  // Обработка выхода из системы
-  const handleLogout = () => {
-    // Добавьте сюда логику выхода из системы
-    console.log('Пользователь вышел из системы');
-    setUserMenuVisible(false);
   };
 
   // Рендеринг пунктов меню рекурсивно с задержкой анимации
@@ -288,8 +285,8 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
             />
             {!collapsed && (
               <div className={`user-info ${animateItems ? 'animate-in' : ''}`}>
-                <div className="user-name">Администратор</div>
-                <div className="user-role">Администратор</div>
+                <div className="user-name">{user?.fullName || user?.username || 'Администратор'}</div>
+                <div className="user-role">{user?.role === 'admin' ? 'Администратор' : 'Пользователь'}</div>
               </div>
             )}
 
