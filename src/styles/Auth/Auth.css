@@ -2,17 +2,21 @@
   display: flex;
   min-height: 100vh;
   width: 100%;
+  font-family: 'Roboto', 'Arial', sans-serif;
 }
 
+/* Стилизация левой панели */
 .auth-left-panel {
   flex: 1;
-  background-color: #8ABD3F;
+  background-color: #0AB101;
+  background-image: linear-gradient(145deg, #0AB101 0%, #76A035 100%);
   position: relative;
   padding: 40px;
   display: flex;
   flex-direction: column;
   color: white;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .auth-right-panel {
@@ -22,26 +26,40 @@
   justify-content: center;
   align-items: center;
   padding: 40px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05) inset;
 }
 
 .logo-container {
   margin-bottom: 60px;
+  animation: fadeIn 1s ease;
 }
 
 .logo {
-  max-width: 240px;
+  margin-top: 40px;
+  margin-left: 150px;
+  max-width: 300px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.02);
 }
 
 .welcome-content {
-  margin-top: auto;
+  margin-top: 160px;
+  margin-left: 150px;
   margin-bottom: auto;
   z-index: 1;
+  animation: slideUp 0.8s ease;
 }
 
 .welcome-content h1 {
-  font-size: 36px;
+  font-size: 55px;
+  padding-bottom: 5px;
   margin: 0;
   font-weight: normal;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .welcome-bold {
@@ -50,8 +68,12 @@
 }
 
 .welcome-message {
-  margin-top: 40px;
+  margin-top: 85px;
   font-size: 16px;
+  line-height: 1.6;
+  max-width: 400px;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .decorative-dots {
@@ -66,71 +88,261 @@
   z-index: 0;
 }
 
+/* Стилизация формы */
 .login-form-container {
   width: 100%;
   max-width: 400px;
+  animation: fadeIn 1s ease;
 }
 
 .login-form-container h2 {
-  color: #8ABD3F;
+  color: #0AB101;
   font-size: 28px;
   margin-bottom: 40px;
+  position: relative;
+  font-weight: 600;
+}
+
+.login-form-container h2::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+  width: 50px;
+  height: 3px;
+  background-color: #0AB101;
+  border-radius: 2px;
 }
 
 .form-group {
   margin-bottom: 24px;
+  position: relative;
 }
 
 .form-group label {
   display: block;
-  color: #8ABD3F;
+  color: #555;
   margin-bottom: 8px;
   font-size: 16px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: #0AB101;
+  font-size: 18px;
+  z-index: 1;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 12px 16px 12px 40px;
   border: 1px solid #E0E0E0;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 16px;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+  background-color: #f9f9f9;
+}
+
+.form-group input:focus {
+  border-color: #0AB101;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(138, 189, 63, 0.2);
+  background-color: white;
+}
+
+/* Добавленные стили для отображения ошибок */
+.form-group input.error-input {
+  border-color: #ff4d4f;
+  background-color: #fff1f0;
+}
+
+.form-group input.error-input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 14px;
+  margin-top: 5px;
+  padding-left: 5px;
+  animation: fadeIn 0.3s ease;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 12px;
+  color: #0AB101;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.password-toggle-icon:hover {
+  color: #76A035;
+}
+
+.auth-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
 }
 
 .remember-me {
   display: flex;
   align-items: center;
-  margin-bottom: 24px;
 }
 
 .remember-me input {
   margin-right: 10px;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
+  accent-color: #0AB101;
+  cursor: pointer;
 }
 
 .remember-me label {
-  color: #8ABD3F;
-  font-size: 16px;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.forgot-password-link {
+  color: #0AB101;
+  font-size: 14px;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.forgot-password-link:hover {
+  color: #76A035;
+  text-decoration: underline;
 }
 
 .login-button {
   width: 100%;
-  background-color: #8ABD3F;
+  background-color: #0AB101;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 12px;
+  border-radius: 6px;
+  padding: 14px;
   font-size: 18px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
 .login-button:hover {
+  background-color: #079200;
+  transform: translateY(-2px);
+}
+
+.login-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(138, 189, 63, 0.2);
+}
+
+.login-button:disabled {
+  background-color: #0AB101;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.login-spinner {
+  margin-right: 8px;
+}
+
+/* Модальное окно */
+.ant-modal-header {
+  border-bottom: 2px solid #0AB101;
+}
+
+.ant-modal-title {
+  color: #0AB101;
+  font-weight: 600;
+}
+
+.modal-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  background-color: #f0f0f0;
+  color: #555;
+  margin-right: 10px;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.submit-button {
+  background-color: #0AB101;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-button:hover {
   background-color: #76A035;
 }
 
-/* Background decorative elements on left panel */
+/* Начальный загрузчик */
+.auth-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  background-color: white;
+}
+
+.auth-footer {
+  margin-top: 40px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Декоративные элементы фона */
 .auth-left-panel::before {
   content: '';
   position: absolute;
@@ -138,29 +350,93 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg width='800' height='800' viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M400 400 C 500 300, 700 300, 700 500 C 700 700, 500 700, 400 600 Z' fill='none' stroke='rgba(255,255,255,0.1)' stroke-width='15'/%3E%3C/svg%3E");
-  background-size: 120% 120%;
+  background-image: url("../../pages/Auth/assets/background.png");
   background-position: -10% 50%;
-  opacity: 0.2;
   z-index: 0;
 }
 
-/* Responsive adjustments */
+/* Улучшенная адаптивная верстка */
+@media (max-width: 1024px) {
+  .welcome-content h1 {
+    font-size: 32px;
+  }
+  
+  .logo {
+    max-width: 200px;
+  }
+}
+
 @media (max-width: 768px) {
   .auth-container {
     flex-direction: column;
   }
   
   .auth-left-panel {
-    min-height: 200px;
-    padding: 20px;
+    min-height: 250px;
+    padding: 30px;
   }
   
   .welcome-content h1 {
     font-size: 28px;
   }
   
+  .welcome-message {
+    margin-top: 20px;
+  }
+  
   .logo {
-    max-width: 180px;
+    max-width: 160px;
+  }
+  
+  .login-form-container {
+    padding: 20px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-left-panel {
+    min-height: 200px;
+    padding: 20px;
+  }
+  
+  .auth-right-panel {
+    padding: 20px;
+  }
+  
+  .welcome-content h1 {
+    font-size: 24px;
+  }
+  
+  .logo {
+    max-width: 140px;
+  }
+  
+  .login-form-container h2 {
+    font-size: 24px;
+    margin-bottom: 30px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .auth-form-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .forgot-password-link {
+    margin-left: 28px;
+  }
+}
+
+/* Улучшения доступности */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
