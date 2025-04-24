@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from 'antd';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
+import AvatarUploadForm from '../AvatarUploadForm';
 import './UserManagement.css';
 
 const { Option } = Select;
@@ -13,6 +14,7 @@ const UserManagement = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingUser, setEditingUser] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
 
   // Check if current user is admin
   const isAdmin = user?.role === 'admin';
@@ -47,12 +49,14 @@ const UserManagement = () => {
 
   const showAddModal = () => {
     setEditingUser(null);
+    setAvatarFile(null);
     form.resetFields();
     setModalVisible(true);
   };
 
   const showEditModal = (user) => {
     setEditingUser(user);
+    setAvatarFile(null);
     form.setFieldsValue({
       username: user.Username,
       fullName: user.Full_Name,
@@ -66,23 +70,32 @@ const UserManagement = () => {
   const handleCancel = () => {
     setModalVisible(false);
     form.resetFields();
+    setAvatarFile(null);
   };
 
   const handleSubmit = async (values) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     
     try {
+      // Create FormData to handle file upload
+      const formData = new FormData();
+      formData.append('username', values.username);
+      formData.append('fullName', values.fullName || '');
+      formData.append('email', values.email || '');
+      formData.append('role', values.role);
+      
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      }
+      
       if (editingUser) {
         // Update existing user
-        const response = await axios.put(`/api/auth/users/${editingUser.User_ID}`, {
-          username: values.username,
-          fullName: values.fullName,
-          email: values.email,
-          role: values.role,
-          status: values.status || 'active'
-        }, {
+        formData.append('status', values.status || 'active');
+        
+        const response = await axios.put(`/api/auth/users/${editingUser.User_ID}`, formData, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
           }
         });
         
@@ -93,15 +106,12 @@ const UserManagement = () => {
         }
       } else {
         // Create new user
-        const response = await axios.post('/api/auth/users', {
-          username: values.username,
-          password: values.password,
-          fullName: values.fullName,
-          email: values.email,
-          role: values.role
-        }, {
+        formData.append('password', values.password);
+        
+        const response = await axios.post('/api/auth/users', formData, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
           }
         });
         
@@ -138,8 +148,36 @@ const UserManagement = () => {
     }
   };
 
+  // Handle avatar upload
+  const handleAvatarUpload = (avatarData) => {
+    if (avatarData.selectedImage) {
+      setAvatarFile(avatarData.selectedImage);
+    }
+  };
+
   // Table columns
   const columns = [
+    {
+      title: 'Аватар',
+      dataIndex: 'Avatar',
+      key: 'avatar',
+      width: 80,
+      render: (avatar, record) => (
+        <div className="user-avatar-container">
+          {avatar ? (
+            <img 
+              src={avatar} 
+              alt={`${record.Username} avatar`} 
+              className="user-avatar-thumbnail"
+            />
+          ) : (
+            <div className="user-avatar-placeholder">
+              {record.Username ? record.Username.charAt(0).toUpperCase() : '?'}
+            </div>
+          )}
+        </div>
+      )
+    },
     {
       title: 'Имя пользователя',
       dataIndex: 'Username',
@@ -247,82 +285,93 @@ const UserManagement = () => {
         open={modalVisible}
         onCancel={handleCancel}
         footer={null}
+        width={700}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <Form.Item
-            name="username"
-            label="Имя пользователя"
-            rules={[{ required: true, message: 'Пожалуйста, введите имя пользователя' }]}
-          >
-            <Input placeholder="Имя пользователя" />
-          </Form.Item>
+        <div className="user-form-container">
+          <div className="avatar-upload-section">
+            <AvatarUploadForm 
+              onAvatarUpload={handleAvatarUpload}
+              initialImageUrl={editingUser ? editingUser.Avatar : null}
+            />
+          </div>
 
-          {!editingUser && (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            className="user-form"
+          >
             <Form.Item
-              name="password"
-              label="Пароль"
+              name="username"
+              label="Имя пользователя"
+              rules={[{ required: true, message: 'Пожалуйста, введите имя пользователя' }]}
+            >
+              <Input placeholder="Имя пользователя" />
+            </Form.Item>
+
+            {!editingUser && (
+              <Form.Item
+                name="password"
+                label="Пароль"
+                rules={[
+                  { required: true, message: 'Пожалуйста, введите пароль' },
+                  { min: 6, message: 'Пароль должен быть не менее 6 символов' }
+                ]}
+              >
+                <Input.Password placeholder="Пароль" />
+              </Form.Item>
+            )}
+
+            <Form.Item
+              name="fullName"
+              label="ФИО"
+            >
+              <Input placeholder="Фамилия Имя Отчество" />
+            </Form.Item>
+
+            <Form.Item
+              name="email"
+              label="Email"
               rules={[
-                { required: true, message: 'Пожалуйста, введите пароль' },
-                { min: 6, message: 'Пароль должен быть не менее 6 символов' }
+                { type: 'email', message: 'Некорректный формат email' }
               ]}
             >
-              <Input.Password placeholder="Пароль" />
+              <Input placeholder="email@example.com" />
             </Form.Item>
-          )}
 
-          <Form.Item
-            name="fullName"
-            label="ФИО"
-          >
-            <Input placeholder="Фамилия Имя Отчество" />
-          </Form.Item>
-
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { type: 'email', message: 'Некорректный формат email' }
-            ]}
-          >
-            <Input placeholder="email@example.com" />
-          </Form.Item>
-
-          <Form.Item
-            name="role"
-            label="Роль пользователя"
-            rules={[{ required: true, message: 'Пожалуйста, выберите роль' }]}
-            initialValue="user"
-          >
-            <Select>
-              <Option value="user">Пользователь</Option>
-              <Option value="admin">Администратор</Option>
-            </Select>
-          </Form.Item>
-
-          {editingUser && (
             <Form.Item
-              name="status"
-              label="Статус"
-              initialValue="active"
+              name="role"
+              label="Роль пользователя"
+              rules={[{ required: true, message: 'Пожалуйста, выберите роль' }]}
+              initialValue="user"
             >
               <Select>
-                <Option value="active">Активен</Option>
-                <Option value="inactive">Неактивен</Option>
+                <Option value="user">Пользователь</Option>
+                <Option value="admin">Администратор</Option>
               </Select>
             </Form.Item>
-          )}
 
-          <Form.Item className="form-actions">
-            <Button onClick={handleCancel}>Отмена</Button>
-            <Button type="primary" htmlType="submit">
-              {editingUser ? 'Сохранить' : 'Создать'}
-            </Button>
-          </Form.Item>
-        </Form>
+            {editingUser && (
+              <Form.Item
+                name="status"
+                label="Статус"
+                initialValue="active"
+              >
+                <Select>
+                  <Option value="active">Активен</Option>
+                  <Option value="inactive">Неактивен</Option>
+                </Select>
+              </Form.Item>
+            )}
+
+            <Form.Item className="form-actions">
+              <Button onClick={handleCancel}>Отмена</Button>
+              <Button type="primary" htmlType="submit">
+                {editingUser ? 'Сохранить' : 'Создать'}
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       </Modal>
     </div>
   );

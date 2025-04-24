@@ -1,167 +1,166 @@
 .auth-container {
-  padding: 8px 24px 0px 52px;
-  max-width: 1200px;
-  margin: 0 auto;
-  animation: fadeIn 0.5s ease-out;
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
 }
+
+.auth-left-panel {
+  flex: 1;
+  background-color: #8ABD3F;
+  position: relative;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  overflow: hidden;
+}
+
+.auth-right-panel {
+  flex: 1;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.logo-container {
+  margin-bottom: 60px;
+}
+
+.logo {
+  max-width: 240px;
+}
+
+.welcome-content {
+  margin-top: auto;
+  margin-bottom: auto;
+  z-index: 1;
+}
+
+.welcome-content h1 {
+  font-size: 36px;
+  margin: 0;
+  font-weight: normal;
+}
+
+.welcome-bold {
+  font-weight: bold !important;
+  margin-bottom: 20px !important;
+}
+
+.welcome-message {
+  margin-top: 40px;
+  font-size: 16px;
+}
+
+.decorative-dots {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 70%;
+  height: 70%;
+  background-image: radial-gradient(#FFFFFF20 2px, transparent 2px);
+  background-size: 20px 20px;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.login-form-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-form-container h2 {
+  color: #8ABD3F;
+  font-size: 28px;
+  margin-bottom: 40px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  color: #8ABD3F;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.remember-me input {
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+.remember-me label {
+  color: #8ABD3F;
+  font-size: 16px;
+}
+
+.login-button {
+  width: 100%;
+  background-color: #8ABD3F;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-button:hover {
+  background-color: #76A035;
+}
+
+/* Background decorative elements on left panel */
+.auth-left-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg width='800' height='800' viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M400 400 C 500 300, 700 300, 700 500 C 700 700, 500 700, 400 600 Z' fill='none' stroke='rgba(255,255,255,0.1)' stroke-width='15'/%3E%3C/svg%3E");
+  background-size: 120% 120%;
+  background-position: -10% 50%;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column;
+  }
   
   .auth-left-panel {
-    flex: 1;
-    background-color: #8ABD3F;
-    position: relative;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    color: white;
-    overflow: hidden;
-  }
-  
-  .auth-right-panel {
-    flex: 1;
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-  }
-  
-  .logo-container {
-    margin-bottom: 60px;
-  }
-  
-  .logo {
-    max-width: 240px;
-  }
-  
-  .welcome-content {
-    margin-top: auto;
-    margin-bottom: auto;
-    z-index: 1;
+    min-height: 200px;
+    padding: 20px;
   }
   
   .welcome-content h1 {
-    font-size: 36px;
-    margin: 0;
-    font-weight: normal;
-  }
-  
-  .welcome-bold {
-    font-weight: bold !important;
-    margin-bottom: 20px !important;
-  }
-  
-  .welcome-message {
-    margin-top: 40px;
-    font-size: 16px;
-  }
-  
-  .decorative-dots {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 70%;
-    height: 70%;
-    background-image: radial-gradient(#FFFFFF20 2px, transparent 2px);
-    background-size: 20px 20px;
-    opacity: 0.3;
-    z-index: 0;
-  }
-  
-  .login-form-container {
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  .login-form-container h2 {
-    color: #8ABD3F;
     font-size: 28px;
-    margin-bottom: 40px;
   }
   
-  .form-group {
-    margin-bottom: 24px;
+  .logo {
+    max-width: 180px;
   }
-  
-  .form-group label {
-    display: block;
-    color: #8ABD3F;
-    margin-bottom: 8px;
-    font-size: 16px;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #E0E0E0;
-    border-radius: 4px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  
-  .remember-me {
-    display: flex;
-    align-items: center;
-    margin-bottom: 24px;
-  }
-  
-  .remember-me input {
-    margin-right: 10px;
-    width: 20px;
-    height: 20px;
-  }
-  
-  .remember-me label {
-    color: #8ABD3F;
-    font-size: 16px;
-  }
-  
-  .login-button {
-    width: 100%;
-    background-color: #8ABD3F;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 12px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .login-button:hover {
-    background-color: #76A035;
-  }
-  
-  /* Background decorative elements on left panel */
-  .auth-left-panel::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("data:image/svg+xml,%3Csvg width='800' height='800' viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M400 400 C 500 300, 700 300, 700 500 C 700 700, 500 700, 400 600 Z' fill='none' stroke='rgba(255,255,255,0.1)' stroke-width='15'/%3E%3C/svg%3E");
-    background-size: 120% 120%;
-    background-position: -10% 50%;
-    opacity: 0.2;
-    z-index: 0;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .auth-container {
-      flex-direction: column;
-    }
-    
-    .auth-left-panel {
-      min-height: 200px;
-      padding: 20px;
-    }
-    
-    .welcome-content h1 {
-      font-size: 28px;
-    }
-    
-    .logo {
-      max-width: 180px;
-    }
-  }
+}

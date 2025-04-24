@@ -125,6 +125,15 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         { key: '/materials', label: 'Материалы', path: '/materials', icon: <AppstoreOutlined /> },
       ],
     },
+    // Add user management item for admins
+    ...(user?.role === 'admin' ? [
+      {
+        key: '/users',
+        icon: <UserSwitchOutlined />,
+        label: 'Пользователи',
+        path: '/users',
+      }
+    ] : []),
   ];
 
   // Определить выбранные ключи на основе текущего пути
@@ -231,6 +240,19 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
     }
   };
 
+  // Get user's initials for avatar fallback
+  const getUserInitials = () => {
+    if (user?.fullName) {
+      // Get initials from full name
+      return user.fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+    } else if (user?.username) {
+      // Use first letter of username as fallback
+      return user.username[0].toUpperCase();
+    }
+    // Default fallback
+    return 'U';
+  };
+
   return (
     <>
       {/* Мобильный фон */}
@@ -280,9 +302,17 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
           >
             <Avatar 
               size={collapsed ? 32 : 40} 
-              icon={<UserOutlined />} 
+              src={user?.avatar}
+              icon={<UserOutlined />}
+              style={{ 
+                backgroundColor: user?.avatar ? 'transparent' : '#0AB101',
+                color: user?.avatar ? 'inherit' : '#fff'
+              }}
               className={animateItems ? 'animate-in' : ''}
-            />
+            >
+              {!user?.avatar && getUserInitials()}
+            </Avatar>
+            
             {!collapsed && (
               <div className={`user-info ${animateItems ? 'animate-in' : ''}`}>
                 <div className="user-name">{user?.fullName || user?.username || 'Администратор'}</div>

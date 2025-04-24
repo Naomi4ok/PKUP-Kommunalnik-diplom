@@ -11,6 +11,7 @@ function createUsersTable() {
       Full_Name TEXT,
       Role TEXT DEFAULT 'user',
       Email TEXT,
+      Avatar BLOB,
       Last_Login TEXT,
       Created_At TEXT DEFAULT CURRENT_TIMESTAMP,
       Status TEXT DEFAULT 'active'

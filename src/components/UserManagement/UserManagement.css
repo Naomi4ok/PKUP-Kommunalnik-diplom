@@ -5,57 +5,117 @@
   animation: fadeIn 0.5s ease-out;
 }
   
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.add-user-button {
+  background-color: #1890ff;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-badge.active {
+  background-color: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.status-badge.inactive {
+  background-color: #fff1f0;
+  color: #ff4d4f;
+  border: 1px solid #ffa39e;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.no-access-container {
+  text-align: center;
+  padding: 50px;
+}
+
+.no-access-container h2 {
+  color: #ff4d4f;
+}
+
+/* User avatar styling */
+.user-avatar-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #1890ff;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* User form layout */
+.user-form-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.avatar-upload-section {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.user-form {
+  flex: 1;
+}
+
+/* Responsive modal layout */
+@media (min-width: 768px) {
+  .user-form-container {
+    flex-direction: row;
+    gap: 24px;
   }
   
-  .page-header h1 {
-    margin: 0;
-    font-size: 24px;
+  .avatar-upload-section {
+    flex: 0 0 200px;
+    margin-bottom: 0;
   }
-  
-  .add-user-button {
-    background-color: #1890ff;
-  }
-  
-  .action-buttons {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .status-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-  }
-  
-  .status-badge.active {
-    background-color: #e6f7ff;
-    color: #1890ff;
-    border: 1px solid #91d5ff;
-  }
-  
-  .status-badge.inactive {
-    background-color: #fff1f0;
-    color: #ff4d4f;
-    border: 1px solid #ffa39e;
-  }
-  
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 24px;
-  }
-  
-  .no-access-container {
-    text-align: center;
-    padding: 50px;
-  }
-  
-  .no-access-container h2 {
-    color: #ff4d4f;
-  }
+}

@@ -3,6 +3,11 @@ const router = express.Router();
 const db = require('../database/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+
+// Setup multer for memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Secret key for JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -47,6 +52,12 @@ router.post('/login', (req, res) => {
         { expiresIn: '24h' }
       );
 
+      // Convert blob to base64 if available
+      let avatarBase64 = null;
+      if (user.Avatar) {
+        avatarBase64 = `data:image/jpeg;base64,${Buffer.from(user.Avatar).toString('base64')}`;
+      }
+
       // Return user data and token
       res.json({
         success: true,
@@ -55,7 +66,8 @@ router.post('/login', (req, res) => {
           username: user.Username,
           fullName: user.Full_Name,
           role: user.Role,
-          email: user.Email
+          email: user.Email,
+          avatar: avatarBase64
         },
         token
       });
@@ -68,7 +80,7 @@ router.post('/login', (req, res) => {
 
 // Check authentication status
 router.get('/me', verifyToken, (req, res) => {
-  db.get('SELECT User_ID, Username, Full_Name, Role, Email FROM Users WHERE User_ID = ?', 
+  db.get('SELECT User_ID, Username, Full_Name, Role, Email, Avatar FROM Users WHERE User_ID = ?', 
     [req.userId], (err, user) => {
       if (err) {
         return res.status(500).json({ error: 'Internal server error' });
@@ -78,6 +90,12 @@ router.get('/me', verifyToken, (req, res) => {
         return res.status(404).json({ error: 'User not found' });
       }
 
+      // Convert blob to base64 if available
+      let avatarBase64 = null;
+      if (user.Avatar) {
+        avatarBase64 = `data:image/jpeg;base64,${Buffer.from(user.Avatar).toString('base64')}`;
+      }
+
       res.json({
         success: true,
         user: {
@@ -85,7 +103,8 @@ router.get('/me', verifyToken, (req, res) => {
           username: user.Username,
           fullName: user.Full_Name,
           role: user.Role,
-          email: user.Email
+          email: user.Email,
+          avatar: avatarBase64
         }
       });
     });
@@ -145,16 +164,29 @@ router.post('/change-password', verifyToken, async (req, res) => {
 
 // User management routes (admin only)
 router.get('/users', verifyToken, verifyAdmin, (req, res) => {
-  db.all('SELECT User_ID, Username, Full_Name, Role, Email, Last_Login, Created_At, Status FROM Users', [], (err, users) => {
+  db.all('SELECT User_ID, Username, Full_Name, Role, Email, Last_Login, Created_At, Status, Avatar FROM Users', [], (err, users) => {
     if (err) {
       return res.status(500).json({ error: 'Internal server error' });
     }
     
-    res.json({ success: true, users });
+    // Convert avatars to base64
+    const usersWithBase64Avatars = users.map(user => {
+      const avatarBase64 = user.Avatar 
+        ? `data:image/jpeg;base64,${Buffer.from(user.Avatar).toString('base64')}` 
+        : null;
+      
+      return {
+        ...user,
+        Avatar: avatarBase64
+      };
+    });
+    
+    res.json({ success: true, users: usersWithBase64Avatars });
   });
 });
 
-router.post('/users', verifyToken, verifyAdmin, async (req, res) => {
+// Create a new user with avatar support
+router.post('/users', verifyToken, verifyAdmin, upload.single('avatar'), async (req, res) => {
   const { username, password, fullName, role, email } = req.body;
 
   if (!username || !password) {
@@ -165,54 +197,124 @@ router.post('/users', verifyToken, verifyAdmin, async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Create new user
-    db.run(
-      'INSERT INTO Users (Username, Password, Full_Name, Role, Email) VALUES (?, ?, ?, ?, ?)',
-      [username, hashedPassword, fullName, role || 'user', email],
-      function(err) {
-        if (err) {
-          if (err.message.includes('UNIQUE constraint failed')) {
-            return res.status(400).json({ error: 'Username already exists' });
+    // Get avatar data if available
+    const avatarData = req.file ? req.file.buffer : null;
+    
+    // Create new user with avatar
+    if (avatarData) {
+      db.run(
+        'INSERT INTO Users (Username, Password, Full_Name, Role, Email, Avatar) VALUES (?, ?, ?, ?, ?, ?)',
+        [username, hashedPassword, fullName, role || 'user', email, avatarData],
+        function(err) {
+          if (err) {
+            if (err.message.includes('UNIQUE constraint failed')) {
+              return res.status(400).json({ error: 'Username already exists' });
+            }
+            return res.status(500).json({ error: 'Failed to create user' });
           }
-          return res.status(500).json({ error: 'Failed to create user' });
+          
+          res.status(201).json({ 
+            success: true, 
+            message: 'User created successfully',
+            userId: this.lastID
+          });
         }
-        
-        res.status(201).json({ 
-          success: true, 
-          message: 'User created successfully',
-          userId: this.lastID
-        });
-      }
-    );
+      );
+    } else {
+      // Create user without avatar
+      db.run(
+        'INSERT INTO Users (Username, Password, Full_Name, Role, Email) VALUES (?, ?, ?, ?, ?)',
+        [username, hashedPassword, fullName, role || 'user', email],
+        function(err) {
+          if (err) {
+            if (err.message.includes('UNIQUE constraint failed')) {
+              return res.status(400).json({ error: 'Username already exists' });
+            }
+            return res.status(500).json({ error: 'Failed to create user' });
+          }
+          
+          res.status(201).json({ 
+            success: true, 
+            message: 'User created successfully',
+            userId: this.lastID
+          });
+        }
+      );
+    }
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-router.put('/users/:id', verifyToken, verifyAdmin, (req, res) => {
+// Update user with avatar support
+router.put('/users/:id', verifyToken, verifyAdmin, upload.single('avatar'), (req, res) => {
   const userId = req.params.id;
   const { username, fullName, role, email, status } = req.body;
-
-  // Update user details
-  db.run(
-    'UPDATE Users SET Username = ?, Full_Name = ?, Role = ?, Email = ?, Status = ? WHERE User_ID = ?',
-    [username, fullName, role, email, status, userId],
-    function(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ error: 'Username already exists' });
+  
+  // Get avatar data if available
+  const avatarData = req.file ? req.file.buffer : null;
+  
+  // Update user including avatar if provided
+  if (avatarData) {
+    db.run(
+      'UPDATE Users SET Username = ?, Full_Name = ?, Role = ?, Email = ?, Status = ?, Avatar = ? WHERE User_ID = ?',
+      [username, fullName, role, email, status, avatarData, userId],
+      function(err) {
+        if (err) {
+          if (err.message.includes('UNIQUE constraint failed')) {
+            return res.status(400).json({ error: 'Username already exists' });
+          }
+          return res.status(500).json({ error: 'Failed to update user' });
         }
-        return res.status(500).json({ error: 'Failed to update user' });
+        
+        if (this.changes === 0) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({ success: true, message: 'User updated successfully' });
       }
-      
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'User not found' });
+    );
+  } else {
+    // Update user without changing avatar
+    db.run(
+      'UPDATE Users SET Username = ?, Full_Name = ?, Role = ?, Email = ?, Status = ? WHERE User_ID = ?',
+      [username, fullName, role, email, status, userId],
+      function(err) {
+        if (err) {
+          if (err.message.includes('UNIQUE constraint failed')) {
+            return res.status(400).json({ error: 'Username already exists' });
+          }
+          return res.status(500).json({ error: 'Failed to update user' });
+        }
+        
+        if (this.changes === 0) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({ success: true, message: 'User updated successfully' });
       }
-      
-      res.json({ success: true, message: 'User updated successfully' });
+    );
+  }
+});
+
+// Get user avatar
+router.get('/users/:id/avatar', (req, res) => {
+  const userId = req.params.id;
+
+  db.get('SELECT Avatar FROM Users WHERE User_ID = ?', [userId], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal server error' });
     }
-  );
+
+    if (!user || !user.Avatar) {
+      return res.status(404).json({ error: 'Avatar not found' });
+    }
+
+    // Set headers for image data
+    res.set('Content-Type', 'image/jpeg');
+    res.send(user.Avatar);
+  });
 });
 
 router.delete('/users/:id', verifyToken, verifyAdmin, (req, res) => {

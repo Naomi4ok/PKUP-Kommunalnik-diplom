@@ -235,6 +235,14 @@
   justify-content: center; /* Center avatar */
   padding: 8px;
 }
+
+.anticon.anticon-user{
+  color: #bfbfbf;
+}
+
+.ant-avatar{
+  background-color: #f0f0f0 !important;
+}
 .ant-layout-sider-collapsed .user-info {
   display: none; /* Hide text */
 }
