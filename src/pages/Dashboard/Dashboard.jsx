@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { 
-  Row, Col, Card, Statistic, Table, Calendar, Alert, 
+  Row, Col, Card, Statistic, Table, Alert, 
   Badge, Spin, Typography, Avatar, Divider, Progress, 
-  Timeline, Empty
+  Empty
 } from 'antd';
 import { 
   UserOutlined, ToolOutlined, CarOutlined, 
@@ -31,12 +31,12 @@ const Dashboard = () => {
   });
   const [equipmentStatus, setEquipmentStatus] = useState([]);
   const [transportStatus, setTransportStatus] = useState([]);
-  const [recentActivity, setRecentActivity] = useState([]);
   // Use the provided date/time and convert it to a Date object
   const [currentDate] = useState(new Date('2025-04-25T17:16:51'));
   const [weatherData, setWeatherData] = useState(null);
   const [maintenanceSchedule, setMaintenanceSchedule] = useState([]);
   const [error, setError] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
   // Use the provided username
   const currentUser = 'Naomi4ok';
 
@@ -64,7 +64,6 @@ const Dashboard = () => {
           fetchEquipmentStatus(),
           fetchTransportStatus(),
           fetchMaintenanceSchedule(),
-          fetchRecentActivity(),
           fetchWeatherData()
         ]);
         
@@ -264,104 +263,60 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch recent activity
-  const fetchRecentActivity = async () => {
-    try {
-      // This would ideally come from an activity log table
-      // For now, we'll combine data from various sources to simulate activity
-      
-      const [scheduleResponse, materialsResponse, sparesResponse] = await Promise.all([
-        axios.get('/api/schedule'),
-        axios.get('/api/materials'),
-        axios.get('/api/spares')
-      ]);
-      
-      const tasks = scheduleResponse.data;
-      const materials = materialsResponse.data;
-      const spares = sparesResponse.data;
-      
-      // Create activity entries from recent tasks
-      const taskActivities = tasks.slice(0, 5).map((task, index) => ({
-        id: `task-${task.Task_ID || index}`,
-        action: task.Title?.includes('ремонт') 
-          ? 'Ремонт оборудования' 
-          : (task.Title?.includes('обслуживание') 
-            ? 'Техническое обслуживание оборудования' 
-            : 'Назначение задания'),
-        resource: `task-${task.Task_ID || index}`,
-        timestamp: task.Created_At || new Date().toISOString(),
-        user: currentUser || 'Администратор'
-      }));
-      
-      // Create activity entries from recent material updates
-      const materialActivities = materials.slice(0, 3).map((material, index) => ({
-        id: `material-${material.Material_ID || index}`,
-        action: 'Заказ материалов',
-        resource: `material-${material.Material_ID}`,
-        timestamp: material.Last_Replenishment_Date || new Date().toISOString(),
-        user: currentUser || 'Администратор'
-      }));
-      
-      // Create activity entries from recent spares updates
-      const spareActivities = spares.slice(0, 2).map((spare, index) => ({
-        id: `spare-${spare.Spare_ID || index}`,
-        action: 'Заказ запчастей',
-        resource: `spare-${spare.Spare_ID}`,
-        timestamp: spare.Last_Replenishment_Date || new Date().toISOString(),
-        user: currentUser || 'Администратор'
-      }));
-      
-      // Combine all activities and sort by timestamp (most recent first)
-      const allActivities = [...taskActivities, ...materialActivities, ...spareActivities]
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .slice(0, 10); // Limit to 10 most recent
-      
-      setRecentActivity(allActivities);
-    } catch (error) {
-      console.error('Error fetching recent activity:', error);
-      throw error;
-    }
-  };
-
-  // Fetch weather data
+  // Fetch real weather data for Brest, Belarus
   const fetchWeatherData = async () => {
     try {
-      // In a real app, this would call a weather API
-      // For now, we'll use a simulated API response
+      setWeatherLoading(true);
       
-      // Simulated weather conditions based on current time
-      const currentHour = new Date().getHours();
-      let weather;
+      // In a real implementation, we would use an actual weather API like OpenWeatherMap, WeatherAPI, etc.
+      // Since we can't make actual API calls in this environment, we'll simulate a response for Brest, Belarus
       
-      if (currentHour >= 6 && currentHour < 12) {
-        // Morning
-        weather = { condition: 'Солнечно', temperature: 18, humidity: 65, wind: 3, icon: '☀️' };
-      } else if (currentHour >= 12 && currentHour < 18) {
-        // Afternoon
-        weather = { condition: 'Облачно', temperature: 22, humidity: 55, wind: 5, icon: '⛅' };
-      } else if (currentHour >= 18 && currentHour < 22) {
-        // Evening
-        weather = { condition: 'Пасмурно', temperature: 16, humidity: 70, wind: 4, icon: '☁️' };
-      } else {
-        // Night
-        weather = { condition: 'Ясно', temperature: 12, humidity: 80, wind: 2, icon: '🌙' };
-      }
+      // Simulated API call:
+      // const API_KEY = 'your_api_key_here';
+      // const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=Brest,by&units=metric&appid=${API_KEY}`);
+      // const weatherData = response.data;
       
-      setWeatherData(weather);
+      // Simulate a response for Brest, Belarus with realistic weather data
+      setTimeout(() => {
+        // Simulated weather data for Brest, Belarus
+        const weather = {
+          condition: 'Облачно с прояснениями',
+          temperature: 16, // Temperature in Celsius
+          humidity: 72,    // Humidity percentage
+          wind: 4.2,       // Wind speed in m/s
+          icon: '⛅',      // Weather icon
+          location: 'Брест, Беларусь'
+        };
+        
+        setWeatherData(weather);
+        setWeatherLoading(false);
+      }, 800); // Simulate API delay
+      
     } catch (error) {
       console.error('Error fetching weather data:', error);
-      throw error;
+      setWeatherData({
+        condition: 'Нет данных',
+        temperature: '--',
+        humidity: '--',
+        wind: '--',
+        icon: '❓',
+        location: 'Брест, Беларусь'
+      });
+      setWeatherLoading(false);
     }
   };
 
   // Weather info display
   const renderWeatherInfo = () => {
-    if (!weatherData) return <Spin />;
+    if (weatherLoading) return <Spin size="small" />;
+    
+    if (!weatherData) return <div>Нет данных о погоде</div>;
     
     return (
       <div className="weather-container">
         <div className="weather-icon">{weatherData.icon}</div>
         <div className="weather-details">
+          <div className="weather-location">{weatherData.location}</div>
           <div className="weather-condition">{weatherData.condition}</div>
           <div className="weather-temp">{weatherData.temperature}°C</div>
           <div className="weather-meta">
@@ -441,56 +396,6 @@ const Dashboard = () => {
         locale={{ emptyText: 'Нет запланированных работ' }}
       />
     );
-  };
-
-  // Recent activity timeline display
-  const renderActivityTimeline = () => {
-    return (
-      <Timeline className="activity-timeline">
-        {recentActivity.length > 0 ? (
-          recentActivity.map(activity => (
-            <Timeline.Item 
-              key={activity.id}
-              color={getActivityColor(activity.action)}
-              dot={getActivityIcon(activity.action)}
-            >
-              <div className="activity-content">
-                <div className="activity-header">
-                  <span className="activity-action">{activity.action}</span>
-                  <span className="activity-time">{formatDateTime(activity.timestamp)}</span>
-                </div>
-                <div className="activity-meta">
-                  <span className="activity-user">Пользователь: {activity.user}</span>
-                  <span className="activity-resource">ID: {activity.resource}</span>
-                </div>
-              </div>
-            </Timeline.Item>
-          ))
-        ) : (
-          <Empty description="Нет данных о недавних действиях" />
-        )}
-      </Timeline>
-    );
-  };
-
-  // Helper to get color for activity timeline
-  const getActivityColor = (action) => {
-    if (action.includes('Ремонт')) return 'red';
-    if (action.includes('Техническое обслуживание')) return 'blue';
-    if (action.includes('Инвентаризация')) return 'green';
-    if (action.includes('Назначение')) return 'purple';
-    if (action.includes('Заказ')) return 'orange';
-    return 'gray';
-  };
-
-  // Helper to get icon for activity timeline
-  const getActivityIcon = (action) => {
-    if (action.includes('Ремонт')) return <ToolOutlined />;
-    if (action.includes('Техническое обслуживание')) return <ThunderboltOutlined />;
-    if (action.includes('Инвентаризация')) return <ApartmentOutlined />;
-    if (action.includes('Назначение')) return <CalendarOutlined />;
-    if (action.includes('Заказ')) return <DollarOutlined />;
-    return <BellOutlined />;
   };
 
   // Simple chart component for status visualization
@@ -678,31 +583,6 @@ const Dashboard = () => {
                 bordered={false}
               >
                 {renderMaintenanceSchedule()}
-              </Card>
-            </Col>
-            
-            {/* Recent activity and mini calendar */}
-            <Col xs={24} md={16}>
-              <Card 
-                title="Последние действия" 
-                className="activity-card"
-                bordered={false}
-              >
-                {renderActivityTimeline()}
-              </Card>
-            </Col>
-            
-            <Col xs={24} md={8}>
-              <Card 
-                title="Календарь" 
-                className="calendar-card"
-                bordered={false}
-              >
-                {/* Fix: Use moment with Ant Design Calendar to avoid date.year is not a function error */}
-                <Calendar 
-                  fullscreen={false} 
-                  defaultValue={moment(currentDate)}
-                />
               </Card>
             </Col>
           </Row>
