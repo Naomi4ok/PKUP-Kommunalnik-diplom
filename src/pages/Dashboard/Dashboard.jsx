@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { 
   Row, Col, Card, Statistic, Table, Calendar, Alert, 
   Badge, Spin, Typography, Avatar, Divider, Progress, 
-  Timeline, Select, Empty
+  Timeline, Empty
 } from 'antd';
 import { 
   UserOutlined, ToolOutlined, CarOutlined, 
@@ -14,9 +14,9 @@ import {
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import '../../styles/Dashboard/Dashboard.css';
+import moment from 'moment'; // Import moment for date handling with antd
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -32,12 +32,13 @@ const Dashboard = () => {
   const [equipmentStatus, setEquipmentStatus] = useState([]);
   const [transportStatus, setTransportStatus] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
-  const [currentDate] = useState(new Date('2025-04-25T13:11:12')); // Using the provided date
+  // Use the provided date/time and convert it to a Date object
+  const [currentDate] = useState(new Date('2025-04-25T17:16:51'));
   const [weatherData, setWeatherData] = useState(null);
-  const [resourceUtilization, setResourceUtilization] = useState([]);
   const [maintenanceSchedule, setMaintenanceSchedule] = useState([]);
-  const [selectedTimeframe, setSelectedTimeframe] = useState('week');
-  const currentUser = 'Naomi4ok'; // Using the provided user login
+  const [error, setError] = useState(null);
+  // Use the provided username
+  const currentUser = 'Naomi4ok';
 
   // Format date as YYYY-MM-DD
   const formatDate = (date) => {
@@ -55,20 +56,22 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+        setError(null);
         
-        // Simulate API calls with some delay
-        setTimeout(() => {
-          // Generate mock data
-          generateMockData();
-          
-          // Simulate weather data
-          fetchWeatherData();
-          
-          setLoading(false);
-        }, 1000);
+        // Fetch all the required data
+        await Promise.all([
+          fetchStats(),
+          fetchEquipmentStatus(),
+          fetchTransportStatus(),
+          fetchMaintenanceSchedule(),
+          fetchRecentActivity(),
+          fetchWeatherData()
+        ]);
         
+        setLoading(false);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
+        setError('Ошибка загрузки данных для дашборда');
         setLoading(false);
       }
     };
@@ -76,156 +79,279 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Generate mock data for charts and tables
-  const generateMockData = () => {
-    // Statistics
-    setStats({
-      employeesCount: 42,
-      equipmentCount: 76,
-      transportCount: 18,
-      toolsCount: 124,
-      sparesCount: 357,
-      materialsCount: 283
-    });
+  // Fetch stats counts from various tables
+  const fetchStats = async () => {
+    try {
+      const [
+        employeesResponse, 
+        equipmentResponse, 
+        transportResponse, 
+        toolsResponse, 
+        sparesResponse, 
+        materialsResponse
+      ] = await Promise.all([
+        axios.get('/api/employees'),
+        axios.get('/api/equipment'),
+        axios.get('/api/transportation'),
+        axios.get('/api/tools'),
+        axios.get('/api/spares'),
+        axios.get('/api/materials')
+      ]);
 
-    // Equipment status
-    const mockEquipmentStatus = [
-      { type: 'Рабочее', value: 54 },
-      { type: 'Требует обслуживания', value: 12 },
-      { type: 'На ремонте', value: 7 },
-      { type: 'Неисправно', value: 3 }
-    ];
-    setEquipmentStatus(mockEquipmentStatus);
-
-    // Transport status
-    const mockTransportStatus = [
-      { type: 'Исправен', value: 12 },
-      { type: 'Требует обслуживания', value: 3 },
-      { type: 'На ремонте', value: 2 },
-      { type: 'Неисправен', value: 1 }
-    ];
-    setTransportStatus(mockTransportStatus);
-    
-    // Resource utilization data (costs over time)
-    const timeframes = {
-      week: 7,
-      month: 30,
-      year: 12
-    };
-    
-    // Generate data for all timeframes
-    const allTimeframesData = {};
-    
-    // For week - daily data
-    allTimeframesData.week = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(currentDate);
-      date.setDate(date.getDate() - (6 - i));
-      return {
-        date: formatDate(date),
-        materials: Math.floor(Math.random() * 5000) + 1000,
-        equipment: Math.floor(Math.random() * 3000) + 500,
-        tools: Math.floor(Math.random() * 2000) + 300,
-      };
-    });
-    
-    // For month - daily data
-    allTimeframesData.month = Array.from({ length: 30 }, (_, i) => {
-      const date = new Date(currentDate);
-      date.setDate(date.getDate() - (29 - i));
-      return {
-        date: formatDate(date),
-        materials: Math.floor(Math.random() * 5000) + 1000,
-        equipment: Math.floor(Math.random() * 3000) + 500,
-        tools: Math.floor(Math.random() * 2000) + 300,
-      };
-    });
-    
-    // For year - monthly data
-    allTimeframesData.year = Array.from({ length: 12 }, (_, i) => {
-      const date = new Date(currentDate);
-      date.setMonth(date.getMonth() - (11 - i));
-      return {
-        date: date.toLocaleString('default', { month: 'short' }),
-        materials: Math.floor(Math.random() * 50000) + 10000,
-        equipment: Math.floor(Math.random() * 30000) + 5000,
-        tools: Math.floor(Math.random() * 20000) + 3000,
-      };
-    });
-    
-    setResourceUtilization(allTimeframesData);
-
-    // Generate mock recent activity
-    const activityTypes = [
-      { type: 'maintenance', text: 'Техническое обслуживание' },
-      { type: 'repair', text: 'Ремонт' },
-      { type: 'inventory', text: 'Инвентаризация' },
-      { type: 'assignment', text: 'Назначение задания' },
-      { type: 'order', text: 'Заказ материалов' }
-    ];
-    
-    const resourceTypes = [
-      { type: 'equipment', text: 'оборудования' },
-      { type: 'transport', text: 'транспорта' },
-      { type: 'tools', text: 'инструментов' },
-      { type: 'materials', text: 'материалов' },
-      { type: 'spares', text: 'запчастей' }
-    ];
-    
-    const mockActivities = Array.from({ length: 10 }, (_, i) => {
-      const activityType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
-      const resourceType = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
-      const date = new Date(currentDate);
-      date.setHours(date.getHours() - Math.floor(Math.random() * 48));
-      
-      return {
-        id: i + 1,
-        action: `${activityType.text} ${resourceType.text}`,
-        resource: `${resourceType.type}-${Math.floor(Math.random() * 100) + 1}`,
-        timestamp: date.toISOString(),
-        user: Math.random() > 0.5 ? currentUser : 'Администратор'
-      };
-    });
-    
-    setRecentActivity(mockActivities);
-
-    // Generate mock maintenance schedule
-    const upcomingDays = 14;
-    const mockMaintenanceItems = [];
-    const equipmentNames = ['Насос КНС-4', 'Трансформатор ТП-12', 'Котел отопления', 'Компрессор', 'Генератор'];
-    const transportNames = ['МАЗ Самосвал', 'Экскаватор JCB', 'КамАЗ грузовой', 'УАЗ Патриот', 'Трактор МТЗ'];
-    
-    for (let i = 0; i < 10; i++) {
-      const isEquipment = Math.random() > 0.5;
-      const scheduledDate = new Date(currentDate);
-      scheduledDate.setDate(scheduledDate.getDate() + Math.floor(Math.random() * upcomingDays));
-      
-      mockMaintenanceItems.push({
-        id: i + 1,
-        itemName: isEquipment ? equipmentNames[Math.floor(Math.random() * equipmentNames.length)] : transportNames[Math.floor(Math.random() * transportNames.length)],
-        itemType: isEquipment ? 'Оборудование' : 'Транспорт',
-        maintenanceType: Math.random() > 0.3 ? 'Плановое ТО' : 'Внеплановый ремонт',
-        scheduledDate: scheduledDate.toISOString(),
-        assignedTo: Math.random() > 0.5 ? 'Иванов И.И.' : 'Петров П.П.',
-        status: Math.random() > 0.7 ? 'Назначено' : (Math.random() > 0.5 ? 'В процессе' : 'Выполнено')
+      setStats({
+        employeesCount: employeesResponse.data.length || 0,
+        equipmentCount: equipmentResponse.data.length || 0,
+        transportCount: transportResponse.data.length || 0,
+        toolsCount: toolsResponse.data.length || 0,
+        sparesCount: sparesResponse.data.length || 0,
+        materialsCount: materialsResponse.data.length || 0
       });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      throw error;
     }
-    
-    setMaintenanceSchedule(mockMaintenanceItems);
   };
 
-  // Simulate weather data fetch
-  const fetchWeatherData = () => {
-    // Mock weather data for a municipal services dashboard
-    const weatherConditions = [
-      { condition: 'Солнечно', temperature: 22, humidity: 45, wind: 5, icon: '☀️' },
-      { condition: 'Облачно', temperature: 18, humidity: 60, wind: 8, icon: '☁️' },
-      { condition: 'Дождь', temperature: 15, humidity: 80, wind: 12, icon: '🌧️' },
-      { condition: 'Снег', temperature: -2, humidity: 75, wind: 10, icon: '❄️' },
-      { condition: 'Туман', temperature: 10, humidity: 90, wind: 3, icon: '🌫️' }
-    ];
-    
-    const randomIndex = Math.floor(Math.random() * weatherConditions.length);
-    setWeatherData(weatherConditions[randomIndex]);
+  // Fetch equipment status
+  const fetchEquipmentStatus = async () => {
+    try {
+      const response = await axios.get('/api/equipment');
+      const equipment = response.data;
+      
+      // Count equipment by condition
+      const statusCounts = {
+        'Рабочее': 0,
+        'Требует обслуживания': 0,
+        'На ремонте': 0,
+        'Неисправно': 0
+      };
+      
+      equipment.forEach(item => {
+        if (statusCounts[item.Condition] !== undefined) {
+          statusCounts[item.Condition]++;
+        } else {
+          // If condition doesn't match existing categories, add to "Неисправно"
+          statusCounts['Неисправно']++;
+        }
+      });
+      
+      // Convert to array format expected by the chart
+      const equipmentStatusData = Object.keys(statusCounts).map(type => ({
+        type,
+        value: statusCounts[type]
+      }));
+      
+      setEquipmentStatus(equipmentStatusData);
+    } catch (error) {
+      console.error('Error fetching equipment status:', error);
+      throw error;
+    }
+  };
+
+  // Fetch transport status
+  const fetchTransportStatus = async () => {
+    try {
+      const response = await axios.get('/api/transportation');
+      const transport = response.data;
+      
+      // Count transport by technical condition
+      const statusCounts = {
+        'Исправен': 0,
+        'Требует обслуживания': 0,
+        'На ремонте': 0,
+        'Неисправен': 0
+      };
+      
+      transport.forEach(item => {
+        if (item.TechnicalCondition === 'Исправен') {
+          statusCounts['Исправен']++;
+        } else if (item.TechnicalCondition === 'Требует обслуживания') {
+          statusCounts['Требует обслуживания']++;
+        } else if (item.TechnicalCondition === 'На ремонте') {
+          statusCounts['На ремонте']++;
+        } else {
+          statusCounts['Неисправен']++;
+        }
+      });
+      
+      // Convert to array format expected by the chart
+      const transportStatusData = Object.keys(statusCounts).map(type => ({
+        type,
+        value: statusCounts[type]
+      }));
+      
+      setTransportStatus(transportStatusData);
+    } catch (error) {
+      console.error('Error fetching transport status:', error);
+      throw error;
+    }
+  };
+
+  // Fetch maintenance schedule
+  const fetchMaintenanceSchedule = async () => {
+    try {
+      // Get scheduled tasks from the Schedule table
+      const response = await axios.get('/api/schedule');
+      const tasks = response.data;
+      
+      // Get equipment and transport data for details
+      const [equipmentResponse, transportResponse] = await Promise.all([
+        axios.get('/api/equipment'),
+        axios.get('/api/transportation')
+      ]);
+      
+      const equipment = equipmentResponse.data.reduce((map, item) => {
+        map[item.Equipment_ID] = item;
+        return map;
+      }, {});
+      
+      const transport = transportResponse.data.reduce((map, item) => {
+        map[item.Transport_ID] = item;
+        return map;
+      }, {});
+      
+      // Filter tasks for maintenance-related activities and map to the required format
+      const maintenanceItems = tasks
+        .filter(task => task.ProcessId === 1 || task.ProcessId === 2) // Assuming ProcessIds 1 and 2 are for maintenance
+        .slice(0, 10) // Limit to 10 items
+        .map((task, index) => {
+          // Parse equipment and transport IDs
+          const equipmentIds = task.EquipmentIds ? JSON.parse(task.EquipmentIds) : [];
+          const transportIds = task.TransportIds ? JSON.parse(task.TransportIds) : [];
+          
+          // Get the first equipment or transport for simplicity
+          const equipmentId = equipmentIds.length > 0 ? equipmentIds[0] : null;
+          const transportId = transportIds.length > 0 ? transportIds[0] : null;
+          
+          // Determine item type and name
+          let itemType, itemName;
+          if (equipmentId && equipment[equipmentId]) {
+            itemType = 'Оборудование';
+            itemName = equipment[equipmentId].Name || 'Неизвестное оборудование';
+          } else if (transportId && transport[transportId]) {
+            itemType = 'Транспорт';
+            itemName = `${transport[transportId].Brand} ${transport[transportId].Model}` || 'Неизвестный транспорт';
+          } else {
+            itemType = 'Другое';
+            itemName = task.Title || 'Неизвестно';
+          }
+          
+          // Map status
+          let status;
+          if (task.Status === 'completed') {
+            status = 'Выполнено';
+          } else if (task.Status === 'in-progress') {
+            status = 'В процессе';
+          } else {
+            status = 'Назначено';
+          }
+          
+          return {
+            id: task.Task_ID || index + 1,
+            itemType,
+            itemName,
+            maintenanceType: task.Title?.includes('ремонт') ? 'Внеплановый ремонт' : 'Плановое ТО',
+            scheduledDate: task.Date ? `${task.Date}T${task.StartTime}` : new Date().toISOString(),
+            assignedTo: task.EmployeeIds ? 'Назначенный сотрудник' : 'Не назначен',
+            status
+          };
+        });
+      
+      setMaintenanceSchedule(maintenanceItems);
+    } catch (error) {
+      console.error('Error fetching maintenance schedule:', error);
+      throw error;
+    }
+  };
+
+  // Fetch recent activity
+  const fetchRecentActivity = async () => {
+    try {
+      // This would ideally come from an activity log table
+      // For now, we'll combine data from various sources to simulate activity
+      
+      const [scheduleResponse, materialsResponse, sparesResponse] = await Promise.all([
+        axios.get('/api/schedule'),
+        axios.get('/api/materials'),
+        axios.get('/api/spares')
+      ]);
+      
+      const tasks = scheduleResponse.data;
+      const materials = materialsResponse.data;
+      const spares = sparesResponse.data;
+      
+      // Create activity entries from recent tasks
+      const taskActivities = tasks.slice(0, 5).map((task, index) => ({
+        id: `task-${task.Task_ID || index}`,
+        action: task.Title?.includes('ремонт') 
+          ? 'Ремонт оборудования' 
+          : (task.Title?.includes('обслуживание') 
+            ? 'Техническое обслуживание оборудования' 
+            : 'Назначение задания'),
+        resource: `task-${task.Task_ID || index}`,
+        timestamp: task.Created_At || new Date().toISOString(),
+        user: currentUser || 'Администратор'
+      }));
+      
+      // Create activity entries from recent material updates
+      const materialActivities = materials.slice(0, 3).map((material, index) => ({
+        id: `material-${material.Material_ID || index}`,
+        action: 'Заказ материалов',
+        resource: `material-${material.Material_ID}`,
+        timestamp: material.Last_Replenishment_Date || new Date().toISOString(),
+        user: currentUser || 'Администратор'
+      }));
+      
+      // Create activity entries from recent spares updates
+      const spareActivities = spares.slice(0, 2).map((spare, index) => ({
+        id: `spare-${spare.Spare_ID || index}`,
+        action: 'Заказ запчастей',
+        resource: `spare-${spare.Spare_ID}`,
+        timestamp: spare.Last_Replenishment_Date || new Date().toISOString(),
+        user: currentUser || 'Администратор'
+      }));
+      
+      // Combine all activities and sort by timestamp (most recent first)
+      const allActivities = [...taskActivities, ...materialActivities, ...spareActivities]
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 10); // Limit to 10 most recent
+      
+      setRecentActivity(allActivities);
+    } catch (error) {
+      console.error('Error fetching recent activity:', error);
+      throw error;
+    }
+  };
+
+  // Fetch weather data
+  const fetchWeatherData = async () => {
+    try {
+      // In a real app, this would call a weather API
+      // For now, we'll use a simulated API response
+      
+      // Simulated weather conditions based on current time
+      const currentHour = new Date().getHours();
+      let weather;
+      
+      if (currentHour >= 6 && currentHour < 12) {
+        // Morning
+        weather = { condition: 'Солнечно', temperature: 18, humidity: 65, wind: 3, icon: '☀️' };
+      } else if (currentHour >= 12 && currentHour < 18) {
+        // Afternoon
+        weather = { condition: 'Облачно', temperature: 22, humidity: 55, wind: 5, icon: '⛅' };
+      } else if (currentHour >= 18 && currentHour < 22) {
+        // Evening
+        weather = { condition: 'Пасмурно', temperature: 16, humidity: 70, wind: 4, icon: '☁️' };
+      } else {
+        // Night
+        weather = { condition: 'Ясно', temperature: 12, humidity: 80, wind: 2, icon: '🌙' };
+      }
+      
+      setWeatherData(weather);
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      throw error;
+    }
   };
 
   // Weather info display
@@ -312,6 +438,7 @@ const Dashboard = () => {
         rowKey="id" 
         size="small" 
         pagination={{ pageSize: 5 }}
+        locale={{ emptyText: 'Нет запланированных работ' }}
       />
     );
   };
@@ -320,24 +447,28 @@ const Dashboard = () => {
   const renderActivityTimeline = () => {
     return (
       <Timeline className="activity-timeline">
-        {recentActivity.map(activity => (
-          <Timeline.Item 
-            key={activity.id}
-            color={getActivityColor(activity.action)}
-            dot={getActivityIcon(activity.action)}
-          >
-            <div className="activity-content">
-              <div className="activity-header">
-                <span className="activity-action">{activity.action}</span>
-                <span className="activity-time">{formatDateTime(activity.timestamp)}</span>
+        {recentActivity.length > 0 ? (
+          recentActivity.map(activity => (
+            <Timeline.Item 
+              key={activity.id}
+              color={getActivityColor(activity.action)}
+              dot={getActivityIcon(activity.action)}
+            >
+              <div className="activity-content">
+                <div className="activity-header">
+                  <span className="activity-action">{activity.action}</span>
+                  <span className="activity-time">{formatDateTime(activity.timestamp)}</span>
+                </div>
+                <div className="activity-meta">
+                  <span className="activity-user">Пользователь: {activity.user}</span>
+                  <span className="activity-resource">ID: {activity.resource}</span>
+                </div>
               </div>
-              <div className="activity-meta">
-                <span className="activity-user">Пользователь: {activity.user}</span>
-                <span className="activity-resource">ID: {activity.resource}</span>
-              </div>
-            </div>
-          </Timeline.Item>
-        ))}
+            </Timeline.Item>
+          ))
+        ) : (
+          <Empty description="Нет данных о недавних действиях" />
+        )}
       </Timeline>
     );
   };
@@ -362,12 +493,7 @@ const Dashboard = () => {
     return <BellOutlined />;
   };
 
-  // Timeframe selector for the resource utilization chart
-  const handleTimeframeChange = (value) => {
-    setSelectedTimeframe(value);
-  };
-
-  // Simple chart component to replace @ant-design/charts
+  // Simple chart component for status visualization
   const renderSimpleStatusChart = (data) => {
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
@@ -409,86 +535,22 @@ const Dashboard = () => {
     );
   };
 
-  // Simple resource usage chart component 
-  const renderSimpleResourceChart = () => {
-    const data = resourceUtilization[selectedTimeframe] || [];
-    if (data.length === 0) return <Empty description="Нет данных" />;
-    
-    const timeLabels = {
-      week: 'дней',
-      month: 'дней',
-      year: 'месяцев'
-    };
-    
-    return (
-      <div className="resource-chart-container">
-        <div className="resource-chart-legend">
-          <div className="legend-item">
-            <div className="legend-color" style={{ backgroundColor: '#1890ff' }}></div>
-            <div className="legend-label">Материалы</div>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color" style={{ backgroundColor: '#52c41a' }}></div>
-            <div className="legend-label">Оборудование</div>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color" style={{ backgroundColor: '#fa8c16' }}></div>
-            <div className="legend-label">Инструменты</div>
-          </div>
-        </div>
-        <div className="resource-chart-grid">
-          {data.map((item, index) => (
-            <div key={index} className="resource-chart-column">
-              <div className="resource-chart-bars">
-                <Tooltip title={`Материалы: ${item.materials} ₽`}>
-                  <div 
-                    className="resource-bar materials-bar" 
-                    style={{ height: `${Math.min(100, item.materials / 100)}px` }}
-                  ></div>
-                </Tooltip>
-                <Tooltip title={`Оборудование: ${item.equipment} ₽`}>
-                  <div 
-                    className="resource-bar equipment-bar" 
-                    style={{ height: `${Math.min(100, item.equipment / 60)}px` }}
-                  ></div>
-                </Tooltip>
-                <Tooltip title={`Инструменты: ${item.tools} ₽`}>
-                  <div 
-                    className="resource-bar tools-bar" 
-                    style={{ height: `${Math.min(100, item.tools / 40)}px` }}
-                  ></div>
-                </Tooltip>
-              </div>
-              <div className="resource-chart-label">{
-                selectedTimeframe === 'year' ? item.date : index + 1
-              }</div>
-            </div>
-          ))}
-        </div>
-        <div className="resource-chart-xaxis-label">
-          Последние {data.length} {timeLabels[selectedTimeframe]}
-        </div>
-      </div>
-    );
-  };
-
-  // We need to create this component for rendering tooltips
-  const Tooltip = ({ title, children }) => {
-    return (
-      <div className="custom-tooltip" title={title}>
-        {children}
-      </div>
-    );
-  };
-
   // Render the dashboard
   return (
     <div className="dashboard-container">
       {loading ? (
         <div className="loading-container">
           <Spin size="large" />
-          <p>Загрузка данных...</p>
+          <p>Загрузка данных из базы...</p>
         </div>
+      ) : error ? (
+        <Alert 
+          message="Ошибка" 
+          description={error} 
+          type="error" 
+          showIcon 
+          style={{ margin: '20px 0' }}
+        />
       ) : (
         <>
           {/* Welcome header */}
@@ -607,30 +669,6 @@ const Dashboard = () => {
                 )}
               </Card>
             </Col>
-            
-            {/* Resource utilization chart */}
-            <Col xs={24}>
-              <Card 
-                title={
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Расход ресурсов</span>
-                    <Select 
-                      defaultValue="week" 
-                      style={{ width: 120 }} 
-                      onChange={handleTimeframeChange}
-                    >
-                      <Option value="week">Неделя</Option>
-                      <Option value="month">Месяц</Option>
-                      <Option value="year">Год</Option>
-                    </Select>
-                  </div>
-                }
-                className="chart-card"
-                bordered={false}
-              >
-                {renderSimpleResourceChart()}
-              </Card>
-            </Col>
 
             {/* Maintenance schedule */}
             <Col xs={24}>
@@ -660,7 +698,11 @@ const Dashboard = () => {
                 className="calendar-card"
                 bordered={false}
               >
-                <Calendar fullscreen={false} />
+                {/* Fix: Use moment with Ant Design Calendar to avoid date.year is not a function error */}
+                <Calendar 
+                  fullscreen={false} 
+                  defaultValue={moment(currentDate)}
+                />
               </Card>
             </Col>
           </Row>
