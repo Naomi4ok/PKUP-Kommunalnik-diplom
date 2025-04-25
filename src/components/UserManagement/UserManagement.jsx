@@ -1,20 +1,66 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from 'antd';
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
+  Popconfirm,
+  Card,
+  Typography,
+  Breadcrumb,
+  Dropdown,
+  Spin,
+  Tag,
+  Divider,
+  Row,
+  Col
+} from 'antd';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  HomeOutlined,
+  FilterOutlined,
+  EllipsisOutlined,
+  UserOutlined,
+  SearchOutlined
+} from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import AvatarUploadForm from '../AvatarUploadForm';
+import SearchBar from '../../components/SearchBar';
+import Pagination from '../../components/Pagination';
 import './UserManagement.css';
 
 const { Option } = Select;
+const { Title } = Typography;
 
 const UserManagement = () => {
   const { user } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingUser, setEditingUser] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [pageSize, setPageSize] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Filter states
+  const [showFilters, setShowFilters] = useState(false);
+  const [roles, setRoles] = useState(['admin', 'user']);
+  const [statuses, setStatuses] = useState(['active', 'inactive']);
+  
+  // Filter values
+  const [filterValues, setFilterValues] = useState({
+    roles: [],
+    statuses: []
+  });
 
   // Check if current user is admin
   const isAdmin = user?.role === 'admin';
@@ -25,6 +71,11 @@ const UserManagement = () => {
       fetchUsers();
     }
   }, [isAdmin]);
+
+  // Update filtered users when users list or filters change
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [users, filterValues, searchQuery]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -38,6 +89,7 @@ const UserManagement = () => {
       
       if (response.data.success) {
         setUsers(response.data.users);
+        setFilteredUsers(response.data.users);
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -45,6 +97,65 @@ const UserManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Apply filters and search
+  const applyFiltersAndSearch = () => {
+    let filtered = [...users];
+    
+    // Apply search query
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => {
+        return (
+          (item.Username && item.Username.toLowerCase().includes(query)) ||
+          (item.Full_Name && item.Full_Name.toLowerCase().includes(query)) ||
+          (item.Email && item.Email.toLowerCase().includes(query))
+        );
+      });
+    }
+    
+    // Apply role filter
+    if (filterValues.roles.length > 0) {
+      filtered = filtered.filter(item => 
+        filterValues.roles.includes(item.Role)
+      );
+    }
+    
+    // Apply status filter
+    if (filterValues.statuses.length > 0) {
+      filtered = filtered.filter(item => 
+        filterValues.statuses.includes(item.Status)
+      );
+    }
+    
+    setFilteredUsers(filtered);
+  };
+
+  // Toggle filter visibility
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (filterType, values) => {
+    setFilterValues(prev => ({
+      ...prev,
+      [filterType]: values
+    }));
+  };
+
+  // Reset all filters
+  const resetFilters = () => {
+    setFilterValues({
+      roles: [],
+      statuses: []
+    });
+  };
+
+  // Handle search function
+  const handleSearch = (query) => {
+    setSearchQuery(query);
   };
 
   const showAddModal = () => {
@@ -155,6 +266,24 @@ const UserManagement = () => {
     }
   };
 
+  // Handle page change for custom pagination
+  const handlePageChange = (page, newPageSize) => {
+    setCurrentPage(page);
+    setPageSize(newPageSize);
+  };
+
+  // Render status tag with appropriate color
+  const renderStatusTag = (status) => {
+    const color = status === 'active' ? 'green' : 'red';
+    const text = status === 'active' ? 'Активен' : 'Неактивен';
+    
+    return (
+      <Tag color={color}>
+        {text}
+      </Tag>
+    );
+  };
+
   // Table columns
   const columns = [
     {
@@ -182,73 +311,145 @@ const UserManagement = () => {
       title: 'Имя пользователя',
       dataIndex: 'Username',
       key: 'username',
+      sorter: (a, b) => a.Username.localeCompare(b.Username),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Поиск по имени"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ width: 188, marginBottom: 8, display: 'block' }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Поиск
+            </Button>
+            <Button onClick={() => clearFilters()} size="small" style={{ width: 90 }}>
+              Сброс
+            </Button>
+          </div>
+        </div>
+      ),
+      filterIcon: (filtered) => (
+        <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+      ),
+      onFilter: (value, record) => record.Username.toLowerCase().includes(value.toLowerCase()),
+      render: (text, record) => (
+        <div>
+          <div className="user-name">{text}</div>
+          {record.Email && <div className="user-email">{record.Email}</div>}
+        </div>
+      ),
     },
     {
       title: 'ФИО',
       dataIndex: 'Full_Name',
       key: 'fullName',
+      sorter: (a, b) => {
+        if (!a.Full_Name) return -1;
+        if (!b.Full_Name) return 1;
+        return a.Full_Name.localeCompare(b.Full_Name);
+      },
     },
     {
       title: 'Роль',
       dataIndex: 'Role',
       key: 'role',
-      render: (role) => role === 'admin' ? 'Администратор' : 'Пользователь'
+      filters: [
+        { text: 'Администратор', value: 'admin' },
+        { text: 'Пользователь', value: 'user' },
+      ],
+      onFilter: (value, record) => record.Role === value,
+      render: (role) => (
+        <Tag color={role === 'admin' ? 'blue' : 'cyan'}>
+          {role === 'admin' ? 'Администратор' : 'Пользователь'}
+        </Tag>
+      )
     },
     {
       title: 'Email',
       dataIndex: 'Email',
       key: 'email',
+      ellipsis: true,
     },
     {
       title: 'Статус',
       dataIndex: 'Status',
       key: 'status',
-      render: (status) => (
-        <span className={`status-badge ${status === 'active' ? 'active' : 'inactive'}`}>
-          {status === 'active' ? 'Активен' : 'Неактивен'}
-        </span>
-      )
+      render: renderStatusTag,
+      filters: [
+        { text: 'Активен', value: 'active' },
+        { text: 'Неактивен', value: 'inactive' },
+      ],
+      onFilter: (value, record) => record.Status === value,
     },
     {
       title: 'Последний вход',
       dataIndex: 'Last_Login',
       key: 'lastLogin',
-    },
-    {
-      title: 'Дата создания',
-      dataIndex: 'Created_At',
-      key: 'createdAt',
+      sorter: (a, b) => {
+        if (!a.Last_Login) return 1;
+        if (!b.Last_Login) return -1;
+        return new Date(b.Last_Login) - new Date(a.Last_Login);
+      },
     },
     {
       title: 'Действия',
       key: 'actions',
+      width: 80,
       render: (_, record) => (
-        <div className="action-buttons">
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: '1',
+                label: 'Редактировать',
+                icon: <EditOutlined />,
+                onClick: () => showEditModal(record),
+                disabled: user?.User_ID === record.User_ID && record.Role === 'admin'
+              },
+              {
+                key: '2',
+                label: 
+                  <Popconfirm
+                    title="Удаление пользователя"
+                    description="Вы уверены, что хотите удалить этого пользователя?"
+                    onConfirm={() => handleDeleteUser(record.User_ID)}
+                    okText="Да"
+                    cancelText="Нет"
+                    disabled={user?.User_ID === record.User_ID}
+                  >
+                    <span className="dropdown-delete-label">Удалить</span>
+                  </Popconfirm>,
+                icon: <DeleteOutlined />,
+                danger: true,
+                disabled: user?.User_ID === record.User_ID
+              }
+            ]
+          }}
+          trigger={['click']}
+          placement="bottomRight"
+        >
           <Button 
-            type="primary" 
-            onClick={() => showEditModal(record)}
-            disabled={user?.User_ID === record.User_ID && record.Role === 'admin'}
-          >
-            Изменить
-          </Button>
-          <Popconfirm
-            title="Вы уверены, что хотите удалить этого пользователя?"
-            onConfirm={() => handleDeleteUser(record.User_ID)}
-            okText="Да"
-            cancelText="Нет"
+            type="text" 
+            icon={<EllipsisOutlined />}
+            className="action-more-button"
             disabled={user?.User_ID === record.User_ID}
-          >
-            <Button 
-              danger 
-              disabled={user?.User_ID === record.User_ID}
-            >
-              Удалить
-            </Button>
-          </Popconfirm>
-        </div>
+          />
+        </Dropdown>
       ),
     },
   ];
+
+  // Calculate data for display on current page
+  const paginatedData = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   if (!isAdmin) {
     return (
@@ -261,25 +462,136 @@ const UserManagement = () => {
 
   return (
     <div className="user-management-container">
-      <div className="page-header">
-        <h1>Управление пользователями</h1>
-        <Button 
-          type="primary" 
-          onClick={showAddModal}
-          className="add-user-button"
-        >
-          Добавить пользователя
-        </Button>
-      </div>
+      {/* Breadcrumbs */}
+      <Breadcrumb className="user-management-breadcrumb">
+        <Breadcrumb.Item href="/">
+          <HomeOutlined />
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          Управление пользователями
+        </Breadcrumb.Item>
+      </Breadcrumb>
 
-      <Table 
-        dataSource={users} 
-        columns={columns} 
-        rowKey="User_ID"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
+      <Card>
+        <div className="user-page-header-wrapper">
+          <div className="ant-page-header">
+            {/* Left side header */}
+            <div className="header-left-content">
+              <Title level={2}>Управление пользователями</Title>
+            </div>
+            
+            {/* Right side header */}
+            <div className="header-right-content">
+              {/* Filter button */}
+              <Button
+                type="primary" 
+                icon={<FilterOutlined />}
+                onClick={toggleFilters}
+                className="ant-filter-button"
+              >
+                Фильтр
+              </Button>
+              
+              {/* Search bar */}
+              <div className="user-search-bar-container">
+                <SearchBar 
+                  onSearch={handleSearch} 
+                  placeholder="Поиск пользователей"
+                  autoFocus={false}
+                />
+              </div>
+              
+              {/* Add user button */}
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={showAddModal}
+                className="ant-add-button"
+              >
+                Добавить пользователя
+              </Button>
+            </div>
+          </div>
+          
+          {/* Filter panel */}
+          {showFilters && (
+            <div className={`filter-panel ${showFilters ? 'visible' : ''}`}>
+              <div className="filter-panel-header">
+                <h4>Фильтр пользователей</h4>
+                <Button 
+                  className="ant-filreset-button"
+                  type="link"
+                  onClick={resetFilters}
+                >
+                  Сбросить все фильтры
+                </Button>
+              </div>
+              
+              <Row gutter={[16, 16]}>
+                {/* Role filter */}
+                <Col xs={24} sm={12} md={8}>
+                  <div className="filter-group">
+                    <label>Роль</label>
+                    <Select
+                      mode="multiple"
+                      placeholder="Выберите роль"
+                      value={filterValues.roles}
+                      onChange={(values) => handleFilterChange('roles', values)}
+                      style={{ width: '100%' }}
+                      maxTagCount="responsive"
+                    >
+                      <Option value="admin">Администратор</Option>
+                      <Option value="user">Пользователь</Option>
+                    </Select>
+                  </div>
+                </Col>
+                
+                {/* Status filter */}
+                <Col xs={24} sm={12} md={8}>
+                  <div className="filter-group">
+                    <label>Статус</label>
+                    <Select
+                      mode="multiple"
+                      placeholder="Выберите статус"
+                      value={filterValues.statuses}
+                      onChange={(values) => handleFilterChange('statuses', values)}
+                      style={{ width: '100%' }}
+                      maxTagCount="responsive"
+                    >
+                      <Option value="active">Активен</Option>
+                      <Option value="inactive">Неактивен</Option>
+                    </Select>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          )}
+          
+          <Divider />
+          
+          <Spin spinning={loading}>
+            {/* Table without built-in pagination */}
+            <Table 
+              dataSource={paginatedData}
+              columns={columns}
+              rowKey="User_ID"
+              pagination={false} // Disable built-in pagination
+              scroll={{ x: 'max-content' }}
+            />
+            
+            {/* Custom pagination component */}
+            <Pagination
+              totalItems={filteredUsers.length}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              pageSizeOptions={[8, 20, 50]}
+              initialPageSize={pageSize}
+            />
+          </Spin>
+        </div>
+      </Card>
 
+      {/* User modal */}
       <Modal
         title={editingUser ? "Изменить пользователя" : "Добавить пользователя"}
         open={modalVisible}

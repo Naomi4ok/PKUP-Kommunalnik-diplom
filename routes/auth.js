@@ -326,7 +326,7 @@ router.delete('/users/:id', verifyToken, verifyAdmin, (req, res) => {
   }
 
   // Set user status to 'inactive' instead of deleting
-  db.run('UPDATE Users SET Status = "inactive" WHERE User_ID = ?', [userId], function(err) {
+  db.run('DELETE FROM Users WHERE User_ID = ?', [userId], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Failed to delete user' });
     }

@@ -1,63 +1,121 @@
+/* UserManagement.css - Redesigned to match Spares page styling */
 .user-management-container {
   padding: 8px 24px 0px 52px;
   max-width: 1600px;
+  width: 98%;
   margin: 0 auto;
   animation: fadeIn 0.5s ease-out;
 }
-  
-.page-header {
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.page-header h1 {
-  margin: 0;
-  font-size: 24px;
+.user-management-breadcrumb {
+  margin-bottom: 24px;
+  font-size: 15px;
 }
 
-.add-user-button {
-  background-color: #1890ff;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.status-badge.active {
-  background-color: #e6f7ff;
+.user-management-breadcrumb a {
   color: #1890ff;
-  border: 1px solid #91d5ff;
+  transition: color 0.3s;
 }
 
-.status-badge.inactive {
-  background-color: #fff1f0;
-  color: #ff4d4f;
-  border: 1px solid #ffa39e;
+.user-management-breadcrumb a:hover {
+  color: #40a9ff;
 }
 
-.form-actions {
+/* Style for user name and email */
+.user-name {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 2px;
+  line-height: 1.2;
+  transition: color 0.2s ease;
+}
+
+tr:hover .user-name {
+  color: #1890ff;
+}
+
+tr:hover .user-email {
+  color: #40a9ff;
+}
+
+/* Search bar container styling */
+.user-search-bar-container {
+  width: 300px;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+}
+
+/* Filter panel styling */
+.filter-panel {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.filter-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-panel-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  margin-top: 24px;
 }
 
-.no-access-container {
-  text-align: center;
-  padding: 50px;
+.filter-group label {
+  font-size: 14px;
+  color: #595959;
+  font-weight: 500;
 }
 
-.no-access-container h2 {
-  color: #ff4d4f;
+.user-form-container {
+  display: flex;
+  gap: 24px;
+}
+
+.avatar-upload-section {
+  flex: 0 0 200px;
+}
+
+.user-form {
+  flex: 1;
 }
 
 /* User avatar styling */
@@ -85,37 +143,35 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #1890ff;
+  background-color: #cacaca;
   color: white;
   font-weight: bold;
   font-size: 16px;
 }
 
-/* User form layout */
-.user-form-container {
-  display: flex;
-  flex-direction: column;
+/* No access container */
+.no-access-container {
+  text-align: center;
+  padding: 50px;
 }
 
-.avatar-upload-section {
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: center;
+.no-access-container h2 {
+  color: #ff4d4f;
 }
 
-.user-form {
-  flex: 1;
-}
-
-/* Responsive modal layout */
-@media (min-width: 768px) {
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .user-management-container {
+    padding: 16px;
+  }
+  
   .user-form-container {
-    flex-direction: row;
-    gap: 24px;
+    flex-direction: column;
   }
   
   .avatar-upload-section {
-    flex: 0 0 200px;
-    margin-bottom: 0;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
   }
 }
