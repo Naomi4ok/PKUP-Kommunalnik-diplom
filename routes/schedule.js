@@ -223,17 +223,22 @@ router.put('/:id', (req, res) => {
 // DELETE a task
 router.delete('/:id', (req, res) => {
   const { id } = req.params;
+  console.log('Server received DELETE request for task ID:', id);
   
   db.run('DELETE FROM Schedule WHERE Task_ID = ?', [id], function(err) {
     if (err) {
-      console.error('Error deleting task:', err);
+      console.error('Error deleting task from database:', err);
       return res.status(500).json({ error: err.message });
     }
     
+    console.log('Database changes:', this.changes);
+    
     if (this.changes === 0) {
+      console.log('No task found with ID:', id);
       return res.status(404).json({ error: 'Task not found' });
     }
     
+    console.log('Successfully deleted task with ID:', id);
     res.json({ message: 'Task deleted successfully' });
   });
 });

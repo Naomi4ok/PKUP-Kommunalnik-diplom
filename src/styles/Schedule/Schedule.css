@@ -58,7 +58,7 @@
     border-color: #15b800 !important;
     color: white !important;
   }
-
+  
   .ant-statistic-content-value {
     padding-left: 5px;
   }
@@ -70,6 +70,14 @@
   
   .breadcrumb-navigation a:hover {
     color: #078800;
+  }
+  
+  /* ==========================================
+     Radio button styling (ДОБАВЛЕНО)
+     ========================================== */
+  .schedule-container .ant-radio-button-wrapper {
+    height: 40px;
+    line-height: 38px;
   }
   
   /* ==========================================
@@ -89,7 +97,7 @@
     overflow: hidden;
     position: relative;
   }
-
+  
   .ant-picker-calendar.ant-picker-calendar-full .ant-picker-panel .ant-picker-body th {
     background-color: #f5f6fa;
   }

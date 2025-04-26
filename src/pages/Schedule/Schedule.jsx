@@ -20,7 +20,8 @@ import {
   Tooltip, 
   Breadcrumb,
   Empty,
-  Spin
+  Spin,
+  Popconfirm
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -313,27 +314,26 @@ const Schedule = () => {
       });
   };
 
-  // Delete a task
+  // Метод для удаления задачи без подтверждения через Modal.confirm
+  const confirmTaskDeletion = async (taskId) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.delete(`/api/schedule/${taskId}`);
+      console.log('Удалено на бэкенде:', response);
+      await fetchTasks();
+      setModalVisible(false);
+      message.success('Задача удалена успешно');
+    } catch (error) {
+      console.error('Ошибка при удалении:', error);
+      message.error('Не удалось удалить задачу');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Сохраняем метод для совместимости со старым кодом, но не используем его
   const handleDeleteTask = (taskId) => {
-    Modal.confirm({
-      title: 'Вы уверены, что хотите удалить эту задачу?',
-      icon: <ExclamationCircleOutlined />,
-      content: 'Это действие нельзя будет отменить',
-      okText: 'Удалить',
-      okType: 'danger',
-      cancelText: 'Отмена',
-      onOk: async () => {
-        try {
-          await axios.delete(`/api/schedule/${taskId}`);
-          fetchTasks();
-          setModalVisible(false);
-          message.success('Задача удалена успешно');
-        } catch (error) {
-          console.error('Error deleting task:', error);
-          message.error('Произошла ошибка при удалении задачи');
-        }
-      },
-    });
+    // Этот метод больше не используется
   };
 
   // Get name from ID for various entities
@@ -531,13 +531,17 @@ const Schedule = () => {
             Отмена
           </Button>,
           isEditing && (
-            <Button 
-              key="delete" 
-              danger 
-              onClick={() => handleDeleteTask(currentTask.Task_ID)}
+            <Popconfirm
+              title="Вы уверены, что хотите удалить эту задачу? Это действие невозможно отменить."
+              okText="Удалить"
+              cancelText="Отмена"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => confirmTaskDeletion(currentTask.Task_ID)}
             >
-              Удалить
-            </Button>
+              <Button key="delete" danger>
+                Удалить
+              </Button>
+            </Popconfirm>
           ),
           <Button 
             key="submit" 

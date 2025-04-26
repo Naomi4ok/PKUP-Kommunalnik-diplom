@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { 
   Row, Col, Card, Statistic, Table, Alert, 
   Badge, Spin, Typography, Avatar, Divider, Progress, 
-  Empty
+  Empty, Tag
 } from 'antd';
 import { 
   UserOutlined, ToolOutlined, CarOutlined, 
@@ -14,7 +14,7 @@ import {
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import '../../styles/Dashboard/Dashboard.css';
-import moment from 'moment'; // Import moment for date handling with antd
+import moment from 'moment';
 
 const { Title, Text } = Typography;
 
@@ -31,13 +31,11 @@ const Dashboard = () => {
   });
   const [equipmentStatus, setEquipmentStatus] = useState([]);
   const [transportStatus, setTransportStatus] = useState([]);
-  // Use the provided date/time and convert it to a Date object
   const [currentDate] = useState(new Date('2025-04-25T17:16:51'));
   const [weatherData, setWeatherData] = useState(null);
   const [maintenanceSchedule, setMaintenanceSchedule] = useState([]);
   const [error, setError] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
-  // Use the provided username
   const currentUser = 'Naomi4ok';
 
   // Format date as YYYY-MM-DD
@@ -129,12 +127,10 @@ const Dashboard = () => {
         if (statusCounts[item.Condition] !== undefined) {
           statusCounts[item.Condition]++;
         } else {
-          // If condition doesn't match existing categories, add to "Неисправно"
           statusCounts['Неисправно']++;
         }
       });
       
-      // Convert to array format expected by the chart
       const equipmentStatusData = Object.keys(statusCounts).map(type => ({
         type,
         value: statusCounts[type]
@@ -173,7 +169,6 @@ const Dashboard = () => {
         }
       });
       
-      // Convert to array format expected by the chart
       const transportStatusData = Object.keys(statusCounts).map(type => ({
         type,
         value: statusCounts[type]
@@ -211,18 +206,15 @@ const Dashboard = () => {
       
       // Filter tasks for maintenance-related activities and map to the required format
       const maintenanceItems = tasks
-        .filter(task => task.ProcessId === 1 || task.ProcessId === 2) // Assuming ProcessIds 1 and 2 are for maintenance
-        .slice(0, 10) // Limit to 10 items
+        .filter(task => task.ProcessId === 1 || task.ProcessId === 2)
+        .slice(0, 10)
         .map((task, index) => {
-          // Parse equipment and transport IDs
           const equipmentIds = task.EquipmentIds ? JSON.parse(task.EquipmentIds) : [];
           const transportIds = task.TransportIds ? JSON.parse(task.TransportIds) : [];
           
-          // Get the first equipment or transport for simplicity
           const equipmentId = equipmentIds.length > 0 ? equipmentIds[0] : null;
           const transportId = transportIds.length > 0 ? transportIds[0] : null;
           
-          // Determine item type and name
           let itemType, itemName;
           if (equipmentId && equipment[equipmentId]) {
             itemType = 'Оборудование';
@@ -235,7 +227,6 @@ const Dashboard = () => {
             itemName = task.Title || 'Неизвестно';
           }
           
-          // Map status
           let status;
           if (task.Status === 'completed') {
             status = 'Выполнено';
@@ -263,35 +254,26 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch real weather data for Brest, Belarus
+  // Fetch real weather data for Brest, Belarus using WeatherAPI
   const fetchWeatherData = async () => {
     try {
       setWeatherLoading(true);
       
-      // In a real implementation, we would use an actual weather API like OpenWeatherMap, WeatherAPI, etc.
-      // Since we can't make actual API calls in this environment, we'll simulate a response for Brest, Belarus
+      const API_KEY = 'e2d480ee39474050a56215834252504';
+      const response = await axios.get(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=Brest,Belarus&aqi=no`);
+      const data = response.data;
       
-      // Simulated API call:
-      // const API_KEY = 'your_api_key_here';
-      // const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=Brest,by&units=metric&appid=${API_KEY}`);
-      // const weatherData = response.data;
+      const weather = {
+        condition: data.current.condition.text,
+        temperature: data.current.temp_c,
+        humidity: data.current.humidity,
+        wind: data.current.wind_kph / 3.6,
+        icon: getWeatherIcon(data.current.condition.code),
+        location: `${data.location.name}, ${data.location.country}`
+      };
       
-      // Simulate a response for Brest, Belarus with realistic weather data
-      setTimeout(() => {
-        // Simulated weather data for Brest, Belarus
-        const weather = {
-          condition: 'Облачно с прояснениями',
-          temperature: 16, // Temperature in Celsius
-          humidity: 72,    // Humidity percentage
-          wind: 4.2,       // Wind speed in m/s
-          icon: '⛅',      // Weather icon
-          location: 'Брест, Беларусь'
-        };
-        
-        setWeatherData(weather);
-        setWeatherLoading(false);
-      }, 800); // Simulate API delay
-      
+      setWeatherData(weather);
+      setWeatherLoading(false);
     } catch (error) {
       console.error('Error fetching weather data:', error);
       setWeatherData({
@@ -304,6 +286,35 @@ const Dashboard = () => {
       });
       setWeatherLoading(false);
     }
+  };
+
+  // Helper function to map condition codes to emoji icons
+  const getWeatherIcon = (code) => {
+    if (code === 1000) return '☀️';
+    if (code >= 1003 && code <= 1009) return '⛅';
+    if (code >= 1030 && code <= 1039) return '🌫️';
+    if (code >= 1063 && code <= 1069) return '🌧️';
+    if (code >= 1114 && code <= 1117) return '❄️';
+    if (code >= 1150 && code <= 1153) return '🌧️';
+    if (code >= 1180 && code <= 1195) return '🌧️';
+    if (code >= 1200 && code <= 1225) return '🌨️';
+    if (code >= 1240 && code <= 1246) return '🌧️';
+    if (code >= 1273 && code <= 1282) return '⛈️';
+    return '☁️';
+  };
+
+  // Status color mapping
+  const getStatusColor = (statusType) => {
+    if (statusType.includes('Рабочее') || statusType.includes('Исправен') || statusType === 'Выполнено') {
+      return '#52c41a'; // green
+    } else if (statusType.includes('Требует обслуживания') || statusType === 'В процессе') {
+      return '#faad14'; // orange
+    } else if (statusType.includes('На ремонте')) {
+      return '#fa8c16'; // dark orange
+    } else if (statusType.includes('Неиспра')) {
+      return '#f5222d'; // red
+    }
+    return '#1890ff'; // blue default
   };
 
   // Weather info display
@@ -336,37 +347,82 @@ const Dashboard = () => {
         dataIndex: 'itemType',
         key: 'itemType',
         width: '12%',
+        render: (text) => {
+          let icon = <ApartmentOutlined />;
+          if (text === 'Оборудование') icon = <ThunderboltOutlined />;
+          if (text === 'Транспорт') icon = <CarOutlined />;
+          return (
+            <span>
+              {icon} {text}
+            </span>
+          );
+        }
       },
       {
         title: 'Наименование',
         dataIndex: 'itemName',
         key: 'itemName',
         width: '25%',
+        ellipsis: true
       },
       {
         title: 'Вид работ',
         dataIndex: 'maintenanceType',
         key: 'maintenanceType',
         width: '20%',
+        render: (text) => {
+          const isUrgent = text.includes('Внеплановый');
+          return (
+            <Tag color={isUrgent ? 'volcano' : 'blue'}>
+              {text}
+            </Tag>
+          );
+        }
       },
       {
         title: 'Дата',
         dataIndex: 'scheduledDate',
         key: 'scheduledDate',
-        render: (text) => new Date(text).toLocaleDateString(),
-        width: '12%',
+        render: (text) => {
+          const date = new Date(text);
+          const today = new Date();
+          const isToday = date.toDateString() === today.toDateString();
+          
+          return (
+            <div>
+              <div>{date.toLocaleDateString()}</div>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+              {isToday && <Tag color="green" style={{ marginLeft: '4px' }}>Сегодня</Tag>}
+            </div>
+          );
+        },
+        width: '15%',
       },
       {
         title: 'Исполнитель',
         dataIndex: 'assignedTo',
         key: 'assignedTo',
         width: '15%',
+        render: (text) => {
+          return (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Avatar 
+                size="small" 
+                icon={<UserOutlined />} 
+                style={{ marginRight: '8px', backgroundColor: text === 'Не назначен' ? '#f0f0f0' : '#1890ff' }} 
+              />
+              {text}
+            </div>
+          );
+        }
       },
       {
         title: 'Статус',
         dataIndex: 'status',
         key: 'status',
-        width: '16%',
+        width: '13%',
         render: (status) => {
           let color = 'blue';
           let icon = <ClockCircleOutlined />;
@@ -380,7 +436,9 @@ const Dashboard = () => {
           }
           
           return (
-            <Badge color={color} text={<span>{icon} {status}</span>} />
+            <Tag color={color} icon={icon}>
+              {status}
+            </Tag>
           );
         },
       },
@@ -391,9 +449,10 @@ const Dashboard = () => {
         columns={columns} 
         dataSource={maintenanceSchedule} 
         rowKey="id" 
-        size="small" 
+        size="middle" 
         pagination={{ pageSize: 5 }}
-        locale={{ emptyText: 'Нет запланированных работ' }}
+        locale={{ emptyText: <Empty description="Нет запланированных работ" /> }}
+        rowClassName={(record) => record.status === 'Назначено' ? 'highlight-row' : ''}
       />
     );
   };
@@ -403,39 +462,50 @@ const Dashboard = () => {
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
     return (
-      <div className="simple-chart">
-        {data.map((item, index) => {
-          const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
-          
-          let statusColor = '#1890ff';
-          if (item.type.includes('Рабочее') || item.type.includes('Исправен')) {
-            statusColor = '#52c41a'; // green
-          } else if (item.type.includes('Требует обслуживания')) {
-            statusColor = '#faad14'; // orange
-          } else if (item.type.includes('На ремонте')) {
-            statusColor = '#fa8c16'; // dark orange
-          } else if (item.type.includes('Неисправно')) {
-            statusColor = '#f5222d'; // red
-          }
-          
-          return (
-            <div key={index} className="chart-item">
-              <div className="chart-item-label">
-                <Badge color={statusColor} />
-                <span>{item.type}: </span>
-                <span className="chart-item-percentage">{percentage}%</span>
-                <span className="chart-item-value">({item.value})</span>
+      <div className="enhanced-chart">
+        <div className="status-summary">
+          {data.map((item, index) => {
+            const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
+            const statusColor = getStatusColor(item.type);
+            
+            return (
+              <div key={index} className="status-count-card">
+                <div 
+                  className="status-indicator" 
+                  style={{ backgroundColor: statusColor }}
+                />
+                <div className="status-details">
+                  <div className="status-value">{item.value}</div>
+                  <div className="status-label">{item.type}</div>
+                </div>
               </div>
-              <Progress 
-                percent={percentage} 
-                showInfo={false} 
-                strokeColor={statusColor}
-                trailColor="#f0f0f0"
-                size="small"
-              />
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        
+        <div className="status-bars">
+          {data.map((item, index) => {
+            const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
+            const statusColor = getStatusColor(item.type);
+            
+            return (
+              <div key={index} className="chart-item">
+                <div className="chart-item-label">
+                  <span className="chart-label-text">{item.type}</span>
+                  <span className="chart-item-percentage">{percentage}%</span>
+                </div>
+                <Progress 
+                  percent={percentage} 
+                  showInfo={false} 
+                  strokeColor={statusColor}
+                  trailColor="#f0f0f0"
+                  size="default"
+                  className="status-progress"
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -465,7 +535,7 @@ const Dashboard = () => {
                 {user?.avatar ? (
                   <Avatar size={64} src={user.avatar} />
                 ) : (
-                  <Avatar size={64} icon={<UserOutlined />} />
+                  <Avatar size={64} icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
                 )}
               </div>
               <div className="welcome-text">
@@ -477,6 +547,12 @@ const Dashboard = () => {
                     month: 'long', 
                     day: 'numeric' 
                   })}
+                  <span className="time-display">
+                    {currentDate.toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
                 </Text>
               </div>
             </div>
@@ -485,61 +561,77 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <Divider />
-
           {/* Stats cards row */}
           <Row gutter={[16, 16]} className="stats-row">
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card">
+              <Card bordered={false} className="stat-card resource-card" hoverable>
+                <div className="stat-icon-container employee-icon">
+                  <UserOutlined className="stat-icon" />
+                </div>
                 <Statistic 
                   title="Сотрудники" 
                   value={stats.employeesCount} 
-                  prefix={<UserOutlined />} 
+                  className="stat-value"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card">
+              <Card bordered={false} className="stat-card resource-card" hoverable>
+                <div className="stat-icon-container equipment-icon">
+                  <ThunderboltOutlined className="stat-icon" />
+                </div>
                 <Statistic 
                   title="Оборудование" 
                   value={stats.equipmentCount} 
-                  prefix={<ThunderboltOutlined />} 
+                  className="stat-value"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card">
+              <Card bordered={false} className="stat-card resource-card" hoverable>
+                <div className="stat-icon-container transport-icon">
+                  <CarOutlined className="stat-icon" />
+                </div>
                 <Statistic 
                   title="Транспорт" 
                   value={stats.transportCount} 
-                  prefix={<CarOutlined />} 
+                  className="stat-value"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card">
+              <Card bordered={false} className="stat-card resource-card" hoverable>
+                <div className="stat-icon-container tools-icon">
+                  <ToolOutlined className="stat-icon" />
+                </div>
                 <Statistic 
                   title="Инструменты" 
                   value={stats.toolsCount} 
-                  prefix={<ToolOutlined />} 
+                  className="stat-value"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card">
+              <Card bordered={false} className="stat-card resource-card" hoverable>
+                <div className="stat-icon-container spares-icon">
+                  <WarningOutlined className="stat-icon" />
+                </div>
                 <Statistic 
                   title="Запчасти" 
                   value={stats.sparesCount} 
-                  prefix={<WarningOutlined />} 
+                  className="stat-value"
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card">
+              <Card bordered={false} className="stat-card resource-card" hoverable>
+                <div className="stat-icon-container materials-icon">
+                  <ApartmentOutlined className="stat-icon" />
+                </div>
                 <Statistic 
                   title="Материалы" 
                   value={stats.materialsCount} 
-                  prefix={<ApartmentOutlined />} 
+                  className="stat-value"
                 />
               </Card>
             </Col>
@@ -550,9 +642,15 @@ const Dashboard = () => {
             {/* Equipment and transport status */}
             <Col xs={24} md={12}>
               <Card 
-                title="Статус оборудования" 
+                title={
+                  <div className="card-title-with-icon">
+                    <ThunderboltOutlined className="title-icon equipment-icon" />
+                    <span>Статус оборудования</span>
+                  </div>
+                }
                 className="chart-card"
                 bordered={false}
+                hoverable
               >
                 {equipmentStatus.length > 0 ? (
                   renderSimpleStatusChart(equipmentStatus)
@@ -563,9 +661,15 @@ const Dashboard = () => {
             </Col>
             <Col xs={24} md={12}>
               <Card 
-                title="Статус транспорта" 
+                title={
+                  <div className="card-title-with-icon">
+                    <CarOutlined className="title-icon transport-icon" />
+                    <span>Статус транспорта</span>
+                  </div>
+                }
                 className="chart-card"
                 bordered={false}
+                hoverable
               >
                 {transportStatus.length > 0 ? (
                   renderSimpleStatusChart(transportStatus)
@@ -578,9 +682,15 @@ const Dashboard = () => {
             {/* Maintenance schedule */}
             <Col xs={24}>
               <Card 
-                title="График технического обслуживания" 
+                title={
+                  <div className="card-title-with-icon">
+                    <ToolOutlined className="title-icon maintenance-icon" />
+                    <span>График технического обслуживания</span>
+                  </div>
+                }
                 className="schedule-card"
                 bordered={false}
+                hoverable
               >
                 {renderMaintenanceSchedule()}
               </Card>
