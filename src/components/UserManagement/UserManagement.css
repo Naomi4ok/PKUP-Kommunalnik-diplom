@@ -175,3 +175,74 @@ tr:hover .user-email {
     justify-content: center;
   }
 }
+
+/* UserManagement.css - Additional styles for the modal form */
+
+/* User form modal styling */
+.user-form-modal .ant-modal-content {
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 0px 24px;
+}
+
+.user-form-modal .ant-modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-form-modal .ant-modal-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.user-form-modal .ant-modal-body {
+  padding: 10px 0px 0px 0px;
+}
+
+/* User form container layout */
+.user-form-container {
+  display: flex;
+  gap: 24px;
+}
+
+.avatar-upload-section {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.user-form {
+  flex: 1;
+}
+
+/* Form actions styling */
+.form-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-submit-button {
+  background-color: #0AB101;
+  border-color: #0AB101;
+}
+
+.user-submit-button:hover {
+  background-color: #09a001;
+  border-color: #09a001;
+}
+
+/* Responsive layout for small screens */
+@media (max-width: 768px) {
+  .user-form-container {
+    flex-direction: column;
+  }
+  
+  .avatar-upload-section {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+  }
+}

@@ -186,8 +186,6 @@
 }
 
 .ant-employee-photo-placeholder:hover {
-  background-color: #f2f7ee;
-  color: #0AB101;
   transform: scale(1.1);
 }
 

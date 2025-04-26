@@ -25,6 +25,10 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
+.loading-text {
+  margin-top: 20px;
+}
+
 /* Header styles */
 .dashboard-header {
   display: flex;
@@ -80,6 +84,10 @@
   font-size: 3rem;
   margin-right: 16px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.user-management-breadcrumb a {
+  color:#0AB101 !important;
 }
 
 .weather-details {
@@ -158,7 +166,7 @@
 
 .stat-card {
   text-align: center;
-  height: 140px;
+  height: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -180,7 +188,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin: 0 auto 8px; /* добавлено "0 auto" */
   transition: all 0.3s ease;
 }
 

@@ -64,7 +64,7 @@ const Equipment = () => {
   const [types, setTypes] = useState([]);
   const [manufacturers, setManufacturers] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [conditions, setConditions] = useState(['Рабочее', 'Требует обслуживания', 'Неисправно', 'На ремонте']);
+  const [conditions, setConditions] = useState(['Рабочее', 'Требует ТО', 'Неисправно', 'Ремонтируется']);
   
   // Значения фильтров
   const [filterValues, setFilterValues] = useState({
@@ -319,7 +319,7 @@ const Equipment = () => {
         'Инвентарный номер': 'ИН-00124',
         'Дата ввода в эксплуатацию': '2022-10-20',
         'Ответственный за эксплуатацию': 'Петров Петр Петрович',
-        'Техническое состояние': 'Требует обслуживания',
+        'Техническое состояние': 'Требует ТО',
         'Место нахождения': 'Котельная №1'
       }
     ];
@@ -525,12 +525,12 @@ const Equipment = () => {
   // Отображение статуса оборудования
   const renderConditionTag = (condition) => {
     let color = 'green';
-    if (condition === 'Требует обслуживания') {
-      color = 'gold';
+    if (condition === 'Требует ТО') {
+      color = 'blue';
     } else if (condition === 'Неисправно') {
       color = 'red';
-    } else if (condition === 'На ремонте') {
-      color = 'orange';
+    } else if (condition === 'Ремонтируется') {
+      color = 'gold';
     }
     
     return (

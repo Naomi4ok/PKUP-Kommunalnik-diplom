@@ -151,6 +151,15 @@
   color: #bfbfbf;
 }
 
+.ant-spin .ant-spin-dot-item {
+  background: #0AB101;
+}
+
+.ant-input-affix-wrapper {
+  padding: 0px 11px;
+}
+
+
 /* Mobile backdrop */
 .mobile-sidebar-backdrop {
   position: fixed;

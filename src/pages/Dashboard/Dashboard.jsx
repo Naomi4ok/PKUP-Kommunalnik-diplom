@@ -6,8 +6,8 @@ import {
 } from 'antd';
 import { 
   UserOutlined, ToolOutlined, CarOutlined, 
-  WarningOutlined, CheckCircleOutlined, CloseCircleOutlined,
-  DollarOutlined, CalendarOutlined, ThunderboltOutlined,
+  PartitionOutlined, CheckCircleOutlined, CloseCircleOutlined,
+  DollarOutlined, CalendarOutlined, SettingOutlined,
   CloudOutlined, ApartmentOutlined, BellOutlined,
   ClockCircleOutlined, SyncOutlined
 } from '@ant-design/icons';
@@ -31,12 +31,26 @@ const Dashboard = () => {
   });
   const [equipmentStatus, setEquipmentStatus] = useState([]);
   const [transportStatus, setTransportStatus] = useState([]);
-  const [currentDate] = useState(new Date('2025-04-25T17:16:51'));
+  // Заменяем статическую дату на текущее время
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [weatherData, setWeatherData] = useState(null);
   const [maintenanceSchedule, setMaintenanceSchedule] = useState([]);
   const [error, setError] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const currentUser = 'Naomi4ok';
+
+  // Добавляем эффект для обновления времени каждую секунду
+  useEffect(() => {
+    // Запускаем таймер, который обновляет дату каждую секунду
+    const timer = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+    
+    // Очищаем таймер при размонтировании компонента
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
 
   // Format date as YYYY-MM-DD
   const formatDate = (date) => {
@@ -118,8 +132,8 @@ const Dashboard = () => {
       // Count equipment by condition
       const statusCounts = {
         'Рабочее': 0,
-        'Требует обслуживания': 0,
-        'На ремонте': 0,
+        'Требует ТО': 0,
+        'Ремонтируется': 0,
         'Неисправно': 0
       };
       
@@ -152,18 +166,18 @@ const Dashboard = () => {
       // Count transport by technical condition
       const statusCounts = {
         'Исправен': 0,
-        'Требует обслуживания': 0,
-        'На ремонте': 0,
+        'Требует ТО': 0,
+        'Ремонтируется': 0,
         'Неисправен': 0
       };
       
       transport.forEach(item => {
         if (item.TechnicalCondition === 'Исправен') {
           statusCounts['Исправен']++;
-        } else if (item.TechnicalCondition === 'Требует обслуживания') {
-          statusCounts['Требует обслуживания']++;
-        } else if (item.TechnicalCondition === 'На ремонте') {
-          statusCounts['На ремонте']++;
+        } else if (item.TechnicalCondition === 'Требует ТО') {
+          statusCounts['Требует ТО']++;
+        } else if (item.TechnicalCondition === 'Ремонтируется') {
+          statusCounts['Ремонтируется']++;
         } else {
           statusCounts['Неисправен']++;
         }
@@ -307,11 +321,11 @@ const Dashboard = () => {
   const getStatusColor = (statusType) => {
     if (statusType.includes('Рабочее') || statusType.includes('Исправен') || statusType === 'Выполнено') {
       return '#52c41a'; // green
-    } else if (statusType.includes('Требует обслуживания') || statusType === 'В процессе') {
-      return '#faad14'; // orange
-    } else if (statusType.includes('На ремонте')) {
+    } else if (statusType.includes('Требует ТО') || statusType === 'В процессе') {
+      return '#1890ff'; // orange
+    } else if (statusType.includes('Ремонтируется')) {
       return '#fa8c16'; // dark orange
-    } else if (statusType.includes('Неиспра')) {
+    } else if (statusType.includes('Неисправ')) {
       return '#f5222d'; // red
     }
     return '#1890ff'; // blue default
@@ -347,7 +361,7 @@ const Dashboard = () => {
         width: '12%',
         render: (text) => {
           let icon = <ApartmentOutlined />;
-          if (text === 'Оборудование') icon = <ThunderboltOutlined />;
+          if (text === 'Оборудование') icon = <SettingOutlined />;
           if (text === 'Транспорт') icon = <CarOutlined />;
           return (
             <span>
@@ -514,7 +528,7 @@ const Dashboard = () => {
       {loading ? (
         <div className="loading-container">
           <Spin size="large" />
-          <p>Загрузка данных из базы...</p>
+          <p className="loading-text">Загрузка данных из базы...</p>
         </div>
       ) : error ? (
         <Alert 
@@ -548,7 +562,7 @@ const Dashboard = () => {
                   <span className="time-display">
                     {currentDate.toLocaleTimeString('ru-RU', {
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
                     })}
                   </span>
                 </Text>
@@ -576,7 +590,7 @@ const Dashboard = () => {
             <Col xs={24} sm={12} md={8} lg={4}>
               <Card bordered={false} className="stat-card resource-card" hoverable>
                 <div className="stat-icon-container equipment-icon">
-                  <ThunderboltOutlined className="stat-icon" />
+                  <SettingOutlined className="stat-icon" />
                 </div>
                 <Statistic 
                   title="Оборудование" 
@@ -612,7 +626,7 @@ const Dashboard = () => {
             <Col xs={24} sm={12} md={8} lg={4}>
               <Card bordered={false} className="stat-card resource-card" hoverable>
                 <div className="stat-icon-container spares-icon">
-                  <WarningOutlined className="stat-icon" />
+                  <PartitionOutlined className="stat-icon" />
                 </div>
                 <Statistic 
                   title="Запчасти" 
@@ -642,7 +656,7 @@ const Dashboard = () => {
               <Card 
                 title={
                   <div className="card-title-with-icon">
-                    <ThunderboltOutlined className="title-icon equipment-icon" />
+                    <SettingOutlined className="title-icon equipment-icon" />
                     <span>Статус оборудования</span>
                   </div>
                 }

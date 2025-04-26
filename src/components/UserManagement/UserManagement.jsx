@@ -16,7 +16,9 @@ import {
   Tag,
   Divider,
   Row,
-  Col
+  Col,
+  Avatar,
+  Space
 } from 'antd';
 import {
   PlusOutlined,
@@ -26,7 +28,8 @@ import {
   FilterOutlined,
   EllipsisOutlined,
   UserOutlined,
-  SearchOutlined
+  SearchOutlined,
+  SaveOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
@@ -287,25 +290,47 @@ const UserManagement = () => {
   // Table columns
   const columns = [
     {
-      title: 'Аватар',
+      title: 'Фото',
       dataIndex: 'Avatar',
       key: 'avatar',
       width: 80,
-      render: (avatar, record) => (
-        <div className="user-avatar-container">
-          {avatar ? (
-            <img 
-              src={avatar} 
-              alt={`${record.Username} avatar`} 
-              className="user-avatar-thumbnail"
-            />
-          ) : (
-            <div className="user-avatar-placeholder">
-              {record.Username ? record.Username.charAt(0).toUpperCase() : '?'}
-            </div>
-          )}
-        </div>
-      )
+      render: (avatar, record) => {
+        // Get user's initials for avatar fallback
+        const getUserInitials = () => {
+          if (record.Full_Name) {
+            // Get initials from full name
+            return record.Full_Name.split(' ').map(n => n[0]).join('').toUpperCase();
+          } else if (record.Username) {
+            // Use first letter of username as fallback
+            return record.Username[0].toUpperCase();
+          }
+          // Default fallback
+          return 'U';
+        };
+        
+        return (
+          <div className="user-avatar-container">
+            {avatar ? (
+              <img 
+                src={avatar} 
+                alt={`${record.Username} avatar`} 
+                className="user-avatar-thumbnail"
+              />
+            ) : (
+              <Avatar
+                size={40}
+                icon={<UserOutlined />}
+                style={{ 
+                  backgroundColor: '#0AB101',
+                  color: '#fff'
+                }}
+              >
+                {getUserInitials()}
+              </Avatar>
+            )}
+          </div>
+        );
+      }
     },
     {
       title: 'Логин',
@@ -372,12 +397,6 @@ const UserManagement = () => {
           {role === 'admin' ? 'Администратор' : 'Пользователь'}
         </Tag>
       )
-    },
-    {
-      title: 'Email',
-      dataIndex: 'Email',
-      key: 'email',
-      ellipsis: true,
     },
     {
       title: 'Статус',
@@ -593,98 +612,131 @@ const UserManagement = () => {
 
       {/* User modal */}
       <Modal
-        title={editingUser ? "Изменить пользователя" : "Добавить пользователя"}
-        open={modalVisible}
-        onCancel={handleCancel}
-        footer={null}
-        width={700}
-      >
-        <div className="user-form-container">
-          <div className="avatar-upload-section">
-            <AvatarUploadForm 
-              onAvatarUpload={handleAvatarUpload}
-              initialImageUrl={editingUser ? editingUser.Avatar : null}
-            />
-          </div>
+  title={editingUser ? "Изменить пользователя" : "Добавить пользователя"}
+  open={modalVisible}
+  onCancel={handleCancel}
+  footer={null}
+  width={700}
+  className="user-form-modal"
+>
+  <div className="user-form-container">
+    <div className="avatar-upload-section">
+      <AvatarUploadForm 
+        onAvatarUpload={handleAvatarUpload}
+        initialImageUrl={editingUser ? editingUser.Avatar : null}
+        maxSizeInMB={5}
+      />
+    </div>
 
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            className="user-form"
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={handleSubmit}
+      className="user-form"
+    >
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="username"
+            label="Логин"
+            rules={[{ required: true, message: 'Пожалуйста, введите имя пользователя' }]}
           >
-            <Form.Item
-              name="username"
-              label="Логин"
-              rules={[{ required: true, message: 'Пожалуйста, введите имя пользователя' }]}
-            >
-              <Input placeholder="Логин" />
-            </Form.Item>
+            <Input placeholder="Логин" />
+          </Form.Item>
+        </Col>
 
-            {!editingUser && (
-              <Form.Item
-                name="password"
-                label="Пароль"
-                rules={[
-                  { required: true, message: 'Пожалуйста, введите пароль' },
-                  { min: 6, message: 'Пароль должен быть не менее 6 символов' }
-                ]}
-              >
-                <Input.Password placeholder="Пароль" />
-              </Form.Item>
-            )}
-
+        <Col xs={24} md={12}>
+          {!editingUser && (
             <Form.Item
-              name="fullName"
-              label="ФИО"
-            >
-              <Input placeholder="Фамилия Имя Отчество" />
-            </Form.Item>
-
-            <Form.Item
-              name="email"
-              label="Email"
+              name="password"
+              label="Пароль"
               rules={[
-                { type: 'email', message: 'Некорректный формат email' }
+                { required: true, message: 'Пожалуйста, введите пароль' },
+                { min: 6, message: 'Пароль должен быть не менее 6 символов' }
               ]}
             >
-              <Input placeholder="email@example.com" />
+              <Input.Password placeholder="Пароль" />
             </Form.Item>
+          )}
+        </Col>
+      </Row>
 
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="fullName"
+            label="ФИО"
+          >
+            <Input placeholder="Фамилия Имя Отчество" />
+          </Form.Item>
+        </Col>
+
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { type: 'email', message: 'Некорректный формат email' }
+            ]}
+          >
+            <Input placeholder="email@example.com" />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="role"
+            label="Роль пользователя"
+            rules={[{ required: true, message: 'Пожалуйста, выберите роль' }]}
+            initialValue="user"
+          >
+            <Select>
+              <Option value="user">Пользователь</Option>
+              <Option value="admin">Администратор</Option>
+            </Select>
+          </Form.Item>
+        </Col>
+
+        <Col xs={24} md={12}>
+          {editingUser && (
             <Form.Item
-              name="role"
-              label="Роль пользователя"
-              rules={[{ required: true, message: 'Пожалуйста, выберите роль' }]}
-              initialValue="user"
+              name="status"
+              label="Статус"
+              initialValue="active"
             >
               <Select>
-                <Option value="user">Пользователь</Option>
-                <Option value="admin">Администратор</Option>
+                <Option value="active">Активен</Option>
+                <Option value="inactive">Неактивен</Option>
               </Select>
             </Form.Item>
+          )}
+        </Col>
+      </Row>
 
-            {editingUser && (
-              <Form.Item
-                name="status"
-                label="Статус"
-                initialValue="active"
-              >
-                <Select>
-                  <Option value="active">Активен</Option>
-                  <Option value="inactive">Неактивен</Option>
-                </Select>
-              </Form.Item>
-            )}
-
-            <Form.Item className="form-actions">
-              <Button onClick={handleCancel}>Отмена</Button>
-              <Button type="primary" htmlType="submit">
-                {editingUser ? 'Сохранить' : 'Создать'}
-              </Button>
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal>
+      <Form.Item className="form-actions">
+        <Space>
+          <Button 
+            type="primary" 
+            htmlType="submit"
+            icon={<SaveOutlined />}
+            size="large"
+            className="user-submit-button"
+          >
+            {editingUser ? 'Сохранить' : 'Создать'}
+          </Button>
+          <Button 
+            onClick={handleCancel}
+            size="large"
+          >
+            Отмена
+          </Button>
+        </Space>
+      </Form.Item>
+    </Form>
+  </div>
+</Modal>
     </div>
   );
 };
