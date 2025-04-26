@@ -54,8 +54,10 @@ const TimeRangePicker = ({
       )}
       
       <div className="ant-time-range-container">
+      <div className="ant-time-range-separator">
+          <span>От</span>
+        </div>
         <div className="ant-time-picker-wrapper">
-          <span className="ant-time-picker-label">From</span>
           <div className="ant-time-picker">
             <div className="ant-input-wrapper">
               <input
@@ -70,11 +72,10 @@ const TimeRangePicker = ({
         </div>
         
         <div className="ant-time-range-separator">
-          <span>~</span>
+          <span>До</span>
         </div>
         
         <div className="ant-time-picker-wrapper">
-          <span className="ant-time-picker-label">To</span>
           <div className="ant-time-picker">
             <div className="ant-input-wrapper">
               <input

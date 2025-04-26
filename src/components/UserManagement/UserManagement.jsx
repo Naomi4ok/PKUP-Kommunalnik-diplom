@@ -308,7 +308,7 @@ const UserManagement = () => {
       )
     },
     {
-      title: 'Имя пользователя',
+      title: 'Логин',
       dataIndex: 'Username',
       key: 'username',
       sorter: (a, b) => a.Username.localeCompare(b.Username),
@@ -615,10 +615,10 @@ const UserManagement = () => {
           >
             <Form.Item
               name="username"
-              label="Имя пользователя"
+              label="Логин"
               rules={[{ required: true, message: 'Пожалуйста, введите имя пользователя' }]}
             >
-              <Input placeholder="Имя пользователя" />
+              <Input placeholder="Логин" />
             </Form.Item>
 
             {!editingUser && (

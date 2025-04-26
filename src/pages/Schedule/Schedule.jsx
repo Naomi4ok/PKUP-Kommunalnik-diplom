@@ -13,7 +13,6 @@ import {
   Form, 
   Input, 
   DatePicker, 
-  TimePicker, 
   Select, 
   Slider, 
   message, 
@@ -40,6 +39,7 @@ import locale from 'antd/es/date-picker/locale/ru_RU'; // Импортируем
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../../styles/Schedule/Schedule.css';
+import TimeRangePicker from '../../components/TimeRangePicker'; // Импортируем наш компонент TimeRangePicker
 
 // Устанавливаем русскую локализацию для moment
 moment.locale('ru');
@@ -68,6 +68,10 @@ const Schedule = () => {
   const [form] = Form.useForm();
   const [viewMode, setViewMode] = useState('month'); // 'month', 'week', 'day'
   const [selectedDateTasks, setSelectedDateTasks] = useState([]);
+  
+  // Состояние для хранения временного диапазона
+  const [startTime, setStartTime] = useState('08:00');
+  const [endTime, setEndTime] = useState('17:00');
 
   // Priority and status options
   const priorityOptions = [
@@ -211,20 +215,29 @@ const Schedule = () => {
     );
   };
 
+  // Обработчик изменения временного диапазона
+  const handleTimeRangeChange = (range) => {
+    setStartTime(range.from);
+    setEndTime(range.to);
+  };
+
   // Add a new task
   const showAddTaskModal = () => {
     setIsEditing(false);
     setCurrentTask(null);
     form.resetFields();
     
-    // Set default date and times
+    // Set default values
     form.setFieldsValue({
       date: moment(selectedDate),
-      timeRange: [moment('08:00', 'HH:mm'), moment('17:00', 'HH:mm')],
       status: 'scheduled',
       priority: 'medium',
       progress: 0
     });
+    
+    // Установка начальных значений для временного диапазона
+    setStartTime('08:00');
+    setEndTime('17:00');
     
     setModalVisible(true);
   };
@@ -237,10 +250,6 @@ const Schedule = () => {
     form.setFieldsValue({
       title: task.Title,
       date: moment(task.Date),
-      timeRange: [
-        moment(task.StartTime, 'HH:mm'),
-        moment(task.EndTime, 'HH:mm')
-      ],
       employeeIds: task.employeeIds,
       equipmentIds: task.equipmentIds,
       transportIds: task.transportIds,
@@ -251,6 +260,10 @@ const Schedule = () => {
       description: task.Description,
       progress: task.Progress,
     });
+    
+    // Установка значений времени для TimeRangePicker
+    setStartTime(task.StartTime || '08:00');
+    setEndTime(task.EndTime || '17:00');
     
     setModalVisible(true);
   };
@@ -268,10 +281,16 @@ const Schedule = () => {
         setIsLoading(true);
         
         try {
-          // Format date and time
+          // Format date
           const date = values.date.format('YYYY-MM-DD');
-          const startTime = values.timeRange[0].format('HH:mm');
-          const endTime = values.timeRange[1].format('HH:mm');
+          
+          // Валидация времени (проверка, что время начала раньше времени окончания)
+          const startMoment = moment(startTime, 'HH:mm');
+          const endMoment = moment(endTime, 'HH:mm');
+          
+          if (endMoment.isSameOrBefore(startMoment)) {
+            throw new Error('Время окончания должно быть позже времени начала');
+          }
           
           const taskData = {
             title: values.title,
@@ -304,7 +323,7 @@ const Schedule = () => {
           setModalVisible(false);
         } catch (error) {
           console.error('Error saving task:', error);
-          message.error('Произошла ошибка при сохранении задачи');
+          message.error('Произошла ошибка при сохранении задачи: ' + (error.message || 'Неизвестная ошибка'));
         } finally {
           setIsLoading(false);
         }
@@ -375,6 +394,9 @@ const Schedule = () => {
     delayedTasks: tasks.filter(task => task.Status === 'delayed').length,
   };
 
+  // Получение текущей даты и времени для TimeRangePicker
+  const currentDateTime = `${moment().format('YYYY-MM-DD')} ${moment().format('HH:mm:ss')}`;
+  
   return (
     <div className="schedule-container">
       <Breadcrumb className="breadcrumb-navigation">
@@ -582,15 +604,19 @@ const Schedule = () => {
               </Form.Item>
             </Col>
             <Col span={12}>
+              {/* Заменяем TimePicker.RangePicker на наш компонент TimeRangePicker */}
               <Form.Item
-                name="timeRange"
                 label="Время"
-                rules={[{ required: true, message: 'Пожалуйста, выберите время' }]}
+                required={true}
               >
-                <TimePicker.RangePicker 
-                  style={{ width: '100%' }} 
-                  format="HH:mm"
-                  locale={locale} // Добавляем русскую локализацию
+                <TimeRangePicker
+                  label=""
+                  onChange={handleTimeRangeChange}
+                  initialFromTime={startTime}
+                  initialToTime={endTime}
+                  required={true}
+                  currentDateTime={currentDateTime}
+                  currentUser="Naomi4ok"
                 />
               </Form.Item>
             </Col>

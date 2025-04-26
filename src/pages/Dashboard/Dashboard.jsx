@@ -327,12 +327,10 @@ const Dashboard = () => {
       <div className="weather-container">
         <div className="weather-icon">{weatherData.icon}</div>
         <div className="weather-details">
-          <div className="weather-location">{weatherData.location}</div>
-          <div className="weather-condition">{weatherData.condition}</div>
+          <div className="weather-location">{weatherData.location}, {weatherData.condition}</div>
           <div className="weather-temp">{weatherData.temperature}°C</div>
           <div className="weather-meta">
             <span>Влажность: {weatherData.humidity}%</span>
-            <span>Ветер: {weatherData.wind} м/с</span>
           </div>
         </div>
       </div>

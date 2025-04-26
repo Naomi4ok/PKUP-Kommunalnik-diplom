@@ -79,7 +79,19 @@
     height: 40px;
     line-height: 38px;
   }
-  
+
+  .ant-radio-button-wrapper-checked {
+    border-color: #0AB101 !important;
+    color:#0AB101 !important;
+  }
+
+  .ant-radio-button-wrapper:hover {
+    color:#0AB101 !important;
+  }
+
+  .ant-radio-button-wrapper-checked::before {
+    background-color: #0AB101 !important;
+  }
   /* ==========================================
      Statistics cards
      ========================================== */
@@ -454,4 +466,29 @@
     .task-card {
       padding: 12px;
     }
+  }
+
+  .ant-picker-time-panel-column > li.ant-picker-time-panel-cell {
+    height: 28px;
+    margin: 0;
+  }
+  
+  .ant-picker-time-panel {
+    overflow-y: hidden;
+  }
+  
+  .ant-picker-time-panel-column:hover {
+    overflow-y: auto;
+  }
+  
+  .ant-picker-dropdown {
+    z-index: 1070; /* Ensure it's above other elements */
+  }
+
+  .custom-timepicker-dropdown .ant-picker-time-panel-column {
+    overflow-y: hidden;
+  }
+  
+  .custom-timepicker-dropdown .ant-picker-time-panel-column:hover {
+    overflow-y: auto;
   }
