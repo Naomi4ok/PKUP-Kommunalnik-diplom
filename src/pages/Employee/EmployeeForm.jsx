@@ -214,7 +214,7 @@ const EmployeeForm = () => {
       } else if (workScheduleTypeEng === 'Custom') {
         // Форматирование временного диапазона как "from to to"
         if (timeRange.from && timeRange.to) {
-          workSchedule = `${timeRange.from} to ${timeRange.to}`;
+          workSchedule = `От ${timeRange.from} до ${timeRange.to}`;
         }
       }
       

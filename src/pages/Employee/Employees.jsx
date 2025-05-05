@@ -621,7 +621,7 @@ const Employees = () => {
       ),
     },
     {
-      title: 'ФИО',
+      title: 'Имя, Фамилия',
       dataIndex: 'Full_Name',
       key: 'fullName',
       sorter: (a, b) => a.Full_Name.localeCompare(b.Full_Name),
@@ -711,7 +711,7 @@ const Employees = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 80,
+      width: 100,
       render: (_, record) => (
         <Dropdown
           menu={{

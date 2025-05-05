@@ -230,7 +230,7 @@ const Spares = () => {
         return {
           'Наименование': item.Name || '',
           'Количество': item.Quantity || 0,
-          'Стоимость за единицу': item.Unit_Cost || 0,
+          'Цена за ед.': item.Unit_Cost || 0,
           'Общая стоимость': item.Total_Cost || 0,
           'Дата последнего пополнения': item.Last_Replenishment_Date || '',
           'Место хранения': item.Location || '',
@@ -246,7 +246,7 @@ const Spares = () => {
       const wscols = [
         { wch: 30 }, // Наименование
         { wch: 15 }, // Количество
-        { wch: 20 }, // Стоимость за единицу
+        { wch: 20 }, // Цена за ед.
         { wch: 20 }, // Общая стоимость
         { wch: 25 }, // Дата последнего пополнения
         { wch: 20 }, // Место хранения
@@ -288,7 +288,7 @@ const Spares = () => {
       {
         'Наименование': 'Фильтр масляный',
         'Количество': 10,
-        'Стоимость за единицу': 500,
+        'Цена за ед.': 500,
         'Общая стоимость': 5000,
         'Дата последнего пополнения': '2025-04-01',
         'Место хранения': 'Склад 1',
@@ -298,7 +298,7 @@ const Spares = () => {
       {
         'Наименование': 'Ремень ГРМ',
         'Количество': 5,
-        'Стоимость за единицу': 1200,
+        'Цена за ед.': 1200,
         'Общая стоимость': 6000,
         'Дата последнего пополнения': '2025-03-15',
         'Место хранения': 'Склад 2',
@@ -314,7 +314,7 @@ const Spares = () => {
     const wscols = [
       { wch: 30 }, // Наименование
       { wch: 15 }, // Количество
-      { wch: 20 }, // Стоимость за единицу
+      { wch: 20 }, // Цена за ед.
       { wch: 20 }, // Общая стоимость
       { wch: 25 }, // Дата последнего пополнения
       { wch: 20 }, // Место хранения
@@ -382,7 +382,7 @@ const Spares = () => {
           const columns = {
             name: Object.keys(headerRow).find(key => headerRow[key] === 'Наименование'),
             quantity: Object.keys(headerRow).find(key => headerRow[key] === 'Количество'),
-            unitCost: Object.keys(headerRow).find(key => headerRow[key] === 'Стоимость за единицу'),
+            unitCost: Object.keys(headerRow).find(key => headerRow[key] === 'Цена за ед.'),
             totalCost: Object.keys(headerRow).find(key => headerRow[key] === 'Общая стоимость'),
             lastReplenishmentDate: Object.keys(headerRow).find(key => headerRow[key] === 'Дата последнего пополнения'),
             location: Object.keys(headerRow).find(key => headerRow[key] === 'Место хранения'),
@@ -556,7 +556,7 @@ const Spares = () => {
       )
     },
     {
-      title: 'Стоимость за единицу',
+      title: 'Цена за ед.',
       dataIndex: 'Unit_Cost',
       key: 'unitCost',
       sorter: (a, b) => a.Unit_Cost - b.Unit_Cost,
@@ -612,7 +612,7 @@ const Spares = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 80,
+      width: 100,
       render: (_, record) => (
         <Dropdown
           menu={{
@@ -848,7 +848,7 @@ const Spares = () => {
           <ul>
             <li><strong>Наименование</strong> (обязательно)</li>
             <li>Количество</li>
-            <li>Стоимость за единицу</li>
+            <li>Цена за ед.</li>
             <li>Общая стоимость</li>
             <li>Дата последнего пополнения</li>
             <li>Место хранения</li>

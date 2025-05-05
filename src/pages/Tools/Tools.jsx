@@ -517,16 +517,6 @@ const Tools = () => {
       ),
     },
     {
-      title: 'Категория',
-      dataIndex: 'Category',
-      key: 'category',
-      filters: categories.map(category => ({
-        text: category,
-        value: category,
-      })),
-      onFilter: (value, record) => record.Category === value,
-    },
-    {
       title: 'Количество',
       dataIndex: 'Quantity',
       key: 'quantity',
@@ -570,7 +560,7 @@ const Tools = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 80,
+      width: 100,
       render: (_, record) => (
         <Dropdown
           menu={{

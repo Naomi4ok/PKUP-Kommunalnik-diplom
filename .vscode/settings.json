@@ -7,6 +7,10 @@
       "statusBar.noFolderForeground": "#CAD7E4",
       "statusBar.debuggingBackground": "#0B1B2B",
       "statusBar.debuggingForeground": "#CAD7E4"
+    },
+    "editor.tokenColorCustomizations": {
+      "comments": "",
+      "textMateRules": []
     }
   }
   

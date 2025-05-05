@@ -234,9 +234,9 @@ const MaterialsForm = () => {
               {/* Unit Cost */}
               <Form.Item
                 name="unitCost"
-                label="Стоимость за единицу"
+                label="Цена за ед."
                 rules={[
-                  { required: true, message: 'Пожалуйста, укажите стоимость за единицу' }
+                  { required: true, message: 'Пожалуйста, укажите Цена за ед.' }
                 ]}
               >
                 <InputNumber 

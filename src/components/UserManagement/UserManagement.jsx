@@ -37,6 +37,7 @@ import AvatarUploadForm from '../AvatarUploadForm';
 import SearchBar from '../../components/SearchBar';
 import Pagination from '../../components/Pagination';
 import './UserManagement.css';
+import moment from 'moment';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -100,6 +101,12 @@ const UserManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Inside the UserManagement component
+  const formatDateTime = (utcTimestamp) => {
+    if (!utcTimestamp) return '';
+    return moment(utcTimestamp).utcOffset('+03:00').format('YYYY-MM-DD HH:mm:ss');
   };
 
   // Apply filters and search
@@ -418,6 +425,7 @@ const UserManagement = () => {
         if (!b.Last_Login) return -1;
         return new Date(b.Last_Login) - new Date(a.Last_Login);
       },
+      render: (timestamp) => formatDateTime(timestamp)
     },
     {
       title: 'Действия',
