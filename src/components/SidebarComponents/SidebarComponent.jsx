@@ -20,6 +20,7 @@ import {
   ExperimentOutlined,
   SettingFilled,
   CarryOutOutlined,
+  DollarOutlined,
 } from '@ant-design/icons';
 import Logo from '../Logo'; // Предполагаем, что компонент Logo существует
 import './SidebarComponent.css';
@@ -94,6 +95,14 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       label: 'Панель управления',
       path: '/',
     },
+
+    {
+      key: 'expenses',
+      icon: <DollarOutlined />,
+      label: 'Расходы',
+      path: '/expenses',
+    },
+    
     {
       key: '/employees', // Используем путь как ключ
       icon: <TeamOutlined />,
@@ -125,6 +134,7 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
         { key: '/materials', label: 'Материалы', path: '/materials', icon: <AppstoreOutlined /> },
       ],
     },
+    
     // Add user management item for admins
     ...(user?.role === 'admin' ? [
       {

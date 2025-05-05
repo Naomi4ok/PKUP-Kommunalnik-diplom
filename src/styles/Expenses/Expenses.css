@@ -1,0 +1,49 @@
+.expenses-page {
+    padding: 8px 24px 0px 52px;
+    max-width: 1600px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .page-breadcrumb {
+    margin-bottom: 16px;
+  }
+  
+  .stats-row {
+    margin-bottom: 24px;
+  }
+  
+  .filter-card {
+    margin-bottom: 24px;
+  }
+  
+  .expenses-table-card {
+    margin-bottom: 24px;
+  }
+  
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .table-title {
+    margin-bottom: 0;
+  }
+  
+  @media (max-width: 576px) {
+    .table-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .table-title {
+      margin-bottom: 16px;
+    }
+  }

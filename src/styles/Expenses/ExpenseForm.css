@@ -1,0 +1,32 @@
+.expense-form-page {
+    padding: 24px;
+  }
+  
+  .page-breadcrumb {
+    margin-bottom: 16px;
+  }
+  
+  .expense-form-card {
+    margin-bottom: 24px;
+  }
+  
+  .form-header {
+    margin-bottom: 24px;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  @media (max-width: 576px) {
+    .form-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .form-actions .ant-btn {
+      margin: 8px 0;
+      width: 100%;
+    }
+  }

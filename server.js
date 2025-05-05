@@ -12,6 +12,8 @@ const sparesRoutes = require('./routes/spares');
 const materialsRoutes = require('./routes/materials');
 const scheduleRoutes = require('./routes/schedule');
 const { router: authRoutes } = require('./routes/auth'); // Add this line
+const dbExpenses = require('./database/db_expenses');
+const expensesRoutes = require('./routes/expenses');
 
 // Инициализация приложения
 const app = express();
@@ -28,6 +30,7 @@ const upload = multer({ storage: storage });
 // Создание таблиц для модуля расписания
 dbSchedule.createScheduleTable();
 dbUsers.createUsersTable(); // Add this line
+dbExpenses.createExpensesTable();
 
 // Статические файлы React
 app.use(express.static(path.join(__dirname, 'build')));
@@ -41,6 +44,7 @@ app.use('/api/tools', toolsRoutes);
 app.use('/api/spares', sparesRoutes);
 app.use('/api/materials', materialsRoutes);
 app.use('/api/schedule', scheduleRoutes);
+app.use('/api/expenses', expensesRoutes);
 
 // Маршрут для обслуживания React приложения
 app.get('*', (req, res) => {

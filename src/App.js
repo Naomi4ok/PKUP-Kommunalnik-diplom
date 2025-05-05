@@ -25,6 +25,8 @@ import MaterialsForm from './pages/Materials/MaterialsForm';
 import Schedule from './pages/Schedule/Schedule';
 import Auth from './pages/Auth/Auth';
 import UserManagement from './components/UserManagement/UserManagement';
+import Expenses from './pages/Expenses/Expenses';
+import ExpenseForm from './pages/Expenses/ExpenseForm';
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -217,6 +219,22 @@ function App() {
                     <Route path="/users" element={
                       <ProtectedRoute>
                         <UserManagement />
+                      </ProtectedRoute>
+                    } />
+
+                    <Route path="/expenses" element={
+                      <ProtectedRoute>
+                        <Expenses />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/expenses/new" element={
+                      <ProtectedRoute>
+                        <ExpenseForm />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/expenses/edit/:id" element={
+                      <ProtectedRoute>
+                        <ExpenseForm />
                       </ProtectedRoute>
                     } />
                     
