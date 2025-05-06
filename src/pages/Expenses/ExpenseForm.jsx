@@ -14,7 +14,8 @@ import {
   Space,
   Divider,
   Row,
-  Col
+  Col,
+  Spin
 } from 'antd';
 import {
   HomeOutlined,
@@ -25,7 +26,7 @@ import {
 import moment from 'moment';
 import '../../styles/Expenses/ExpenseForm.css';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -36,6 +37,7 @@ const ExpenseForm = () => {
   
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(isEditing);
   const [categories, setCategories] = useState([]);
   const [resourceOptions, setResourceOptions] = useState({
     employees: [],
@@ -61,7 +63,7 @@ const ExpenseForm = () => {
   // Fetch expense data for editing
   const fetchExpenseData = async () => {
     try {
-      setLoading(true);
+      setInitialLoading(true);
       const response = await fetch(`/api/expenses/${id}`);
       
       if (!response.ok) {
@@ -87,8 +89,9 @@ const ExpenseForm = () => {
       
     } catch (err) {
       message.error(`Failed to load expense data: ${err.message}`);
+      navigate('/expenses');
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
     }
   };
   
@@ -222,13 +225,18 @@ const ExpenseForm = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
-      message.success(`Расход успешно ${isEditing ? 'обновлен' : 'добавлен'}`);
+      message.success(`Расход успешно ${isEditing ? 'обновлен' : 'добавлен'}!`);
       navigate('/expenses');
     } catch (err) {
-      message.error(`Failed to ${isEditing ? 'update' : 'create'} expense: ${err.message}`);
+      message.error(`Не удалось ${isEditing ? 'обновить' : 'добавить'} расход: ${err.message}`);
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Cancel handler
+  const handleCancel = () => {
+    navigate('/expenses');
   };
   
   // Options for resource type select
@@ -260,39 +268,46 @@ const ExpenseForm = () => {
   return (
     <div className="expense-form-page">
       <Breadcrumb className="page-breadcrumb">
-        <Breadcrumb.Item href="/dashboard">
+        <Breadcrumb.Item href="/">
           <HomeOutlined />
-          <span>Главная</span>
         </Breadcrumb.Item>
         <Breadcrumb.Item href="/expenses">
-          <DollarOutlined />
-          <span>Расходы</span>
+          Расходы
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          <span>{isEditing ? 'Редактирование' : 'Новый'} расход</span>
+          {isEditing ? 'Редактирование' : 'Добавление'} расхода
         </Breadcrumb.Item>
       </Breadcrumb>
       
       <Card className="expense-form-card">
-        <div className="form-header">
-          <Title level={3}>{isEditing ? 'Редактирование' : 'Добавление'} расхода</Title>
+        <div className="expense-form-header">
+          <Button 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => navigate('/expenses')}
+            className="back-button"
+          >
+            Назад к списку расходов
+          </Button>
+          <Title level={2} className="expense-form-title">
+            {isEditing ? 'Редактирование' : 'Добавление'} расхода
+          </Title>
         </div>
         
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{
-            date: moment(),
-            amount: 0
-          }}
-        >
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
+        <Spin spinning={initialLoading}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            initialValues={{
+              date: moment(),
+              amount: 0
+            }}
+          >
+            <div className="form-row">
               <Form.Item
                 name="resourceType"
                 label="Тип ресурса"
-                rules={[{ required: true, message: 'Выберите тип ресурса' }]}
+                rules={[{ required: true, message: 'Пожалуйста, выберите тип ресурса' }]}
               >
                 <Select 
                   placeholder="Выберите тип ресурса"
@@ -305,12 +320,11 @@ const ExpenseForm = () => {
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
+              
               <Form.Item
                 name="resourceId"
                 label="Ресурс"
-                rules={[{ required: true, message: 'Выберите ресурс' }]}
+                rules={[{ required: true, message: 'Пожалуйста, выберите ресурс' }]}
               >
                 <Select 
                   placeholder="Выберите ресурс"
@@ -323,16 +337,14 @@ const ExpenseForm = () => {
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
+            </div>
+            
+            <div className="form-row">
               <Form.Item
                 name="amount"
                 label="Сумма (₽)"
                 rules={[
-                  { required: true, message: 'Введите сумму' },
+                  { required: true, message: 'Пожалуйста, введите сумму' },
                   { type: 'number', min: 0, message: 'Сумма должна быть положительной' }
                 ]}
               >
@@ -342,24 +354,21 @@ const ExpenseForm = () => {
                   parser={value => value.replace(/\$\s?|(,*)/g, '')}
                 />
               </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
+              
               <Form.Item
                 name="date"
                 label="Дата"
-                rules={[{ required: true, message: 'Выберите дату' }]}
+                rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
               >
                 <DatePicker style={{ width: '100%' }} />
               </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
+            </div>
+            
+            <div className="form-row">
               <Form.Item
                 name="category"
                 label="Категория"
-                rules={[{ required: true, message: 'Выберите категорию' }]}
+                rules={[{ required: true, message: 'Пожалуйста, выберите категорию' }]}
               >
                 <Select placeholder="Выберите категорию">
                   {getCategoryOptions().map(option => (
@@ -369,8 +378,7 @@ const ExpenseForm = () => {
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
+              
               <Form.Item
                 name="paymentMethod"
                 label="Способ оплаты"
@@ -383,19 +391,16 @@ const ExpenseForm = () => {
                   ))}
                 </Select>
               </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
+            </div>
+            
+            <div className="form-row">
               <Form.Item
                 name="invoiceNumber"
                 label="Номер счета/накладной"
               >
                 <Input placeholder="Введите номер счета или накладной" />
               </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
+              
               <Form.Item
                 name="description"
                 label="Описание"
@@ -405,30 +410,30 @@ const ExpenseForm = () => {
                   placeholder="Введите описание расхода"
                 />
               </Form.Item>
-            </Col>
-          </Row>
-          
-          <Divider />
-          
-          <div className="form-actions">
-            <Space>
-              <Button 
-                icon={<ArrowLeftOutlined />} 
-                onClick={() => navigate('/expenses')}
-              >
-                Назад
-              </Button>
-              <Button 
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={loading}
-                htmlType="submit"
-              >
-                {isEditing ? 'Сохранить' : 'Добавить'} расход
-              </Button>
-            </Space>
-          </div>
-        </Form>
+            </div>
+            
+            <Form.Item className="form-actions">
+              <Space>
+                <Button
+                  className="expense-submit-button"  
+                  type="primary" 
+                  htmlType="submit" 
+                  loading={loading}
+                  icon={<SaveOutlined />}
+                  size="large"
+                >
+                  {isEditing ? 'Обновить' : 'Добавить'} расход
+                </Button>
+                <Button 
+                  onClick={handleCancel}
+                  size="large"
+                >
+                  Отмена
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Spin>
       </Card>
     </div>
   );

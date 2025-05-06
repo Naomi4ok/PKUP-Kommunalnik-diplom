@@ -17,7 +17,9 @@ import {
   Col,
   Form,
   Statistic,
-  Tabs,
+  Spin,
+  Divider,
+  Dropdown
 } from 'antd';
 import {
   PlusOutlined,
@@ -26,23 +28,25 @@ import {
   HomeOutlined,
   DollarOutlined,
   FilterOutlined,
-  BarChartOutlined,
-  PieChartOutlined,
-  LineChartOutlined
+  SearchOutlined,
+  FileExcelOutlined,
+  ImportOutlined,
+  EllipsisOutlined,
 } from '@ant-design/icons';
 import moment from 'moment';
 import '../../styles/Expenses/Expenses.css';
+import SearchBar from '../../components/SearchBar';
+import Pagination from '../../components/Pagination';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
-const { TabPane } = Tabs;
-const { Search } = Input;
 
 const Expenses = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [expenses, setExpenses] = useState([]);
+  const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [resourceOptions, setResourceOptions] = useState({
     employees: [],
@@ -55,14 +59,27 @@ const Expenses = () => {
   const [summaryData, setSummaryData] = useState({
     total: 0,
     byType: [],
-    byCategory: []
+    byCategory: [],
+    currentMonth: 0
   });
   const [filterValues, setFilterValues] = useState({
     dateRange: [moment().startOf('month'), moment()],
-    resourceType: '',
-    resourceId: '',
-    category: ''
+    resourceTypes: [],
+    resourceIds: [],
+    categories: []
   });
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pageSize, setPageSize] = useState(8);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [resourceTypes, setResourceTypes] = useState([
+    'Employee',
+    'Equipment',
+    'Transportation',
+    'Tool',
+    'Spare',
+    'Material'
+  ]);
   
   // Fetch all required data on component mount
   useEffect(() => {
@@ -71,31 +88,17 @@ const Expenses = () => {
     fetchResourceOptions();
   }, []);
   
+  // Update filtered expenses when expenses, filters or search query change
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [expenses, filterValues, searchQuery]);
+  
   // Fetch expenses with filters applied
   const fetchExpenses = async () => {
     try {
       setLoading(true);
       
-      // Construct query params based on filters
-      const params = new URLSearchParams();
-      if (filterValues.resourceType) {
-        params.append('resourceType', filterValues.resourceType);
-      }
-      if (filterValues.resourceId) {
-        params.append('resourceId', filterValues.resourceId);
-      }
-      if (filterValues.category) {
-        params.append('category', filterValues.category);
-      }
-      if (filterValues.dateRange && filterValues.dateRange[0]) {
-        params.append('startDate', filterValues.dateRange[0].format('YYYY-MM-DD'));
-      }
-      if (filterValues.dateRange && filterValues.dateRange[1]) {
-        params.append('endDate', filterValues.dateRange[1].format('YYYY-MM-DD'));
-      }
-      
-      const url = `/api/expenses?${params.toString()}`;
-      const response = await fetch(url);
+      const response = await fetch('/api/expenses');
       
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -123,7 +126,7 @@ const Expenses = () => {
       }
       
       const data = await response.json();
-      setCategories(data);
+      setCategories(data.map(c => c.Name));
     } catch (err) {
       message.error(`Failed to load expense categories: ${err.message}`);
     }
@@ -167,61 +170,120 @@ const Expenses = () => {
         params.append('endDate', filterValues.dateRange[1].format('YYYY-MM-DD'));
       }
       
+      // Fetch current month data
+      const currentMonthParams = new URLSearchParams();
+      currentMonthParams.append('startDate', moment().startOf('month').format('YYYY-MM-DD'));
+      currentMonthParams.append('endDate', moment().format('YYYY-MM-DD'));
+      
       // Fetch summary data in parallel
-      const [totalResponse, byTypeResponse, byCategoryResponse] = await Promise.all([
+      const [totalResponse, byTypeResponse, byCategoryResponse, currentMonthResponse] = await Promise.all([
         fetch(`/api/expenses/summary/total?${params.toString()}`).then(res => res.json()),
         fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=resource_type`).then(res => res.json()),
-        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=category`).then(res => res.json())
+        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=category`).then(res => res.json()),
+        fetch(`/api/expenses/summary/total?${currentMonthParams.toString()}`).then(res => res.json())
       ]);
       
       setSummaryData({
         total: totalResponse[0]?.Total || 0,
         byType: byTypeResponse || [],
-        byCategory: byCategoryResponse || []
+        byCategory: byCategoryResponse || [],
+        currentMonth: currentMonthResponse[0]?.Total || 0
       });
     } catch (err) {
       message.error(`Failed to load summary data: ${err.message}`);
     }
   };
-  
-  // Handle filter changes
-  const handleFilterChange = (type, value) => {
-    setFilterValues({
-      ...filterValues,
-      [type]: value
-    });
+
+  // Applying filters and search to the expenses
+  const applyFiltersAndSearch = () => {
+    let filtered = [...expenses];
     
-    // Reset resourceId if resourceType changes
-    if (type === 'resourceType') {
-      setFilterValues({
-        ...filterValues,
-        resourceType: value,
-        resourceId: ''
+    // Apply date range filter
+    if (filterValues.dateRange && filterValues.dateRange[0] && filterValues.dateRange[1]) {
+      const startDate = filterValues.dateRange[0].startOf('day');
+      const endDate = filterValues.dateRange[1].endOf('day');
+      
+      filtered = filtered.filter(expense => {
+        const expenseDate = moment(expense.Date);
+        return expenseDate.isBetween(startDate, endDate, null, '[]');
       });
     }
+    
+    // Apply resource type filter
+    if (filterValues.resourceTypes.length > 0) {
+      filtered = filtered.filter(expense =>
+        filterValues.resourceTypes.includes(expense.Resource_Type)
+      );
+    }
+    
+    // Apply resource ID filter
+    if (filterValues.resourceIds.length > 0) {
+      filtered = filtered.filter(expense =>
+        filterValues.resourceIds.includes(expense.Resource_ID)
+      );
+    }
+    
+    // Apply category filter
+    if (filterValues.categories.length > 0) {
+      filtered = filtered.filter(expense =>
+        filterValues.categories.includes(expense.Category)
+      );
+    }
+    
+    // Apply search query
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(expense => {
+        const resourceName = getResourceName(expense.Resource_Type, expense.Resource_ID).toLowerCase();
+        
+        return (
+          (expense.Category && expense.Category.toLowerCase().includes(query)) ||
+          resourceName.includes(query) ||
+          (expense.Description && expense.Description.toLowerCase().includes(query)) ||
+          (expense.Invoice_Number && expense.Invoice_Number.toLowerCase().includes(query))
+        );
+      });
+    }
+    
+    setFilteredExpenses(filtered);
   };
   
-  // Apply filters
-  const applyFilters = () => {
-    fetchExpenses();
+  // Handle filter changes
+  const handleFilterChange = (filterType, values) => {
+    setFilterValues(prev => ({
+      ...prev,
+      [filterType]: values
+    }));
+  };
+  
+  // Toggle filters visibility
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
   };
   
   // Reset filters
   const resetFilters = () => {
     setFilterValues({
       dateRange: [moment().startOf('month'), moment()],
-      resourceType: '',
-      resourceId: '',
-      category: ''
+      resourceTypes: [],
+      resourceIds: [],
+      categories: []
     });
-    
-    // Fetch expenses with reset filters
-    setTimeout(fetchExpenses, 0);
+  };
+  
+  // Handle search query change
+  const handleSearch = (query) => {
+    setSearchQuery(query);
   };
   
   // Add new expense button handler
   const handleAddExpense = () => {
     navigate('/expenses/new');
+  };
+  
+  // Edit expense handler
+  const goToEditExpense = (id) => {
+    navigate(`/expenses/edit/${id}`);
   };
   
   // Delete expense handler
@@ -234,14 +296,32 @@ const Expenses = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      
-      message.success('Расход успешно удален');
+
+      message.success('Расход успешно удален!');
       fetchExpenses();
     } catch (err) {
-      message.error(`Failed to delete expense: ${err.message}`);
+      message.error(`Не удалось удалить расход: ${err.message}`);
     }
   };
   
+  // Page change handler for pagination
+  const handlePageChange = (page, newPageSize) => {
+    setCurrentPage(page);
+    setPageSize(newPageSize);
+  };
+  
+  // Export expenses to Excel
+  const exportToExcel = () => {
+    message.success('Экспорт расходов в Excel');
+    // Implement excel export functionality here
+  };
+  
+  // Show import modal
+  const showImportModal = () => {
+    message.info('Функция импорта находится в разработке');
+    // Implement import modal here
+  };
+
   // Get resource name by type and id
   const getResourceName = (type, id) => {
     if (!id) return '-';
@@ -264,6 +344,19 @@ const Expenses = () => {
         return `${type} ID: ${id}`;
     }
   };
+
+  // Get resource type display name
+  const getResourceTypeDisplayName = (type) => {
+    const typeMap = {
+      'Employee': 'Сотрудник',
+      'Equipment': 'Оборудование',
+      'Transportation': 'Транспорт',
+      'Tool': 'Инструмент',
+      'Spare': 'Запчасть',
+      'Material': 'Материал'
+    };
+    return typeMap[type] || type;
+  };
   
   // Define table columns
   const columns = [
@@ -271,23 +364,14 @@ const Expenses = () => {
       title: 'Дата',
       dataIndex: 'Date',
       key: 'date',
-      render: text => moment(text).format('DD.MM.YYYY')
+      render: text => moment(text).format('DD.MM.YYYY'),
+      sorter: (a, b) => moment(a.Date).unix() - moment(b.Date).unix(),
     },
     {
       title: 'Тип ресурса',
       dataIndex: 'Resource_Type',
       key: 'resourceType',
-      render: text => {
-        const typeMap = {
-          'Employee': 'Сотрудник',
-          'Equipment': 'Оборудование',
-          'Transportation': 'Транспорт',
-          'Tool': 'Инструмент',
-          'Spare': 'Запчасть',
-          'Material': 'Материал'
-        };
-        return typeMap[text] || text;
-      }
+      render: text => getResourceTypeDisplayName(text)
     },
     {
       title: 'Ресурс',
@@ -303,7 +387,8 @@ const Expenses = () => {
       title: 'Сумма (₽)',
       dataIndex: 'Amount',
       key: 'amount',
-      render: amount => <Text strong>{Number(amount).toLocaleString('ru-RU')}</Text>
+      render: amount => <Text strong>{Number(amount).toLocaleString('ru-RU')}</Text>,
+      sorter: (a, b) => a.Amount - b.Amount,
     },
     {
       title: 'Описание',
@@ -314,252 +399,259 @@ const Expenses = () => {
     {
       title: 'Действия',
       key: 'actions',
+      width: 80,
       render: (_, record) => (
-        <Space>
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: '1',
+                label: 'Редактировать',
+                icon: <EditOutlined />,
+                onClick: () => goToEditExpense(record.Expense_ID)
+              },
+              {
+                key: '2',
+                label: 
+                  <Popconfirm
+                    title="Удаление расхода"
+                    description="Вы уверены, что хотите удалить этот расход?"
+                    onConfirm={() => handleDeleteExpense(record.Expense_ID)}
+                    okText="Да"
+                    cancelText="Нет"
+                  >
+                    <span className="dropdown-delete-label">Удалить</span>
+                  </Popconfirm>,
+                icon: <DeleteOutlined />,
+                danger: true
+              }
+            ]
+          }}
+          trigger={['click']}
+          placement="bottomRight"
+        >
           <Button 
-            icon={<EditOutlined />} 
-            onClick={() => navigate(`/expenses/edit/${record.Expense_ID}`)} 
+            type="text" 
+            icon={<EllipsisOutlined  />}
+            className="action-more-button"
           />
-          <Popconfirm
-            title="Вы уверены, что хотите удалить этот расход?"
-            onConfirm={() => handleDeleteExpense(record.Expense_ID)}
-            okText="Да"
-            cancelText="Нет"
-          >
-            <Button danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      )
-    }
+        </Dropdown>
+      ),
+    },
   ];
-  
-  // Options for resource type filter
-  const resourceTypeOptions = [
-    { value: 'Employee', label: 'Сотрудники' },
-    { value: 'Equipment', label: 'Оборудование' },
-    { value: 'Transportation', label: 'Транспорт' },
-    { value: 'Tool', label: 'Инструменты' },
-    { value: 'Spare', label: 'Запчасти' },
-    { value: 'Material', label: 'Материалы' }
-  ];
-  
-  // Get resource options based on selected resource type
-  const getResourceIdOptions = () => {
-    if (!filterValues.resourceType) return [];
-    
-    switch(filterValues.resourceType) {
-      case 'Employee':
-        return resourceOptions.employees.map(e => ({
-          value: e.Employee_ID,
-          label: e.Full_Name
-        }));
-      case 'Equipment':
-        return resourceOptions.equipment.map(e => ({
-          value: e.Equipment_ID,
-          label: e.Name
-        }));
-      case 'Transportation':
-        return resourceOptions.transportation.map(t => ({
-          value: t.Transport_ID,
-          label: `${t.Brand} ${t.Model}`
-        }));
-      case 'Tool':
-        return resourceOptions.tools.map(t => ({
-          value: t.Tool_ID,
-          label: t.Name
-        }));
-      case 'Spare':
-        return resourceOptions.spares.map(s => ({
-          value: s.Spare_ID,
-          label: s.Name
-        }));
-      case 'Material':
-        return resourceOptions.materials.map(m => ({
-          value: m.Material_ID,
-          label: m.Name
-        }));
-      default:
-        return [];
-    }
-  };
-  
-  // Get category options for filter
-  const getCategoryOptions = () => {
-    return categories.map(c => ({
-      value: c.Name,
-      label: c.Name
-    }));
-  };
+
+  // Get paginated data
+  const paginatedData = filteredExpenses.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
   
   return (
     <div className="expenses-page">
+      {/* Breadcrumbs */}
       <Breadcrumb className="page-breadcrumb">
-        <Breadcrumb.Item href="/dashboard">
+        <Breadcrumb.Item href="/">
           <HomeOutlined />
-          <span>Главная</span>
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          <DollarOutlined />
-          <span>Расходы</span>
+          Расходы
         </Breadcrumb.Item>
       </Breadcrumb>
-
-      <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <Title level={2}>Управление расходами</Title>
-        </Col>
-      </Row>
-
+      
       {/* Статистика по расходам */}
       <Row gutter={16} className="stats-row">
         <Col xs={24} sm={8}>
-          <Card>
+          <Card className="stat-card">
             <Statistic 
               title="Всего расходов" 
               value={summaryData.total} 
-              prefix="₽"
               precision={2}
+              prefix="₽"
+              valueStyle={{ color: '#078800' }}
+              className="expense-stat"
             />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card>
+          <Card className="stat-card">
             <Statistic 
               title="Крупнейшая категория" 
-              value={
-                summaryData.byCategory[0]?.Total || 0
-              } 
-              prefix="₽"
+              value={summaryData.byCategory[0]?.Total || 0} 
               precision={2}
-              suffix={summaryData.byCategory[0]?.Category || 'Нет данных'}
+              prefix="₽" 
+              valueStyle={{ color: '#0AB101' }}
+              className="expense-stat"
+              suffix={
+                <span className="stat-category">
+                  {summaryData.byCategory[0]?.Category || 'Нет данных'}
+                </span>
+              }
             />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card>
+          <Card className="stat-card">
             <Statistic 
               title="Текущий месяц" 
-              value={summaryData.total} 
-              prefix="₽"
+              value={summaryData.currentMonth} 
               precision={2}
+              prefix="₽"
+              valueStyle={{ color: '#0AB101' }}
+              className="expense-stat"
             />
           </Card>
         </Col>
       </Row>
-
-      {/* Фильтры */}
-      <Card className="filter-card">
-        <Form layout="vertical">
-          <Row gutter={16}>
-            <Col xs={24} md={6}>
-              <Form.Item label="Период">
-                <RangePicker 
-                  style={{ width: '100%' }}
-                  value={filterValues.dateRange}
-                  onChange={(dates) => handleFilterChange('dateRange', dates)}
+      
+      <Card>
+        <div className="ant-page-header-wrapper">
+          <div className="ant-page-header">
+            {/* Left side: title with export and import buttons */}
+            <div className="header-left-content">
+              <Title level={2}>Расходы</Title>
+              <Button 
+                type="primary" 
+                icon={<FileExcelOutlined />} 
+                onClick={exportToExcel}
+                className="ant-export-button"
+              >
+                Экспорт
+              </Button>
+              <Button 
+                type="primary" 
+                icon={<ImportOutlined />} 
+                onClick={showImportModal}
+                className="ant-import-button"
+              >
+                Импорт
+              </Button>
+            </div>
+            
+            {/* Right side: filter, search, and add buttons */}
+            <div className="header-right-content">
+              {/* Filter button */}
+              <Button
+                type="primary" 
+                icon={<FilterOutlined />}
+                onClick={toggleFilters}
+                className="ant-filter-button"
+              >
+                Фильтр
+              </Button>
+              
+              {/* Search bar */}
+              <div className="expenses-search-bar-container">
+                <SearchBar 
+                  onSearch={handleSearch} 
+                  placeholder="Поиск расходов"
+                  autoFocus={false}
                 />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <Form.Item label="Тип ресурса">
-                <Select 
-                  placeholder="Выберите тип ресурса"
-                  style={{ width: '100%' }}
-                  value={filterValues.resourceType}
-                  onChange={(value) => handleFilterChange('resourceType', value)}
-                  allowClear
-                >
-                  {resourceTypeOptions.map(option => (
-                    <Option key={option.value} value={option.value}>
-                      {option.label}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <Form.Item label="Ресурс">
-                <Select 
-                  placeholder="Выберите ресурс"
-                  style={{ width: '100%' }}
-                  value={filterValues.resourceId}
-                  onChange={(value) => handleFilterChange('resourceId', value)}
-                  disabled={!filterValues.resourceType}
-                  allowClear
-                >
-                  {getResourceIdOptions().map(option => (
-                    <Option key={option.value} value={option.value}>
-                      {option.label}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <Form.Item label="Категория">
-                <Select 
-                  placeholder="Выберите категорию"
-                  style={{ width: '100%' }}
-                  value={filterValues.category}
-                  onChange={(value) => handleFilterChange('category', value)}
-                  allowClear
-                >
-                  {getCategoryOptions().map(option => (
-                    <Option key={option.value} value={option.value}>
-                      {option.label}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row>
-            <Col span={24} style={{ textAlign: 'right' }}>
-              <Space>
+              </div>
+              
+              {/* Add expense button */}
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />} 
+                onClick={handleAddExpense}
+                className="ant-add-button"
+              >
+                Добавить расход
+              </Button>
+            </div>
+          </div>
+          
+          {/* Filter panel */}
+          {showFilters && (
+            <div className={`filter-panel ${showFilters ? 'visible' : ''}`}>
+              <div className="filter-panel-header">
+                <h4>Фильтр расходов</h4>
                 <Button 
+                  className="ant-filreset-button"
+                  type="link"
                   onClick={resetFilters}
                 >
-                  Сбросить
+                  Сбросить все фильтры
                 </Button>
-                <Button 
-                  type="primary" 
-                  icon={<FilterOutlined />} 
-                  onClick={applyFilters}
-                >
-                  Применить
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Form>
-      </Card>
-
-      {/* Таблица расходов */}
-      <Card className="expenses-table-card">
-        <div className="table-header">
-          <div className="table-title">
-            <Title level={4}>Список расходов</Title>
-          </div>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={handleAddExpense}
-          >
-            Добавить расход
-          </Button>
+              </div>
+              
+              <Row gutter={[16, 16]}>
+                {/* Date range filter */}
+                <Col xs={24} sm={24} md={12}>
+                  <div className="filter-group">
+                    <label>Период</label>
+                    <RangePicker 
+                      style={{ width: '100%' }}
+                      value={filterValues.dateRange}
+                      onChange={(dates) => handleFilterChange('dateRange', dates)}
+                    />
+                  </div>
+                </Col>
+                
+                {/* Resource type filter */}
+                <Col xs={24} sm={12} md={6}>
+                  <div className="filter-group">
+                    <label>Тип ресурса</label>
+                    <Select
+                      mode="multiple"
+                      placeholder="Выберите тип ресурса"
+                      value={filterValues.resourceTypes}
+                      onChange={(values) => handleFilterChange('resourceTypes', values)}
+                      style={{ width: '100%' }}
+                      maxTagCount="responsive"
+                    >
+                      {resourceTypes.map(type => (
+                        <Option key={type} value={type}>
+                          {getResourceTypeDisplayName(type)}
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                </Col>
+                
+                {/* Category filter */}
+                <Col xs={24} sm={12} md={6}>
+                  <div className="filter-group">
+                    <label>Категория</label>
+                    <Select
+                      mode="multiple"
+                      placeholder="Выберите категорию"
+                      value={filterValues.categories}
+                      onChange={(values) => handleFilterChange('categories', values)}
+                      style={{ width: '100%' }}
+                      maxTagCount="responsive"
+                    >
+                      {categories.map(category => (
+                        <Option key={category} value={category}>{category}</Option>
+                      ))}
+                    </Select>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          )}
+          
+          <Divider />
+          
+          <Spin spinning={loading}>
+            {/* Table without built-in pagination */}
+            <Table 
+              dataSource={paginatedData}
+              columns={columns}
+              rowKey="Expense_ID"
+              pagination={false}
+              scroll={{ x: 'max-content' }}
+            />
+            
+            {/* Custom pagination component */}
+            <Pagination
+              totalItems={filteredExpenses.length}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              pageSizeOptions={[8, 20, 50]}
+              initialPageSize={pageSize}
+            />
+          </Spin>
         </div>
-        
-        <Table
-          columns={columns}
-          dataSource={expenses}
-          rowKey="Expense_ID"
-          loading={loading}
-          pagination={{ 
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50']
-          }}
-        />
       </Card>
     </div>
   );
