@@ -19,7 +19,9 @@ import {
   Statistic,
   Spin,
   Divider,
-  Dropdown
+  Dropdown,
+  Modal,
+  Upload
 } from 'antd';
 import {
   PlusOutlined,
@@ -32,8 +34,10 @@ import {
   FileExcelOutlined,
   ImportOutlined,
   EllipsisOutlined,
+  InboxOutlined,
 } from '@ant-design/icons';
 import moment from 'moment';
+import * as XLSX from 'xlsx';
 import '../../styles/Expenses/Expenses.css';
 import SearchBar from '../../components/SearchBar';
 import Pagination from '../../components/Pagination';
@@ -80,6 +84,12 @@ const Expenses = () => {
     'Spare',
     'Material'
   ]);
+  
+  // Import/Export related state
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importFileList, setImportFileList] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState('');
   
   // Fetch all required data on component mount
   useEffect(() => {
@@ -312,15 +322,388 @@ const Expenses = () => {
   
   // Export expenses to Excel
   const exportToExcel = () => {
-    message.success('Экспорт расходов в Excel');
-    // Implement excel export functionality here
+    try {
+      // Create dataset for export
+      const exportData = expenses.map(expense => {
+        return {
+          'Дата': moment(expense.Date).format('DD.MM.YYYY'),
+          'Тип ресурса': getResourceTypeDisplayName(expense.Resource_Type),
+          'Ресурс': getResourceName(expense.Resource_Type, expense.Resource_ID),
+          'Категория': expense.Category || '',
+          'Сумма': expense.Amount || 0,
+          'Описание': expense.Description || '',
+          'Способ оплаты': expense.Payment_Method || '',
+          'Номер счета': expense.Invoice_Number || ''
+        };
+      });
+      
+      // Create worksheet from data
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      
+      // Set column widths
+      const wscols = [
+        { wch: 12 }, // Дата
+        { wch: 15 }, // Тип ресурса
+        { wch: 25 }, // Ресурс
+        { wch: 20 }, // Категория
+        { wch: 15 }, // Сумма
+        { wch: 30 }, // Описание
+        { wch: 15 }, // Способ оплаты
+        { wch: 15 }  // Номер счета
+      ];
+      worksheet['!cols'] = wscols;
+      
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Расходы');
+      
+      // Generate and download Excel file
+      const filename = `Расходы_${moment().format('YYYY-MM-DD')}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+      
+      message.success('Данные о расходах успешно экспортированы!');
+    } catch (err) {
+      message.error(`Не удалось экспортировать данные: ${err.message}`);
+    }
   };
   
-  // Show import modal
+  // Open import modal
   const showImportModal = () => {
-    message.info('Функция импорта находится в разработке');
-    // Implement import modal here
+    setImportFileList([]);
+    setImportError('');
+    setImportModalVisible(true);
   };
+  
+  // Handle import file change
+  const handleImportFileChange = (info) => {
+    setImportFileList(info.fileList.slice(-1)); // Save only the last file
+  };
+  
+  // Create template for download
+// Обновление функции downloadTemplate с использованием наименования ресурса вместо ID
+const downloadTemplate = () => {
+  // Create sample data
+  const sampleData = [
+    {
+      'Дата': '01.05.2025',
+      'Тип ресурса': 'Сотрудник',
+      'Ресурс': 'Иванов Иван Иванович',  // Заменил ID на наименование
+      'Категория': 'Зарплата',
+      'Сумма': 5000,
+      'Описание': 'Выплата аванса',
+      'Способ оплаты': 'Банковский перевод',
+      'Номер счета': 'INV-001'
+    },
+    {
+      'Дата': '05.05.2025',
+      'Тип ресурса': 'Транспорт',
+      'Ресурс': 'Toyota Camry',  // Заменил ID на наименование
+      'Категория': 'Топливо',
+      'Сумма': 1200,
+      'Описание': 'Заправка автомобиля',
+      'Способ оплаты': 'Банковская карта',
+      'Номер счета': 'INV-002'
+    }
+  ];
+  
+  // Create worksheet
+  const worksheet = XLSX.utils.json_to_sheet(sampleData);
+  
+  // Set column widths
+  const wscols = [
+    { wch: 12 }, // Дата
+    { wch: 15 }, // Тип ресурса
+    { wch: 25 }, // Ресурс (расширил для наименований)
+    { wch: 20 }, // Категория
+    { wch: 15 }, // Сумма
+    { wch: 30 }, // Описание
+    { wch: 20 }, // Способ оплаты
+    { wch: 15 }  // Номер счета
+  ];
+  worksheet['!cols'] = wscols;
+  
+  // Create workbook
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Шаблон');
+  
+  // Download
+  XLSX.writeFile(workbook, 'Шаблон_Импорта_Расходов.xlsx');
+};
+
+// Добавим функцию для поиска ID ресурса по его наименованию и типу
+const findResourceIdByName = (resourceType, resourceName) => {
+  if (!resourceName || !resourceType) return null;
+  
+  const nameLower = resourceName.toLowerCase();
+  
+  switch(resourceType) {
+    case 'Employee':
+      const employee = resourceOptions.employees.find(e => 
+        e.Full_Name && e.Full_Name.toLowerCase() === nameLower);
+      return employee ? employee.Employee_ID : null;
+      
+    case 'Equipment':
+      const equipment = resourceOptions.equipment.find(e => 
+        e.Name && e.Name.toLowerCase() === nameLower);
+      return equipment ? equipment.Equipment_ID : null;
+      
+    case 'Transportation':
+      const transport = resourceOptions.transportation.find(t => {
+        const fullName = `${t.Brand} ${t.Model}`.toLowerCase();
+        return fullName === nameLower;
+      });
+      return transport ? transport.Transport_ID : null;
+      
+    case 'Tool':
+      const tool = resourceOptions.tools.find(t => 
+        t.Name && t.Name.toLowerCase() === nameLower);
+      return tool ? tool.Tool_ID : null;
+      
+    case 'Spare':
+      const spare = resourceOptions.spares.find(s => 
+        s.Name && s.Name.toLowerCase() === nameLower);
+      return spare ? spare.Spare_ID : null;
+      
+    case 'Material':
+      const material = resourceOptions.materials.find(m => 
+        m.Name && m.Name.toLowerCase() === nameLower);
+      return material ? material.Material_ID : null;
+      
+    default:
+      return null;
+  }
+};
+
+// Обновление функции handleImport для работы с именами ресурсов вместо ID
+const handleImport = async () => {
+  setImportError('');
+  
+  if (!importFileList || importFileList.length === 0) {
+    setImportError('Пожалуйста, выберите Excel-файл для импорта');
+    message.error('Пожалуйста, выберите Excel-файл для импорта');
+    return;
+  }
+
+  const file = importFileList[0].originFileObj;
+  
+  if (!file) {
+    setImportError('Неверный файловый объект');
+    message.error('Неверный файловый объект');
+    return;
+  }
+  
+  setImporting(true);
+
+  try {
+    // Read Excel file
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        // Parse Excel data
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Get first worksheet
+        const worksheetName = workbook.SheetNames[0];
+        if (!worksheetName) {
+          throw new Error('Excel-файл не содержит листов');
+        }
+        
+        const worksheet = workbook.Sheets[worksheetName];
+        
+        // Convert to JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A" });
+        
+        // Check data structure
+        if (!jsonData || jsonData.length <= 1) { // Including header row
+          throw new Error('Excel-файл пуст или содержит некорректные данные');
+        }
+        
+        // Find header row and identify column positions
+        const headerRow = jsonData[0];
+        const columns = {
+          date: Object.keys(headerRow).find(key => headerRow[key] === 'Дата'),
+          resourceType: Object.keys(headerRow).find(key => headerRow[key] === 'Тип ресурса'),
+          resourceName: Object.keys(headerRow).find(key => headerRow[key] === 'Ресурс'), // Изменено на resourceName
+          category: Object.keys(headerRow).find(key => headerRow[key] === 'Категория'),
+          amount: Object.keys(headerRow).find(key => headerRow[key] === 'Сумма'),
+          description: Object.keys(headerRow).find(key => headerRow[key] === 'Описание'),
+          paymentMethod: Object.keys(headerRow).find(key => headerRow[key] === 'Способ оплаты'),
+          invoiceNumber: Object.keys(headerRow).find(key => headerRow[key] === 'Номер счета')
+        };
+        
+        if (!columns.date || !columns.resourceType || !columns.resourceName || !columns.category || !columns.amount) {
+          throw new Error('В Excel-файле отсутствуют обязательные столбцы');
+        }
+        
+        // Map resource type names to actual values
+        const resourceTypeMap = {
+          'Сотрудник': 'Employee',
+          'Оборудование': 'Equipment',
+          'Транспорт': 'Transportation',
+          'Инструмент': 'Tool',
+          'Запчасть': 'Spare',
+          'Материал': 'Material'
+        };
+        
+        // Transform rows to our format, skipping header row
+        const expenseItems = [];
+        const errors = [];
+        
+        for (let i = 1; i < jsonData.length; i++) {
+          const row = jsonData[i];
+          
+          // Parse date from different formats
+          let dateValue = row[columns.date];
+          let parsedDate;
+          
+          if (typeof dateValue === 'string') {
+            // Try different date formats
+            const formats = ['DD.MM.YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'];
+            for (const format of formats) {
+              const momentDate = moment(dateValue, format);
+              if (momentDate.isValid()) {
+                parsedDate = momentDate.format('YYYY-MM-DD');
+                break;
+              }
+            }
+          } else if (dateValue instanceof Date) {
+            parsedDate = moment(dateValue).format('YYYY-MM-DD');
+          }
+          
+          // Convert localized resource type to system value
+          const resourceTypeValue = row[columns.resourceType];
+          const resourceType = resourceTypeMap[resourceTypeValue] || resourceTypeValue;
+          
+          // Get the resource name and find its ID
+          const resourceName = row[columns.resourceName];
+          const resourceId = findResourceIdByName(resourceType, resourceName);
+          
+          if (!resourceId) {
+            errors.push({
+              row: i + 1,
+              message: `Не удалось найти ресурс "${resourceName}" типа "${resourceTypeValue}"`
+            });
+            continue; // Skip this row if resource not found
+          }
+          
+          expenseItems.push({
+            resourceType: resourceType,
+            resourceId: resourceId,
+            amount: Number(row[columns.amount]) || 0,
+            description: columns.description ? row[columns.description] || '' : '',
+            date: parsedDate || moment().format('YYYY-MM-DD'),
+            category: row[columns.category] || '',
+            paymentMethod: columns.paymentMethod ? row[columns.paymentMethod] || '' : '',
+            invoiceNumber: columns.invoiceNumber ? row[columns.invoiceNumber] || '' : ''
+          });
+        }
+        
+        // Filter invalid records (missing required fields)
+        const validExpenses = expenseItems.filter(item => 
+          item.resourceType && 
+          item.resourceId && 
+          item.amount > 0 && 
+          item.date && 
+          item.category
+        );
+        
+        if (validExpenses.length === 0) {
+          if (errors.length > 0) {
+            throw new Error(`Не найдены совпадения для следующих записей:\n${errors.map(e => `Строка ${e.row}: ${e.message}`).join('\n')}`);
+          } else {
+            throw new Error('Действительные данные о расходах не найдены. Все обязательные поля должны быть заполнены.');
+          }
+        }
+        
+        // Import each expense one by one
+        const results = [];
+        for (const expense of validExpenses) {
+          try {
+            const response = await fetch('/api/expenses', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(expense)
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              results.push({
+                success: false,
+                error: errorData.error || 'Импорт не удался'
+              });
+            } else {
+              results.push({ success: true });
+            }
+          } catch (err) {
+            results.push({
+              success: false,
+              error: err.message
+            });
+          }
+        }
+        
+        // Count successes and failures
+        const successes = results.filter(r => r.success).length;
+        const failures = results.length - successes;
+        
+        // Display warnings about rows that couldn't be matched
+        if (errors.length > 0) {
+          // Создаем сообщение с перечислением всех ресурсов, которые не удалось найти
+          const errorMessage = `Предупреждение: ${errors.length} записей не удалось импортировать из-за несоответствия ресурсов.`;
+          message.warning(errorMessage);
+        }
+        
+        setImportModalVisible(false);
+        
+        if (failures === 0) {
+          message.success(`Успешно импортировано ${successes} расходов`);
+        } else {
+          message.warning(`Импортировано ${successes} расходов, не удалось импортировать ${failures} записей`);
+        }
+        
+        fetchExpenses();
+        
+      } catch (err) {
+        setImportError(`Импорт не удался: ${err.message}`);
+        message.error(`Импорт не удался: ${err.message}`);
+      } finally {
+        setImporting(false);
+      }
+    };
+    
+    reader.onerror = (error) => {
+      setImportError('Не удалось прочитать файл');
+      message.error('Не удалось прочитать файл');
+      setImporting(false);
+    };
+    
+    reader.readAsArrayBuffer(file);
+    
+  } catch (err) {
+    setImportError(`Импорт не удался: ${err.message}`);
+    message.error(`Импорт не удался: ${err.message}`);
+    setImporting(false);
+  }
+};
+
+// Изменяем текст инструкции в модальном окне импорта
+<div className="import-instructions">
+  <p>Пожалуйста, загрузите Excel-файл со следующими столбцами:</p>
+  <ul>
+    <li><strong>Дата</strong> (обязательно, формат DD.MM.YYYY)</li>
+    <li><strong>Тип ресурса</strong> (обязательно)</li>
+    <li><strong>Ресурс</strong> (обязательно, полное наименование)</li>
+    <li><strong>Категория</strong> (обязательно)</li>
+    <li><strong>Сумма</strong> (обязательно)</li>
+    <li>Описание</li>
+    <li>Способ оплаты</li>
+    <li>Номер счета</li>
+  </ul>
+</div>
 
   // Get resource name by type and id
   const getResourceName = (type, id) => {
@@ -653,6 +1036,66 @@ const Expenses = () => {
           </Spin>
         </div>
       </Card>
+      
+      {/* Import modal */}
+      <Modal
+        title="Импорт расходов из Excel"
+        open={importModalVisible}
+        onCancel={() => setImportModalVisible(false)}
+        footer={[
+          <Button key="template" onClick={downloadTemplate} style={{ float: 'left' }}>
+            Скачать шаблон
+          </Button>,
+          <Button key="cancel" onClick={() => setImportModalVisible(false)}>
+            Отмена
+          </Button>,
+          <Button
+            key="import"
+            type="primary"
+            loading={importing}
+            onClick={handleImport}
+            disabled={importFileList.length === 0}
+          >
+            Импорт
+          </Button>
+        ]}
+      >
+        <div className="import-instructions">
+          <p>Пожалуйста, загрузите Excel-файл со следующими столбцами:</p>
+          <ul>
+            <li><strong>Дата</strong> (обязательно, формат DD.MM.YYYY)</li>
+            <li><strong>Тип ресурса</strong> (обязательно)</li>
+            <li><strong>ID Ресурса</strong> (обязательно)</li>
+            <li><strong>Категория</strong> (обязательно)</li>
+            <li><strong>Сумма</strong> (обязательно)</li>
+            <li>Описание</li>
+            <li>Способ оплаты</li>
+            <li>Номер счета</li>
+          </ul>
+        </div>
+
+        {importError && (
+          <div className="import-error" style={{ color: 'red', marginBottom: '10px' }}>
+            Ошибка: {importError}
+          </div>
+        )}
+
+        <Upload.Dragger
+          accept=".xlsx,.xls"
+          beforeUpload={() => false} // Prevent automatic upload
+          fileList={importFileList}
+          onChange={handleImportFileChange}
+          maxCount={1}
+        >
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">Нажмите или перетащите файл в эту область для загрузки</p>
+          <p className="ant-upload-hint">
+            Поддерживается загрузка одного Excel-файла. Убедитесь, что ваш файл содержит необходимые столбцы.
+          </p>
+        </Upload.Dragger>
+      </Modal>
     </div>
   );
 };
