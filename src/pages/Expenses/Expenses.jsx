@@ -126,6 +126,15 @@ const Expenses = () => {
     }
   };
   
+  // Format currency
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('ru-BY', {
+      style: 'currency',
+      currency: 'BYN',
+      minimumFractionDigits: 2
+    }).format(value || 0);
+  };
+  
   // Fetch expense categories
   const fetchExpenseCategories = async () => {
     try {
@@ -767,10 +776,10 @@ const handleImport = async () => {
       key: 'category'
     },
     {
-      title: 'Сумма (₽)',
+      title: 'Сумма',
       dataIndex: 'Amount',
       key: 'amount',
-      render: amount => <Text strong>{Number(amount).toLocaleString('ru-RU')}</Text>,
+      render: amount => <Text strong>{formatCurrency(amount)}</Text>,
       sorter: (a, b) => a.Amount - b.Amount,
     },
     {
@@ -782,7 +791,7 @@ const handleImport = async () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 80,
+      width: 100,
       render: (_, record) => (
         <Dropdown
           menu={{
@@ -849,7 +858,7 @@ const handleImport = async () => {
               title="Всего расходов" 
               value={summaryData.total} 
               precision={2}
-              prefix="₽"
+              prefix="BYN "
               valueStyle={{ color: '#078800' }}
               className="expense-stat"
             />
@@ -861,7 +870,7 @@ const handleImport = async () => {
               title="Крупнейшая категория" 
               value={summaryData.byCategory[0]?.Total || 0} 
               precision={2}
-              prefix="₽" 
+              prefix="BYN " 
               valueStyle={{ color: '#0AB101' }}
               className="expense-stat"
               suffix={
@@ -878,7 +887,7 @@ const handleImport = async () => {
               title="Текущий месяц" 
               value={summaryData.currentMonth} 
               precision={2}
-              prefix="₽"
+              prefix="BYN "
               valueStyle={{ color: '#0AB101' }}
               className="expense-stat"
             />
@@ -1065,7 +1074,7 @@ const handleImport = async () => {
           <ul>
             <li><strong>Дата</strong> (обязательно, формат DD.MM.YYYY)</li>
             <li><strong>Тип ресурса</strong> (обязательно)</li>
-            <li><strong>ID Ресурса</strong> (обязательно)</li>
+            <li><strong>Ресурс</strong> (обязательно, полное наименование)</li>
             <li><strong>Категория</strong> (обязательно)</li>
             <li><strong>Сумма</strong> (обязательно)</li>
             <li>Описание</li>

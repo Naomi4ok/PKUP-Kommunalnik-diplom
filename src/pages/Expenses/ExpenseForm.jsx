@@ -342,7 +342,7 @@ const ExpenseForm = () => {
             <div className="form-row">
               <Form.Item
                 name="amount"
-                label="Сумма (₽)"
+                label="Сумма"
                 rules={[
                   { required: true, message: 'Пожалуйста, введите сумму' },
                   { type: 'number', min: 0, message: 'Сумма должна быть положительной' }
@@ -352,6 +352,7 @@ const ExpenseForm = () => {
                   style={{ width: '100%' }}
                   formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                  addonAfter="BYN"
                 />
               </Form.Item>
               
