@@ -199,12 +199,17 @@ const ExpenseForm = () => {
     try {
       setLoading(true);
       
+      // Format the date properly
+      const formattedDate = selectedDate ? 
+        `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}` : 
+        '';
+      
       const expenseData = {
         resourceType: values.resourceType,
         resourceId: values.resourceId,
         amount: values.amount,
         description: values.description,
-        date: `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}`,
+        date: formattedDate, // Use the correctly formatted date
         category: values.category,
         paymentMethod: values.paymentMethod,
         invoiceNumber: values.invoiceNumber
@@ -367,14 +372,14 @@ const ExpenseForm = () => {
               </Form.Item>
               
               <Form.Item
-                label="Дата"
-                rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
-              >
-                <DatePicker 
-                  selectedDate={selectedDate}
-                  onChange={handleDateChange}
-                />
-              </Form.Item>
+  label="Дата"
+  rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
+>
+<DatePicker 
+    selectedDate={selectedDate} 
+    onChange={handleDateChange} 
+  />
+</Form.Item>
             </div>
             
             <div className="form-row">

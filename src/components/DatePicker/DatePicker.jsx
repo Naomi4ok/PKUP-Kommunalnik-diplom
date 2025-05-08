@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import './DatePicker.css';
 
-const DatePicker = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+const DatePicker = ({ selectedDate, onChange }) => {
+  // Initialize internal state from props
+  const [currentSelectedDate, setCurrentSelectedDate] = useState(selectedDate || new Date());
+  const [currentMonth, setCurrentMonth] = useState(selectedDate || new Date());
   const [isOpen, setIsOpen] = useState(false);
+
+  // Update internal state when prop changes
+  useEffect(() => {
+    if (selectedDate) {
+      setCurrentSelectedDate(selectedDate);
+      setCurrentMonth(new Date(selectedDate));
+    }
+  }, [selectedDate]);
 
   const months = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -42,8 +51,13 @@ const DatePicker = () => {
 
   const handleSelectDate = (day) => {
     const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    setSelectedDate(newDate);
+    setCurrentSelectedDate(newDate);
     setIsOpen(false);
+    
+    // Call the parent's onChange with the new date
+    if (onChange) {
+      onChange(newDate);
+    }
   };
 
   const toggleCalendar = () => {
@@ -71,9 +85,9 @@ const DatePicker = () => {
     // Add cells for the days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const isSelected = 
-        selectedDate.getDate() === day && 
-        selectedDate.getMonth() === currentMonth.getMonth() && 
-        selectedDate.getFullYear() === currentMonth.getFullYear();
+        currentSelectedDate.getDate() === day && 
+        currentSelectedDate.getMonth() === currentMonth.getMonth() && 
+        currentSelectedDate.getFullYear() === currentMonth.getFullYear();
       
       const isToday = 
         new Date().getDate() === day && 
@@ -105,7 +119,7 @@ const DatePicker = () => {
           type="text"
           className="date-input"
           placeholder="Выберите дату"
-          value={formatDate(selectedDate)}
+          value={formatDate(currentSelectedDate)}
           readOnly
           onClick={toggleCalendar}
         />
@@ -149,8 +163,12 @@ const DatePicker = () => {
           <div className="calendar-footer">
             <button 
               onClick={() => {
-                setSelectedDate(new Date());
-                setCurrentMonth(new Date());
+                const today = new Date();
+                setCurrentSelectedDate(today);
+                setCurrentMonth(today);
+                if (onChange) {
+                  onChange(today);
+                }
               }}
               className="today-button"
             >
