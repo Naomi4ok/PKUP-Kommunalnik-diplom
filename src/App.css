@@ -155,6 +155,10 @@
   background: #0AB101;
 }
 
+.ant-spin-text {
+  color: #0AB101;
+}
+
 .ant-input-affix-wrapper {
   padding: 0px 11px;
 }

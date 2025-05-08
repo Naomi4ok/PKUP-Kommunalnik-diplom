@@ -1,204 +1,262 @@
 /* Expenses.css - стили для страницы расходов */
 .expenses-page {
-    padding: 8px 24px 0px 52px;
-    max-width: 1600px;
-    width: 98%;
-    margin: 0 auto;
-    animation: fadeIn 0.5s ease-out;
+  padding: 8px 24px 0px 52px;
+  max-width: 1600px;
+  width: 98%;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ant-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+/* Add these styles to match Equipment.css */
+.page-breadcrumb {
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.page-breadcrumb a {
+  color: #0AB101;
+  transition: color 0.3s;
+}
+
+.page-breadcrumb a:hover {
+  color: #078800;
+}
+
+/* Enhanced styles for statistics cards */
+.stats-row {
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.expense-stat {
+  font-size: 1.1rem;
+  padding-left: 10px;
+}
+
+.expense-stat .ant-statistic-title {
+  font-size: 16px;
+  color: #444;
+  margin-bottom: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.expense-stat .ant-statistic-content {
+  font-size: 24px !important;
+  color: #0AB101;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.currency-suffix {
+  font-size: 0.8em;
+  margin-left: 4px;
+  color: #0AB101;
+}
+
+/* Icons for statistics headers */
+.stat-card-icon {
+  margin-right: 8px;
+  background-color: rgba(10, 177, 1, 0.1);
+  padding: 8px;
+  border-radius: 8px;
+  display: inline-flex;
+  color: #0AB101;
+}
+
+.stat-category {
+  margin-left: 12px;
+  font-size: 14px;
+  color: #555;
+  background-color: rgba(10, 177, 1, 0.1);
+  padding: 4px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  display: inline-block;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+/* Animation for statistics values */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.expense-stat .ant-statistic-content {
+  animation: countUp 0.8s ease-out forwards;
+}
+
+.filter-card {
+  margin-bottom: 24px;
+}
+
+.expenses-table-card {
+  margin-bottom: 24px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.table-title {
+  margin-bottom: 0;
+}
+
+.header-left-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-right-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ant-export-button,
+.ant-import-button,
+.ant-filter-button,
+.ant-add-button {
+  display: flex;
+  align-items: center;
+}
+
+.expenses-search-bar-container {
+  width: 300px;
+}
+
+.filter-panel {
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.filter-panel.visible {
+  display: block;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.filter-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-panel-header h4 {
+  margin: 0;
+}
+
+.filter-group {
+  margin-bottom: 16px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.ant-filreset-button {
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .expenses-page {
+    padding: 16px;
   }
   
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .ant-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 0;
+  .stats-row {
     margin-bottom: 16px;
   }
   
-  /* Add these styles to match Equipment.css */
-  .page-breadcrumb {
-    margin-bottom: 24px;
-    font-size: 15px;
-  }
-  
-  .page-breadcrumb a {
-    color: #0AB101;
-    transition: color 0.3s;
-  }
-  
-  .page-breadcrumb a:hover {
-    color: #078800;
-  }
-  
-  /* Styles for statistics cards */
-  .stats-row {
-    margin-bottom: 24px;
-  }
-  
-  .stat-card {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    transition: all 0.3s ease;
-  }
-  
-  .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-  }
-  
-  .expense-stat {
-    font-size: 1.1rem;
-  }
-  
-  .expense-stat .ant-statistic-title {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 8px;
-  }
-  
-  .expense-stat .ant-statistic-content {
-    font-weight: 600;
-  }
-  
-  .stat-category {
-    margin-left: 8px;
-    font-size: 14px;
-    color: #666;
-    background-color: #f5f5f5;
-    padding: 2px 8px;
-    border-radius: 10px;
-    white-space: nowrap;
-    display: inline-block;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .filter-card {
-    margin-bottom: 24px;
-  }
-  
-  .expenses-table-card {
-    margin-bottom: 24px;
+  .stats-row .ant-col {
+    margin-bottom: 16px;
   }
   
   .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .table-title {
-    margin-bottom: 0;
+    margin-bottom: 16px;
   }
   
-  .header-left-content {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  
+  .header-left-content,
   .header-right-content {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .expenses-search-bar-container {
+    width: 100%;
   }
   
   .ant-export-button,
   .ant-import-button,
   .ant-filter-button,
   .ant-add-button {
-    display: flex;
-    align-items: center;
-  }
-  
-  .expenses-search-bar-container {
-    width: 300px;
-  }
-  
-  .filter-panel {
-    background-color: #f5f5f5;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    display: none;
-  }
-  
-  .filter-panel.visible {
-    display: block;
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  .filter-panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-  
-  .filter-panel-header h4 {
-    margin: 0;
-  }
-  
-  .filter-group {
-    margin-bottom: 16px;
-  }
-  
-  .filter-group label {
-    display: block;
+    width: 100%;
     margin-bottom: 8px;
-    font-weight: 500;
   }
-  
-  .ant-filreset-button {
-    padding: 0;
-  }
-  
-  @media (max-width: 768px) {
-    .expenses-page {
-      padding: 16px;
-    }
-    
-    .stats-row {
-      margin-bottom: 16px;
-    }
-    
-    .stats-row .ant-col {
-      margin-bottom: 16px;
-    }
-    
-    .table-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .table-title {
-      margin-bottom: 16px;
-    }
-    
-    .header-left-content,
-    .header-right-content {
-      flex-direction: column;
-      align-items: flex-start;
-      width: 100%;
-    }
-    
-    .expenses-search-bar-container {
-      width: 100%;
-    }
-    
-    .ant-export-button,
-    .ant-import-button,
-    .ant-filter-button,
-    .ant-add-button {
-      width: 100%;
-      margin-bottom: 8px;
-    }
-  }
+}
+
+.expense-form-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.expense-form-title {
+  margin-bottom: 0 !important;
+  margin-left: 24px;
+  color: #2c3e50;
+  font-weight: 600;
+}

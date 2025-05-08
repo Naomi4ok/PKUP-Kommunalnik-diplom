@@ -35,6 +35,9 @@ import {
   ImportOutlined,
   EllipsisOutlined,
   InboxOutlined,
+  WalletOutlined,
+  TagOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
@@ -128,7 +131,7 @@ const Expenses = () => {
   
   // Format currency
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('ru-BY', {
+    return new Intl.NumberFormat('BY', {
       style: 'currency',
       currency: 'BYN',
       minimumFractionDigits: 2
@@ -779,7 +782,7 @@ const handleImport = async () => {
       title: 'Сумма',
       dataIndex: 'Amount',
       key: 'amount',
-      render: amount => <Text strong>{formatCurrency(amount)}</Text>,
+      render: amount => <Text>{formatCurrency(amount)}</Text>,
       sorter: (a, b) => a.Amount - b.Amount,
     },
     {
@@ -851,49 +854,70 @@ const handleImport = async () => {
       </Breadcrumb>
       
       {/* Статистика по расходам */}
-      <Row gutter={16} className="stats-row">
-        <Col xs={24} sm={8}>
-          <Card className="stat-card">
-            <Statistic 
-              title="Всего расходов" 
-              value={summaryData.total} 
-              precision={2}
-              prefix="BYN "
-              valueStyle={{ color: '#078800' }}
-              className="expense-stat"
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card className="stat-card">
-            <Statistic 
-              title="Крупнейшая категория" 
-              value={summaryData.byCategory[0]?.Total || 0} 
-              precision={2}
-              prefix="BYN " 
-              valueStyle={{ color: '#0AB101' }}
-              className="expense-stat"
-              suffix={
-                <span className="stat-category">
-                  {summaryData.byCategory[0]?.Category || 'Нет данных'}
-                </span>
-              }
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card className="stat-card">
-            <Statistic 
-              title="Текущий месяц" 
-              value={summaryData.currentMonth} 
-              precision={2}
-              prefix="BYN "
-              valueStyle={{ color: '#0AB101' }}
-              className="expense-stat"
-            />
-          </Card>
-        </Col>
-      </Row>
+      <Row gutter={24} className="stats-row">
+  <Col xs={24} sm={8}>
+    <Card className="stat-card">
+      <Statistic 
+        title={
+          <>
+            <span className="stat-card-icon">
+              <WalletOutlined />
+            </span>
+            Всего расходов
+          </>
+        } 
+        value={summaryData.total} 
+        precision={2}
+        suffix={<span className="currency-suffix">BYN</span>}
+        className="expense-stat"
+      />
+    </Card>
+  </Col>
+  <Col xs={24} sm={8}>
+    <Card className="stat-card">
+      <Statistic 
+        title={
+          <>
+            <span className="stat-card-icon">
+              <TagOutlined />
+            </span>
+            Крупнейшая категория
+          </>
+        } 
+        value={summaryData.byCategory[0]?.Total || 0} 
+        precision={2}
+        suffix={
+          <>
+            <span className="currency-suffix">BYN</span>
+            {' '}
+            <span className="stat-category">
+              {summaryData.byCategory[0]?.Category || 'Нет данных'}
+            </span>
+          </>
+        }
+        className="expense-stat"
+      />
+    </Card>
+  </Col>
+  <Col xs={24} sm={8}>
+    <Card className="stat-card">
+      <Statistic 
+        title={
+          <>
+            <span className="stat-card-icon">
+              <CalendarOutlined />
+            </span>
+            Текущий месяц
+          </>
+        } 
+        value={summaryData.currentMonth} 
+        precision={2}
+        suffix={<span className="currency-suffix">BYN</span>}
+        className="expense-stat"
+      />
+    </Card>
+  </Col>
+</Row>
       
       <Card>
         <div className="ant-page-header-wrapper">

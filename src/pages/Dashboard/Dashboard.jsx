@@ -9,7 +9,7 @@ import {
   PartitionOutlined, CheckCircleOutlined, CloseCircleOutlined,
   DollarOutlined, CalendarOutlined, SettingOutlined,
   CloudOutlined, ApartmentOutlined, BellOutlined,
-  ClockCircleOutlined, SyncOutlined
+  ClockCircleOutlined, SyncOutlined, TeamOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
@@ -578,7 +578,7 @@ const Dashboard = () => {
             <Col xs={24} sm={12} md={8} lg={4}>
               <Card bordered={false} className="stat-card resource-card" hoverable>
                 <div className="stat-icon-container employee-icon">
-                  <UserOutlined className="stat-icon" />
+                  <TeamOutlined className="stat-icon" />
                 </div>
                 <Statistic 
                   title="Сотрудники" 

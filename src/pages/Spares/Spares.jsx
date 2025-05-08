@@ -215,7 +215,7 @@ const Spares = () => {
 
   // Format currency
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('ru-BY', {
+    return new Intl.NumberFormat('BY', {
       style: 'currency',
       currency: 'BYN',
       minimumFractionDigits: 2
