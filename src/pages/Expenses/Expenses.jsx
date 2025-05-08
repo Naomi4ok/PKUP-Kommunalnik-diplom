@@ -180,41 +180,44 @@ const Expenses = () => {
     }
   };
   
-  // Fetch summary data for statistics
-  const fetchSummaryData = async () => {
-    try {
-      // Construct query params for date range
-      const params = new URLSearchParams();
-      if (filterValues.dateRange && filterValues.dateRange[0]) {
-        params.append('startDate', filterValues.dateRange[0].format('YYYY-MM-DD'));
-      }
-      if (filterValues.dateRange && filterValues.dateRange[1]) {
-        params.append('endDate', filterValues.dateRange[1].format('YYYY-MM-DD'));
-      }
-      
-      // Fetch current month data
-      const currentMonthParams = new URLSearchParams();
-      currentMonthParams.append('startDate', moment().startOf('month').format('YYYY-MM-DD'));
-      currentMonthParams.append('endDate', moment().format('YYYY-MM-DD'));
-      
-      // Fetch summary data in parallel
-      const [totalResponse, byTypeResponse, byCategoryResponse, currentMonthResponse] = await Promise.all([
-        fetch(`/api/expenses/summary/total?${params.toString()}`).then(res => res.json()),
-        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=resource_type`).then(res => res.json()),
-        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=category`).then(res => res.json()),
-        fetch(`/api/expenses/summary/total?${currentMonthParams.toString()}`).then(res => res.json())
-      ]);
-      
-      setSummaryData({
-        total: totalResponse[0]?.Total || 0,
-        byType: byTypeResponse || [],
-        byCategory: byCategoryResponse || [],
-        currentMonth: currentMonthResponse[0]?.Total || 0
-      });
-    } catch (err) {
-      message.error(`Failed to load summary data: ${err.message}`);
+  // Обновленная функция fetchSummaryData
+const fetchSummaryData = async () => {
+  try {
+    // Construct query params for date range
+    const params = new URLSearchParams();
+    if (filterValues.dateRange && filterValues.dateRange[0]) {
+      params.append('startDate', filterValues.dateRange[0].format('YYYY-MM-DD'));
     }
-  };
+    if (filterValues.dateRange && filterValues.dateRange[1]) {
+      params.append('endDate', filterValues.dateRange[1].format('YYYY-MM-DD'));
+    }
+    
+    // Fetch current month data
+    const currentMonthParams = new URLSearchParams();
+    currentMonthParams.append('startDate', moment().startOf('month').format('YYYY-MM-DD'));
+    currentMonthParams.append('endDate', moment().format('YYYY-MM-DD'));
+    
+    // Fetch summary data in parallel
+    const [totalResponse, byTypeResponse, byCategoryResponse, currentMonthResponse] = await Promise.all([
+      fetch(`/api/expenses/summary/total?${params.toString()}`).then(res => res.json()),
+      fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=resource_type`).then(res => res.json()),
+      fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=category`).then(res => res.json()),
+      fetch(`/api/expenses/summary/total?${currentMonthParams.toString()}`).then(res => res.json())
+    ]);
+    
+    // Сортировка категорий по сумме (Total) в порядке убывания
+    const sortedCategories = [...byCategoryResponse].sort((a, b) => b.Total - a.Total);
+    
+    setSummaryData({
+      total: totalResponse[0]?.Total || 0,
+      byType: byTypeResponse || [],
+      byCategory: sortedCategories || [], // используем отсортированный массив
+      currentMonth: currentMonthResponse[0]?.Total || 0
+    });
+  } catch (err) {
+    message.error(`Failed to load summary data: ${err.message}`);
+  }
+};
 
   // Applying filters and search to the expenses
   const applyFiltersAndSearch = () => {

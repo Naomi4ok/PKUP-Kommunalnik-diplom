@@ -5,7 +5,6 @@ import {
   Input,
   Button,
   Select,
-  DatePicker,
   InputNumber,
   Card,
   Typography,
@@ -25,6 +24,7 @@ import {
 } from '@ant-design/icons';
 import moment from 'moment';
 import '../../styles/Expenses/ExpenseForm.css';
+import DatePicker from '../../components/DatePicker/DatePicker';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -48,6 +48,7 @@ const ExpenseForm = () => {
     materials: []
   });
   const [selectedResourceType, setSelectedResourceType] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
   
   // Fetch all required data on component mount
   useEffect(() => {
@@ -75,13 +76,18 @@ const ExpenseForm = () => {
       // Set resource type first to enable resource selection
       setSelectedResourceType(data.Resource_Type);
       
+      // Set date from the data
+      if (data.Date) {
+        setSelectedDate(new Date(data.Date));
+      }
+      
       // Set form values
       form.setFieldsValue({
         resourceType: data.Resource_Type,
         resourceId: data.Resource_ID,
         amount: data.Amount,
         description: data.Description,
-        date: moment(data.Date),
+        // date is handled separately with our custom DatePicker
         category: data.Category,
         paymentMethod: data.Payment_Method,
         invoiceNumber: data.Invoice_Number
@@ -183,6 +189,11 @@ const ExpenseForm = () => {
     }
   };
   
+  // Handle date change from custom DatePicker
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+  
   // Submit form handler
   const handleSubmit = async (values) => {
     try {
@@ -193,7 +204,7 @@ const ExpenseForm = () => {
         resourceId: values.resourceId,
         amount: values.amount,
         description: values.description,
-        date: values.date.format('YYYY-MM-DD'),
+        date: `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}`,
         category: values.category,
         paymentMethod: values.paymentMethod,
         invoiceNumber: values.invoiceNumber
@@ -299,7 +310,6 @@ const ExpenseForm = () => {
             layout="vertical"
             onFinish={handleSubmit}
             initialValues={{
-              date: moment(),
               amount: 0
             }}
           >
@@ -357,11 +367,13 @@ const ExpenseForm = () => {
               </Form.Item>
               
               <Form.Item
-                name="date"
                 label="Дата"
                 rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
               >
-                <DatePicker style={{ width: '100%' }} />
+                <DatePicker 
+                  selectedDate={selectedDate}
+                  onChange={handleDateChange}
+                />
               </Form.Item>
             </div>
             
