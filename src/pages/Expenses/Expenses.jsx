@@ -1006,15 +1006,15 @@ const handleImport = async () => {
               <Row gutter={[16, 16]}>
                 {/* Date range filter - replaced RangePicker with custom DateRangePicker */}
                 <Col xs={24} sm={24} md={12}>
-                  <div className="filter-group">
-                    <label>Период</label>
-                    <DateRangePicker 
-                      value={filterValues.dateRange}
-                      onChange={handleDateRangeChange}
-                      style={{ width: '100%' }}
-                    />
-                  </div>
-                </Col>
+  <div className="filter-group">
+    <label>Период</label>
+    <DateRangePicker 
+      value={filterValues.dateRange}
+      onChange={handleDateRangeChange}
+      style={{ width: '100%' }}
+    />
+  </div>
+</Col>
                 
                 {/* Resource type filter */}
                 <Col xs={24} sm={12} md={6}>

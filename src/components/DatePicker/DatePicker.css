@@ -37,13 +37,13 @@
   .calendar-popup {
     position: absolute;
     top: calc(100% + 4px);
+    z-index: 1000;
     left: 0;
     width: 280px;
     background-color: #fff;
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     padding: 12px;
-    z-index: 1000;
     animation: fadeIn 0.2s ease-in-out;
   }
   

@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { DatePicker } from 'antd';
 import moment from 'moment';
 import './DateRangePicker.css';
 
-const DateRangePicker = ({ startDate, endDate, onChange }) => {
-  // Initialize internal state from props
-  const [currentStartDate, setCurrentStartDate] = useState(startDate || new Date());
-  const [currentEndDate, setCurrentEndDate] = useState(endDate || new Date());
+const DateRangePicker = ({ value, onChange }) => {
+  // Преобразуем входные значения moment в JavaScript Date
+  const [currentStartDate, setCurrentStartDate] = useState(() => {
+    return value && value[0] ? value[0].toDate() : new Date();
+  });
+  const [currentEndDate, setCurrentEndDate] = useState(() => {
+    return value && value[1] ? value[1].toDate() : new Date();
+  });
+  
   const [selectingStartDate, setSelectingStartDate] = useState(true);
-  const [currentMonth, setCurrentMonth] = useState(startDate || new Date());
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    return value && value[0] ? value[0].toDate() : new Date();
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
 
-  // Update internal state when props change
+  // Обновляем внутреннее состояние при изменении props
   useEffect(() => {
-    if (startDate) {
-      setCurrentStartDate(startDate);
+    if (value && value[0]) {
+      setCurrentStartDate(value[0].toDate());
     }
-    if (endDate) {
-      setCurrentEndDate(endDate);
+    if (value && value[1]) {
+      setCurrentEndDate(value[1].toDate());
     }
-  }, [startDate, endDate]);
+  }, [value]);
 
   const months = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -73,12 +79,11 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
       setSelectingStartDate(true);
     }
     
-    // Call the parent's onChange with both dates
+    // Call the parent's onChange with both dates converted to moment objects
     if (onChange) {
-      onChange({
-        startDate: selectingStartDate ? selectedDate : currentStartDate,
-        endDate: selectingStartDate ? currentEndDate : selectedDate
-      });
+      const newStartDate = selectingStartDate ? moment(selectedDate) : moment(currentStartDate);
+      const newEndDate = selectingStartDate ? moment(currentEndDate) : moment(selectedDate);
+      onChange([newStartDate, newEndDate]);
     }
   };
 
@@ -156,42 +161,42 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
   };
 
   return (
-<div className="date-range-picker-container">
-  <div className="date-range-inputs flex items-center">
-    <div className="date-input-wrapper relative">
-      <input
-        type="text"
-        className="date-input"
-        placeholder="Начальная дата"
-        value={formatDate(currentStartDate)}
-        readOnly
-        onClick={() => toggleCalendar('start')}
-      />
-      <div 
-        className="calendar-icon absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
-        onClick={() => toggleCalendar('start')}
-      >
-        <Calendar size={20} />
+    <div className="date-range-picker-container">
+      <div className="date-range-inputs flex items-center">
+        <div className="date-input-wrapper relative">
+          <input
+            type="text"
+            className="date-input"
+            placeholder="Начальная дата"
+            value={formatDate(currentStartDate)}
+            readOnly
+            onClick={() => toggleCalendar('start')}
+          />
+          <div 
+            className="calendar-icon absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
+            onClick={() => toggleCalendar('start')}
+          >
+            <Calendar size={20} />
+          </div>
+        </div>
+        <div className="date-separator mx-2">→</div>
+        <div className="date-input-wrapper relative">
+          <input
+            type="text"
+            className="date-input"
+            placeholder="Конечная дата"
+            value={formatDate(currentEndDate)}
+            readOnly
+            onClick={() => toggleCalendar('end')}
+          />
+          <div 
+            className="calendar-icon absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
+            onClick={() => toggleCalendar('end')}
+          >
+            <Calendar size={20} />
+          </div>
+        </div>
       </div>
-    </div>
-    <div className="date-separator mx-2">→</div>
-    <div className="date-input-wrapper relative">
-      <input
-        type="text"
-        className="date-input"
-        placeholder="Конечная дата"
-        value={formatDate(currentEndDate)}
-        readOnly
-        onClick={() => toggleCalendar('end')}
-      />
-      <div 
-        className="calendar-icon absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
-        onClick={() => toggleCalendar('end')}
-      >
-        <Calendar size={20} />
-      </div>
-    </div>
-  </div>
       
       {isOpen && (
         <div className="calendar-popup">
@@ -236,10 +241,9 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
                 setCurrentMonth(today);
                 
                 if (onChange) {
-                  onChange({
-                    startDate: selectingStartDate ? today : currentStartDate,
-                    endDate: selectingStartDate ? currentEndDate : today
-                  });
+                  const newStartDate = moment(selectingStartDate ? today : currentStartDate);
+                  const newEndDate = moment(selectingStartDate ? currentEndDate : today);
+                  onChange([newStartDate, newEndDate]);
                 }
               }}
               className="today-button"
