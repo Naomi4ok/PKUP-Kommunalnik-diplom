@@ -10,7 +10,7 @@ import {
   Popconfirm,
   Tag,
   Breadcrumb,
-  DatePicker,
+  // DatePicker, // Removed Ant Design DatePicker
   Select,
   Input,
   Row,
@@ -44,9 +44,11 @@ import * as XLSX from 'xlsx';
 import '../../styles/Expenses/Expenses.css';
 import SearchBar from '../../components/SearchBar';
 import Pagination from '../../components/Pagination';
+// Import your custom DateRangePicker component
+import DateRangePicker from '../../components/DateRangePicker/DateRangePicker';
 
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
+// const { RangePicker } = DatePicker; // Removed Ant Design RangePicker
 const { Option } = Select;
 
 const Expenses = () => {
@@ -278,6 +280,14 @@ const fetchSummaryData = async () => {
     setFilterValues(prev => ({
       ...prev,
       [filterType]: values
+    }));
+  };
+  
+  // Handle date range change for custom DateRangePicker
+  const handleDateRangeChange = (dateRange) => {
+    setFilterValues(prev => ({
+      ...prev,
+      dateRange: dateRange
     }));
   };
   
@@ -994,14 +1004,14 @@ const handleImport = async () => {
               </div>
               
               <Row gutter={[16, 16]}>
-                {/* Date range filter */}
+                {/* Date range filter - replaced RangePicker with custom DateRangePicker */}
                 <Col xs={24} sm={24} md={12}>
                   <div className="filter-group">
                     <label>Период</label>
-                    <RangePicker 
-                      style={{ width: '100%' }}
+                    <DateRangePicker 
                       value={filterValues.dateRange}
-                      onChange={(dates) => handleFilterChange('dateRange', dates)}
+                      onChange={handleDateRangeChange}
+                      style={{ width: '100%' }}
                     />
                   </div>
                 </Col>
