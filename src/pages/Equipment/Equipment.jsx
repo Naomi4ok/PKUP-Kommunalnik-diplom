@@ -649,7 +649,7 @@ const Equipment = () => {
     {
       title: 'Действия',
       key: 'actions',
-      width: 80,
+      width: 100,
       render: (_, record) => (
         <Dropdown
           menu={{

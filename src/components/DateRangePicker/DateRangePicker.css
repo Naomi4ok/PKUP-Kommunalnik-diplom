@@ -2,24 +2,36 @@
     display: flex;
     align-items: center;
 }
-  
-  .date-input-wrapper {
+.date-input-wrapper {
     position: relative;
     width: auto;
-  }
-  
-  .date-input {
+}
+.date-input {
     padding: 8px 35px 8px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     width: 150px;
-  }
-  
-  .calendar-icon {
+}
+.calendar-icon {
     position: absolute;
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-  }
-  
+}
+
+/* Добавим для popup как у Ant Design */
+.calendar-popup {
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+    padding: 12px;
+    animation: fadeIn 0.2s ease-in-out;
+    min-width: 320px;
+    z-index: 3000;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
+}

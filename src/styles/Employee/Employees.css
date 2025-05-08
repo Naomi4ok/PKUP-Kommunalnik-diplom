@@ -260,9 +260,8 @@
   border-radius: 8px;
   padding: 0;
   margin-bottom: 20px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #19cc00;
   max-height: 0;
-  overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
   transform: translateY(-20px);

@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import moment from 'moment';
 import './DateRangePicker.css';
 
 const DateRangePicker = ({ value, onChange }) => {
-  // Преобразуем входные значения moment в JavaScript Date
   const [currentStartDate, setCurrentStartDate] = useState(() => {
     return value && value[0] ? value[0].toDate() : new Date();
   });
   const [currentEndDate, setCurrentEndDate] = useState(() => {
     return value && value[1] ? value[1].toDate() : new Date();
   });
-  
+
   const [selectingStartDate, setSelectingStartDate] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(() => {
     return value && value[0] ? value[0].toDate() : new Date();
@@ -19,29 +19,53 @@ const DateRangePicker = ({ value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
 
-  // Обновляем внутреннее состояние при изменении props
+  // For portal positioning
+  const inputStartRef = useRef(null);
+  const inputEndRef = useRef(null);
+  const [popupStyle, setPopupStyle] = useState({});
+
+  // Update calendar position under input
+  const updatePopupPosition = () => {
+    const ref = activeInput === 'end' ? inputEndRef : inputStartRef;
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPopupStyle({
+        position: 'absolute',
+        top: `${rect.bottom + window.scrollY + 4}px`,
+        left: `${rect.left + window.scrollX}px`,
+        zIndex: 3000,
+        minWidth: `${rect.width}px`,
+      });
+    }
+  };
+
   useEffect(() => {
-    if (value && value[0]) {
-      setCurrentStartDate(value[0].toDate());
+    if (isOpen) {
+      updatePopupPosition();
+      window.addEventListener('scroll', updatePopupPosition, true);
+      window.addEventListener('resize', updatePopupPosition);
+      return () => {
+        window.removeEventListener('scroll', updatePopupPosition, true);
+        window.removeEventListener('resize', updatePopupPosition);
+      };
     }
-    if (value && value[1]) {
-      setCurrentEndDate(value[1].toDate());
-    }
+  // eslint-disable-next-line
+  }, [isOpen, activeInput]);
+
+  // Update internal state when props change
+  useEffect(() => {
+    if (value && value[0]) setCurrentStartDate(value[0].toDate());
+    if (value && value[1]) setCurrentEndDate(value[1].toDate());
   }, [value]);
 
   const months = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
     'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
-  
   const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-  const getDaysInMonth = (year, month) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
+  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => {
-    // Adjust for Monday as first day of week (0 is Monday, 6 is Sunday)
     const day = new Date(year, month, 1).getDay();
     return day === 0 ? 6 : day - 1;
   };
@@ -64,12 +88,11 @@ const DateRangePicker = ({ value, onChange }) => {
 
   const handleSelectDate = (day) => {
     const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    
+
     if (selectingStartDate || selectedDate < currentStartDate) {
       setCurrentStartDate(selectedDate);
       setSelectingStartDate(false);
-      
-      // If selecting a new start date that's after the current end date
+
       if (selectedDate > currentEndDate) {
         setCurrentEndDate(selectedDate);
       }
@@ -78,8 +101,7 @@ const DateRangePicker = ({ value, onChange }) => {
       setIsOpen(false);
       setSelectingStartDate(true);
     }
-    
-    // Call the parent's onChange with both dates converted to moment objects
+
     if (onChange) {
       const newStartDate = selectingStartDate ? moment(selectedDate) : moment(currentStartDate);
       const newEndDate = selectingStartDate ? moment(currentEndDate) : moment(selectedDate);
@@ -96,6 +118,7 @@ const DateRangePicker = ({ value, onChange }) => {
       setActiveInput(inputType);
       setSelectingStartDate(inputType === 'start');
       setCurrentMonth(inputType === 'start' ? currentStartDate : currentEndDate);
+      setTimeout(updatePopupPosition, 0); // пересчитать позицию после рендера
     }
   };
 
@@ -109,59 +132,120 @@ const DateRangePicker = ({ value, onChange }) => {
   const renderCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currentMonth.getFullYear(), currentMonth.getMonth());
     const firstDayOfMonth = getFirstDayOfMonth(currentMonth.getFullYear(), currentMonth.getMonth());
-    
+
     const days = [];
-    
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
     }
-    
-    // Add cells for the days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      
-      const isStartDate = 
-        currentStartDate.getDate() === day && 
-        currentStartDate.getMonth() === currentMonth.getMonth() && 
+
+      const isStartDate =
+        currentStartDate.getDate() === day &&
+        currentStartDate.getMonth() === currentMonth.getMonth() &&
         currentStartDate.getFullYear() === currentMonth.getFullYear();
-      
-      const isEndDate = 
-        currentEndDate.getDate() === day && 
-        currentEndDate.getMonth() === currentMonth.getMonth() && 
+
+      const isEndDate =
+        currentEndDate.getDate() === day &&
+        currentEndDate.getMonth() === currentMonth.getMonth() &&
         currentEndDate.getFullYear() === currentMonth.getFullYear();
-      
-      const isInRange = 
-        currentDate > currentStartDate && 
+
+      const isInRange =
+        currentDate > currentStartDate &&
         currentDate < currentEndDate;
-      
-      const isToday = 
-        new Date().getDate() === day && 
-        new Date().getMonth() === currentMonth.getMonth() && 
+
+      const isToday =
+        new Date().getDate() === day &&
+        new Date().getMonth() === currentMonth.getMonth() &&
         new Date().getFullYear() === currentMonth.getFullYear();
-      
+
       let dayClassName = 'calendar-day';
       if (isStartDate) dayClassName += ' start-date';
       if (isEndDate) dayClassName += ' end-date';
       if (isInRange) dayClassName += ' in-range';
       if (isToday) dayClassName += ' today';
-      
+
       days.push(
-        <div 
-          key={day} 
-          onClick={() => handleSelectDate(day)} 
+        <div
+          key={day}
+          onClick={() => handleSelectDate(day)}
           className={dayClassName}
         >
           {day}
         </div>
       );
     }
-    
     return days;
   };
 
+  // Календарь в portal
+  const calendarPopup = isOpen ? createPortal(
+    <div className="calendar-popup" style={popupStyle}>
+      <div className="calendar-header">
+        <button
+          onClick={handlePrevMonth}
+          className="month-nav-button"
+          type="button"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div className="current-month">
+          {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+        </div>
+        <button
+          onClick={handleNextMonth}
+          className="month-nav-button"
+          type="button"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+      <div className="calendar-grid">
+        {daysOfWeek.map(day => (
+          <div key={day} className="weekday">
+            {day}
+          </div>
+        ))}
+        {renderCalendarDays()}
+      </div>
+      <div className="calendar-footer">
+        <button
+          onClick={() => {
+            const today = new Date();
+            if (selectingStartDate) {
+              setCurrentStartDate(today);
+              setSelectingStartDate(false);
+            } else {
+              setCurrentEndDate(today);
+              setSelectingStartDate(true);
+            }
+            setCurrentMonth(today);
+
+            if (onChange) {
+              const newStartDate = moment(selectingStartDate ? today : currentStartDate);
+              const newEndDate = moment(selectingStartDate ? currentEndDate : today);
+              onChange([newStartDate, newEndDate]);
+            }
+          }}
+          className="today-button"
+          type="button"
+        >
+          Сегодня
+        </button>
+        <button
+          onClick={() => setIsOpen(false)}
+          className="close-button"
+          type="button"
+        >
+          Закрыть
+        </button>
+      </div>
+    </div>,
+    document.body
+  ) : null;
+
   return (
-    <div className="date-range-picker-container">
+    <div className="date-range-picker-container" style={{ position: 'relative' }}>
       <div className="date-range-inputs flex items-center">
         <div className="date-input-wrapper relative">
           <input
@@ -170,9 +254,10 @@ const DateRangePicker = ({ value, onChange }) => {
             placeholder="Начальная дата"
             value={formatDate(currentStartDate)}
             readOnly
+            ref={inputStartRef}
             onClick={() => toggleCalendar('start')}
           />
-          <div 
+          <div
             className="calendar-icon absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
             onClick={() => toggleCalendar('start')}
           >
@@ -187,9 +272,10 @@ const DateRangePicker = ({ value, onChange }) => {
             placeholder="Конечная дата"
             value={formatDate(currentEndDate)}
             readOnly
+            ref={inputEndRef}
             onClick={() => toggleCalendar('end')}
           />
-          <div 
+          <div
             className="calendar-icon absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
             onClick={() => toggleCalendar('end')}
           >
@@ -197,68 +283,7 @@ const DateRangePicker = ({ value, onChange }) => {
           </div>
         </div>
       </div>
-      
-      {isOpen && (
-        <div className="calendar-popup">
-          <div className="calendar-header">
-            <button 
-              onClick={handlePrevMonth}
-              className="month-nav-button"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <div className="current-month">
-              {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-            </div>
-            <button 
-              onClick={handleNextMonth}
-              className="month-nav-button"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-          
-          <div className="calendar-grid">
-            {daysOfWeek.map(day => (
-              <div key={day} className="weekday">
-                {day}
-              </div>
-            ))}
-            {renderCalendarDays()}
-          </div>
-          
-          <div className="calendar-footer">
-            <button 
-              onClick={() => {
-                const today = new Date();
-                if (selectingStartDate) {
-                  setCurrentStartDate(today);
-                  setSelectingStartDate(false);
-                } else {
-                  setCurrentEndDate(today);
-                  setSelectingStartDate(true);
-                }
-                setCurrentMonth(today);
-                
-                if (onChange) {
-                  const newStartDate = moment(selectingStartDate ? today : currentStartDate);
-                  const newEndDate = moment(selectingStartDate ? currentEndDate : today);
-                  onChange([newStartDate, newEndDate]);
-                }
-              }}
-              className="today-button"
-            >
-              Сегодня
-            </button>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="close-button"
-            >
-              Закрыть
-            </button>
-          </div>
-        </div>
-      )}
+      {calendarPopup}
     </div>
   );
 };
