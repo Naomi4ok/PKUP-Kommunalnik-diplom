@@ -94,13 +94,11 @@
 
 .stat-category {
   margin-left: 12px;
-  font-size: 14px;
-  color: #555;
+  font-size: 19px;
   background-color: rgba(10, 177, 1, 0.1);
   padding: 4px 10px;
   border-radius: 10px;
   white-space: nowrap;
-  display: inline-block;
   max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;

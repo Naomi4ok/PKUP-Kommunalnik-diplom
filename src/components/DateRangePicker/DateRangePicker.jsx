@@ -250,7 +250,7 @@ const DateRangePicker = ({ value, onChange }) => {
         <div className="date-input-wrapper relative">
           <input
             type="text"
-            className="date-input"
+            className="date-range-input"
             placeholder="Начальная дата"
             value={formatDate(currentStartDate)}
             readOnly
@@ -268,7 +268,7 @@ const DateRangePicker = ({ value, onChange }) => {
         <div className="date-input-wrapper relative">
           <input
             type="text"
-            className="date-input"
+            className="date-range-input"
             placeholder="Конечная дата"
             value={formatDate(currentEndDate)}
             readOnly

@@ -6,18 +6,15 @@
     position: relative;
     width: auto;
 }
-.date-input {
+.date-range-input {
     padding: 8px 35px 8px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    width: 150px;
+    width: 300px;
 }
-.calendar-icon {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
+
+.date-separator {
+    padding: 0px 5px 0px 5px;
 }
 
 /* Добавим для popup как у Ant Design */

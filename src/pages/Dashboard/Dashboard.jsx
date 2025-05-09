@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+  import React, { useState, useEffect, useContext } from 'react';
 import { 
   Row, Col, Card, Statistic, Table, Alert, 
   Badge, Spin, Typography, Avatar, Divider, Progress, 
@@ -15,11 +15,13 @@ import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import '../../styles/Dashboard/Dashboard.css';
 import moment from 'moment';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 
 const { Title, Text } = Typography;
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate(); // Initialize the navigate function
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     employeesCount: 0,
@@ -317,6 +319,11 @@ const Dashboard = () => {
     return '☁️';
   };
 
+  // Navigation function for cards
+  const handleCardClick = (path) => {
+    navigate(path);
+  };
+
   // Status color mapping
   const getStatusColor = (statusType) => {
     if (statusType.includes('Рабочее') || statusType.includes('Исправен') || statusType === 'Выполнено') {
@@ -576,7 +583,13 @@ const Dashboard = () => {
           {/* Stats cards row */}
           <Row gutter={[16, 16]} className="stats-row">
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card resource-card" hoverable>
+              <Card 
+                bordered={false} 
+                className="stat-card resource-card" 
+                hoverable 
+                onClick={() => handleCardClick('/employees')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="stat-icon-container employee-icon">
                   <TeamOutlined className="stat-icon" />
                 </div>
@@ -588,7 +601,13 @@ const Dashboard = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card resource-card" hoverable>
+              <Card 
+                bordered={false} 
+                className="stat-card resource-card" 
+                hoverable 
+                onClick={() => handleCardClick('/equipment')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="stat-icon-container equipment-icon">
                   <SettingOutlined className="stat-icon" />
                 </div>
@@ -600,7 +619,13 @@ const Dashboard = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card resource-card" hoverable>
+              <Card 
+                bordered={false} 
+                className="stat-card resource-card" 
+                hoverable 
+                onClick={() => handleCardClick('/transport')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="stat-icon-container transport-icon">
                   <CarOutlined className="stat-icon" />
                 </div>
@@ -612,7 +637,13 @@ const Dashboard = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card resource-card" hoverable>
+              <Card 
+                bordered={false} 
+                className="stat-card resource-card" 
+                hoverable 
+                onClick={() => handleCardClick('/tools')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="stat-icon-container tools-icon">
                   <ToolOutlined className="stat-icon" />
                 </div>
@@ -624,7 +655,13 @@ const Dashboard = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card resource-card" hoverable>
+              <Card 
+                bordered={false} 
+                className="stat-card resource-card" 
+                hoverable 
+                onClick={() => handleCardClick('/spares')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="stat-icon-container spares-icon">
                   <PartitionOutlined className="stat-icon" />
                 </div>
@@ -636,7 +673,13 @@ const Dashboard = () => {
               </Card>
             </Col>
             <Col xs={24} sm={12} md={8} lg={4}>
-              <Card bordered={false} className="stat-card resource-card" hoverable>
+              <Card 
+                bordered={false} 
+                className="stat-card resource-card" 
+                hoverable 
+                onClick={() => handleCardClick('/materials')}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="stat-icon-container materials-icon">
                   <ApartmentOutlined className="stat-icon" />
                 </div>
