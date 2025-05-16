@@ -127,8 +127,22 @@
   background-color: #1677ff; /* Или другой цвет, соответствующий вашему дизайну */
 }
 
-.filter-card {
+.docx-filter-card {
   margin-bottom: 24px;
+  box-shadow: none !important;
+}
+
+.docx-filter-card:hover {
+  box-shadow: none;
+}
+
+.docx-content-card{
+  box-shadow: none !important;
+  box-shadow: none;
+}
+
+.docx-content-card:hover {
+  box-shadow: none;
 }
 
 .expenses-table-card {
@@ -156,6 +170,26 @@
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.ant-report-button {
+  border-color: #d9d9d9;
+    background-color: #ffffff;
+    color: black;
+    height: 45px;
+    width: 150px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
+    margin-right: 0px;
+}
+
+.ant-report-button:hover {
+  color: #0AB101 !important;
+  border-color: #0AB101 !important;
+  background: #ffffff !important;
+  transform: translateY(-3px);
 }
 
 .ant-export-button,
@@ -237,6 +271,7 @@
   .ant-export-button,
   .ant-import-button,
   .ant-filter-button,
+  .ant-report-button,
   .ant-add-button {
     width: 100%;
     margin-bottom: 8px;

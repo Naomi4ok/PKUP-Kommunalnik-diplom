@@ -222,6 +222,20 @@ const Spares = () => {
     }).format(value || 0);
   };
 
+  // Format date to DD.MM.YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}.${month}.${year}`;
+  };
+
   // Export spares to Excel
   const exportToExcel = () => {
     try {
@@ -575,6 +589,7 @@ const Spares = () => {
       key: 'lastReplenishmentDate',
       ellipsis: true,
       sorter: (a, b) => new Date(a.Last_Replenishment_Date) - new Date(b.Last_Replenishment_Date),
+      render: (date) => formatDate(date)
     },
     {
       title: 'Место хранения',

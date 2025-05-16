@@ -231,6 +231,20 @@ const Equipment = () => {
     setSearchQuery(query);
   };
 
+  // Функция для форматирования даты (из YYYY-MM-DD в DD.MM.YYYY)
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString; // Возвращаем исходную строку, если дата невалидна
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}.${month}.${year}`;
+  };
+
   // Экспорт оборудования в Excel
   const exportToExcel = () => {
     try {
@@ -246,7 +260,7 @@ const Equipment = () => {
           'Производитель': item.Manufacturer || '',
           'Модель': item.Model || '',
           'Инвентарный номер': item.Inventory_Number || '',
-          'Дата ввода в эксплуатацию': item.Commission_Date || '',
+          'Дата ввода в эксплуатацию': item.Commission_Date ? formatDate(item.Commission_Date) : '',
           'Ответственный за эксплуатацию': responsibleName,
           'Техническое состояние': item.Condition || '',
           'Место нахождения': item.Location || ''
@@ -306,7 +320,7 @@ const Equipment = () => {
         'Производитель': 'Grundfos',
         'Модель': 'CR 5-10',
         'Инвентарный номер': 'ИН-00123',
-        'Дата ввода в эксплуатацию': '2023-01-15',
+        'Дата ввода в эксплуатацию': '15.01.2023',
         'Ответственный за эксплуатацию': 'Иванов Иван Иванович',
         'Техническое состояние': 'Рабочее',
         'Место нахождения': 'Насосная станция №2'
@@ -317,7 +331,7 @@ const Equipment = () => {
         'Производитель': 'Viessmann',
         'Модель': 'Vitodens 200',
         'Инвентарный номер': 'ИН-00124',
-        'Дата ввода в эксплуатацию': '2022-10-20',
+        'Дата ввода в эксплуатацию': '20.10.2022',
         'Ответственный за эксплуатацию': 'Петров Петр Петрович',
         'Техническое состояние': 'Требует ТО',
         'Место нахождения': 'Котельная №1'
@@ -419,13 +433,22 @@ const Equipment = () => {
             const responsibleName = columns.responsible ? row[columns.responsible] || '' : '';
             const responsibleEmployee = employees.find(emp => emp.Full_Name === responsibleName);
             
+            // Преобразование даты из формата DD.MM.YYYY в YYYY-MM-DD для сохранения в базе
+            let commissionDate = columns.commissionDate ? row[columns.commissionDate] || '' : '';
+            if (commissionDate && commissionDate.includes('.')) {
+              const parts = commissionDate.split('.');
+              if (parts.length === 3) {
+                commissionDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              }
+            }
+            
             return {
               name: columns.name ? row[columns.name] || '' : '',
               type: columns.type ? row[columns.type] || '' : '',
               manufacturer: columns.manufacturer ? row[columns.manufacturer] || '' : '',
               model: columns.model ? row[columns.model] || '' : '',
               inventoryNumber: columns.inventoryNumber ? row[columns.inventoryNumber] || '' : '',
-              commissionDate: columns.commissionDate ? row[columns.commissionDate] || '' : '',
+              commissionDate: commissionDate,
               responsibleEmployeeId: responsibleEmployee ? responsibleEmployee.Employee_ID : null,
               condition: columns.condition ? row[columns.condition] || 'Рабочее' : 'Рабочее',
               location: columns.location ? row[columns.location] || '' : ''
@@ -611,6 +634,7 @@ const Equipment = () => {
       key: 'commissionDate',
       ellipsis: true,
       sorter: (a, b) => new Date(a.Commission_Date) - new Date(b.Commission_Date),
+      render: (text) => formatDate(text) // Используем функцию форматирования даты
     },
     {
       title: 'Ответственный',

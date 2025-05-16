@@ -492,3 +492,25 @@
   .custom-timepicker-dropdown .ant-picker-time-panel-column:hover {
     overflow-y: auto;
   }
+
+    .schedule-tabs {
+    margin-bottom: 20px;
+  }
+  
+  .schedule-tabs .ant-tabs-nav {
+    margin-bottom: 20px;
+  }
+  
+  .schedule-tabs .ant-tabs-tab {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+  
+  .schedule-tabs .ant-tabs-tab-active {
+    font-weight: 500;
+  }
+
+  /* Цвет линии под активной вкладкой */
+  .schedule-tabs .ant-tabs-ink-bar {
+    background-color: #0AB101;
+  }

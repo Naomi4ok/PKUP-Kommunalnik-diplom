@@ -50,11 +50,11 @@
 }
 
 tr:hover .user-name {
-  color: #1890ff;
+  color: #15b800;
 }
 
 tr:hover .user-email {
-  color: #40a9ff;
+  color: #15b800;
 }
 
 /* Search bar container styling */
@@ -224,13 +224,13 @@ tr:hover .user-email {
 }
 
 .user-submit-button {
-  background-color: #0AB101;
-  border-color: #0AB101;
+background-color: #19cc00 !important;
 }
 
 .user-submit-button:hover {
-  background-color: #09a001;
-  border-color: #09a001;
+  background-color: #15b800 !important;
+  border-color: #15b800 !important;
+  color: white !important;
 }
 
 /* Responsive layout for small screens */

@@ -980,7 +980,7 @@ const handleImport = async () => {
     onClick={handleGenerateReport}
     className="ant-report-button"
   >
-    Отчёт
+    Создать отчёт
   </Button>
               
               {/* Search bar */}

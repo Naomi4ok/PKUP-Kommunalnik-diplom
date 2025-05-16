@@ -7,7 +7,6 @@ import {
   Card,
   message,
   Typography,
-  DatePicker,
   Select,
   Breadcrumb,
   Spin,
@@ -18,6 +17,7 @@ import {
 import { HomeOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import '../../styles/Tools/ToolsForm.css';
+import DatePicker from '../../components/DatePicker/DatePicker';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -31,6 +31,7 @@ const ToolsForm = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);
   const [employees, setEmployees] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [categories, setCategories] = useState([
     'Электроинструмент',
     'Ручной инструмент',
@@ -90,8 +91,12 @@ const ToolsForm = () => {
             quantity: data.Quantity,
             location: data.Location,
             responsibleEmployeeId: data.Responsible_Employee_ID,
-            lastCheckDate: data.Last_Check_Date ? dayjs(data.Last_Check_Date) : null
           });
+          
+          // Set date for custom DatePicker
+          if (data.Last_Check_Date) {
+            setSelectedDate(new Date(data.Last_Check_Date));
+          }
           
         } catch (err) {
           message.error(`Не удалось загрузить информацию об инструменте: ${err.message}`);
@@ -105,10 +110,20 @@ const ToolsForm = () => {
     }
   }, [id, isEditing, form, navigate]);
 
+  // Handle date change
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
   // Handle form submission
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
+      
+      // Format the date properly
+      const formattedDate = selectedDate ? 
+        `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}` : 
+        null;
       
       // Prepare data for submission
       const toolData = {
@@ -117,7 +132,7 @@ const ToolsForm = () => {
         quantity: values.quantity,
         location: values.location,
         responsibleEmployeeId: values.responsibleEmployeeId,
-        lastCheckDate: values.lastCheckDate ? values.lastCheckDate.format('YYYY-MM-DD') : null
+        lastCheckDate: formattedDate
       };
 
       let response;
@@ -330,15 +345,13 @@ const ToolsForm = () => {
             </div>
             
             <div className="form-row">
-              {/* Last check date */}
+              {/* Last check date - кастомный DatePicker */}
               <Form.Item
-                name="lastCheckDate"
                 label="Дата последней проверки"
               >
                 <DatePicker 
-                  style={{ width: '100%' }} 
-                  placeholder="Выберите дату"
-                  format="YYYY-MM-DD"
+                  selectedDate={selectedDate} 
+                  onChange={handleDateChange} 
                 />
               </Form.Item>
               

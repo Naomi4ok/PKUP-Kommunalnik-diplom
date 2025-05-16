@@ -7,7 +7,6 @@ import {
   Card,
   message,
   Typography,
-  DatePicker,
   Select,
   Breadcrumb,
   Spin,
@@ -17,6 +16,7 @@ import {
 import { HomeOutlined, SaveOutlined, RollbackOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs'; // Using dayjs instead of moment
 import '../../styles/Equipment/EquipmentForm.css';
+import DatePicker from '../../components/DatePicker/DatePicker'; // Импортируем кастомный DatePicker
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -50,6 +50,9 @@ const EquipmentForm = () => {
     'Неисправно',
     'Ремонтируется'
   ]);
+
+  // Добавляем состояние для даты
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Загрузка списка сотрудников
   useEffect(() => {
@@ -85,6 +88,11 @@ const EquipmentForm = () => {
           
           const data = await response.json();
           
+          // Устанавливаем дату в кастомный DatePicker
+          if (data.Commission_Date) {
+            setSelectedDate(new Date(data.Commission_Date));
+          }
+          
           // Установка значений формы
           form.setFieldsValue({
             name: data.Name,
@@ -92,7 +100,7 @@ const EquipmentForm = () => {
             manufacturer: data.Manufacturer,
             model: data.Model,
             inventoryNumber: data.Inventory_Number,
-            commissionDate: data.Commission_Date ? dayjs(data.Commission_Date) : null,
+            // commissionDate убрано отсюда, так как мы используем кастомный DatePicker
             responsibleEmployeeId: data.Responsible_Employee_ID,
             condition: data.Condition || 'Рабочее',
             location: data.Location
@@ -110,10 +118,20 @@ const EquipmentForm = () => {
     }
   }, [id, isEditing, form, navigate]);
 
+  // Функция для обработки изменения даты
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
   // Обработка отправки формы
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
+      
+      // Форматируем дату из DatePicker
+      const formattedDate = selectedDate ? 
+        `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}` : 
+        null;
       
       // Подготовка данных для отправки
       const equipmentData = {
@@ -122,7 +140,7 @@ const EquipmentForm = () => {
         manufacturer: values.manufacturer,
         model: values.model,
         inventoryNumber: values.inventoryNumber,
-        commissionDate: values.commissionDate ? values.commissionDate.format('YYYY-MM-DD') : null,
+        commissionDate: formattedDate, // Используем отформатированную дату
         responsibleEmployeeId: values.responsibleEmployeeId,
         condition: values.condition,
         location: values.location
@@ -291,15 +309,16 @@ const EquipmentForm = () => {
             </div>
             
             <div className="form-row">
-              {/* Дата ввода в эксплуатацию */}
+              {/* Дата ввода в эксплуатацию - Заменяем на кастомный DatePicker */}
               <Form.Item
-                name="commissionDate"
                 label="Дата ввода в эксплуатацию"
+                rules={[
+                  { required: false, message: 'Пожалуйста, выберите дату' }
+                ]}
               >
                 <DatePicker 
-                  style={{ width: '100%' }} 
-                  placeholder="Выберите дату"
-                  format="YYYY-MM-DD"
+                  selectedDate={selectedDate} 
+                  onChange={handleDateChange} 
                 />
               </Form.Item>
               

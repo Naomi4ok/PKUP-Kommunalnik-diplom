@@ -203,6 +203,26 @@ const Tools = () => {
     setSearchQuery(query);
   };
 
+  // Форматирование даты из YYYY-MM-DD в DD.MM.YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Проверка на валидность даты
+      if (isNaN(date.getTime())) return '';
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}.${month}.${year}`;
+    } catch (error) {
+      return '';
+    }
+  };
+
   // Export tools to Excel
   const exportToExcel = () => {
     try {
@@ -218,7 +238,7 @@ const Tools = () => {
           'Количество': item.Quantity || 0,
           'Место хранения': item.Location || '',
           'Ответственный': responsibleName,
-          'Дата последней проверки': item.Last_Check_Date || ''
+          'Дата последней проверки': formatDate(item.Last_Check_Date) || ''
         };
       });
       
@@ -272,7 +292,7 @@ const Tools = () => {
         'Количество': 3,
         'Место хранения': 'Склад 1',
         'Ответственный': 'Иванов Иван',
-        'Дата последней проверки': '2024-03-15'
+        'Дата последней проверки': '15.03.2024'
       },
       {
         'Наименование': 'Набор отверток',
@@ -280,7 +300,7 @@ const Tools = () => {
         'Количество': 5,
         'Место хранения': 'Склад 2',
         'Ответственный': 'Петров Петр',
-        'Дата последней проверки': '2024-02-10'
+        'Дата последней проверки': '10.02.2024'
       }
     ];
     
@@ -373,13 +393,24 @@ const Tools = () => {
             const responsibleName = columns.responsible ? row[columns.responsible] || '' : '';
             const responsibleEmployee = employees.find(emp => emp.Full_Name === responsibleName);
             
+            // Обработка даты из формата DD.MM.YYYY в YYYY-MM-DD
+            let lastCheckDate = '';
+            if (columns.lastCheckDate && row[columns.lastCheckDate]) {
+              const dateParts = row[columns.lastCheckDate].split('.');
+              if (dateParts.length === 3) {
+                lastCheckDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+              } else {
+                lastCheckDate = row[columns.lastCheckDate]; // Оставить как есть, если формат неизвестен
+              }
+            }
+            
             return {
               name: columns.name ? row[columns.name] || '' : '',
               category: columns.category ? row[columns.category] || '' : '',
               quantity: columns.quantity ? Number(row[columns.quantity]) || 0 : 0,
               location: columns.location ? row[columns.location] || '' : '',
               responsibleEmployeeId: responsibleEmployee ? responsibleEmployee.Employee_ID : null,
-              lastCheckDate: columns.lastCheckDate ? row[columns.lastCheckDate] || '' : ''
+              lastCheckDate: lastCheckDate
             };
           });
           
@@ -556,6 +587,7 @@ const Tools = () => {
       key: 'lastCheckDate',
       ellipsis: true,
       sorter: (a, b) => new Date(a.Last_Check_Date) - new Date(b.Last_Check_Date),
+      render: (date) => formatDate(date) // Форматирование даты в формат DD.MM.YYYY
     },
     {
       title: 'Действия',
@@ -799,7 +831,7 @@ const Tools = () => {
             <li>Количество</li>
             <li>Место хранения</li>
             <li>Ответственный</li>
-            <li>Дата последней проверки</li>
+            <li>Дата последней проверки (формат DD.MM.YYYY)</li>
           </ul>
         </div>
 

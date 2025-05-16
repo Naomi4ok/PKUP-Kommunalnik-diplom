@@ -1,8 +1,7 @@
 .expense-docx-page {
-  padding: 16px 24px;
+  padding: 8px 24px 0px 24px;
   max-width: 1400px;
   margin: 0 auto;
-  background-color: #f7f9fc;
   min-height: 100vh;
 }
 
@@ -23,6 +22,19 @@
   flex-shrink: 0;
 }
 
+.ant-tabs-tab-btn {
+    color: #0AB101 !important;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #52c41a !important;
+  border-color: #52c41a !important;
+}
+
+.ant-checkbox-input {
+    background: #0AB101 !important;
+}
+
 /* Основная карточка и табы */
 .expense-docx-main-card {
   border-radius: 8px;
@@ -38,10 +50,14 @@
   width: 100%;
 }
 
-.filter-card, .content-card {
+.docx-filter-card, .docx-content-card {
   height: 100%;
   border-radius: 8px;
-  background-color: #fafafa;
+}
+
+/* Стили для дополнительных фильтров, теперь всегда видимых */
+.additional-filters {
+  margin-top: 16px;
 }
 
 .filter-collapse .ant-collapse-header,
@@ -73,7 +89,7 @@
 /* Карточка с информацией о найденных данных */
 .expense-summary-card {
   margin-top: 16px;
-  background-color: #f0f7ff;
+  background-color: #f7f7f7;
   border-radius: 8px;
 }
 

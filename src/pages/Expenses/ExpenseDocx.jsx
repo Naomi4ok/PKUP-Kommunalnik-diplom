@@ -302,29 +302,14 @@ const doc = new Document({
           },
         },
       },
-      headers: {
-        default: new Header({
-          children: [
-            new Paragraph({
-              text: "Отчёт о расходах",
-              style: "headerStyle",
-            }),
-          ],
-        }),
-      },
       footers: {
         default: new Footer({
           children: [
             new Paragraph({
               alignment: AlignmentType.RIGHT,
               children: [
-                new TextRun("Страница "),
                 new TextRun({
                   children: [PageNumber.CURRENT],
-                }),
-                new TextRun(" из "),
-                new TextRun({
-                  children: [PageNumber.TOTAL_PAGES],
                 }),
               ],
               style: "footerStyle",
@@ -978,11 +963,21 @@ const doc = new Document({
           onClick={() => navigate('/expenses')}
           className="back-button"
         >
-          Назад к списку
+          Назад к списку расходов
         </Button>
         <Title level={3} className="expense-docx-title">
           Формирование отчёта по расходам
         </Title>
+        <Button
+          className="ant-add-button"
+          type="primary"
+          onClick={handleDownloadDocx}
+          loading={loading}
+          icon={<FileWordOutlined />}
+          disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
+        >
+          Скачать .docx
+        </Button>
       </div>
       
       <Spin spinning={initialLoading}>
@@ -996,7 +991,6 @@ const doc = new Document({
             <TabPane 
               tab={
                 <span>
-                  <FilterOutlined />
                   Параметры отчёта
                 </span>
               } 
@@ -1013,7 +1007,7 @@ const doc = new Document({
                   <Col xs={24} lg={12}>
                     <Card 
                       title="Период и фильтры" 
-                      className="filter-card"
+                      className="docx-filter-card"
                       bordered={false}
                     >
                       <Form.Item
@@ -1027,53 +1021,48 @@ const doc = new Document({
                         />
                       </Form.Item>
                       
-                      <Collapse 
-                        ghost 
-                        defaultActiveKey={[]} 
-                        className="filter-collapse"
-                      >
-                        <Panel header="Дополнительные фильтры" key="1">
-                          <Form.Item
-                            name="resourceTypes"
-                            label="Типы ресурсов"
+                      {/* Убираем Collapse и показываем фильтры напрямую */}
+                      <div className="additional-filters">
+                        <Form.Item
+                          name="resourceTypes"
+                          label="Дополнительные фильтры: Типы ресурсов"
+                        >
+                          <Select
+                            mode="multiple"
+                            placeholder="Все типы ресурсов"
+                            allowClear
+                            style={{ width: '100%' }}
+                            value={filterValues.resourceTypes}
+                            onChange={(values) => handleFilterChange('resourceTypes', values)}
                           >
-                            <Select
-                              mode="multiple"
-                              placeholder="Все типы ресурсов"
-                              allowClear
-                              style={{ width: '100%' }}
-                              value={filterValues.resourceTypes}
-                              onChange={(values) => handleFilterChange('resourceTypes', values)}
-                            >
-                              {resourceTypeOptions.map(option => (
-                                <Option key={option.value} value={option.value}>
-                                  {option.label}
-                                </Option>
-                              ))}
-                            </Select>
-                          </Form.Item>
-                          
-                          <Form.Item
-                            name="categories"
-                            label="Категории"
+                            {resourceTypeOptions.map(option => (
+                              <Option key={option.value} value={option.value}>
+                                {option.label}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                        
+                        <Form.Item
+                          name="categories"
+                          label="Категории"
+                        >
+                          <Select
+                            mode="multiple"
+                            placeholder="Все категории"
+                            allowClear
+                            style={{ width: '100%' }}
+                            value={filterValues.categories}
+                            onChange={(values) => handleFilterChange('categories', values)}
                           >
-                            <Select
-                              mode="multiple"
-                              placeholder="Все категории"
-                              allowClear
-                              style={{ width: '100%' }}
-                              value={filterValues.categories}
-                              onChange={(values) => handleFilterChange('categories', values)}
-                            >
-                              {categories.map(category => (
-                                <Option key={category} value={category}>
-                                  {category}
-                                </Option>
-                              ))}
-                            </Select>
-                          </Form.Item>
-                        </Panel>
-                      </Collapse>
+                            {categories.map(category => (
+                              <Option key={category} value={category}>
+                                {category}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </div>
                     </Card>
                   </Col>
                   
@@ -1081,7 +1070,7 @@ const doc = new Document({
                   <Col xs={24} lg={12}>
                     <Card 
                       title="Содержание отчёта" 
-                      className="content-card"
+                      className="docx-content-card"
                       bordered={false}
                     >
                       <div className="content-options">
@@ -1143,7 +1132,6 @@ const doc = new Document({
             <TabPane 
               tab={
                 <span>
-                  <FileTextOutlined />
                   Предпросмотр
                 </span>
               } 
@@ -1276,19 +1264,6 @@ const doc = new Document({
               </div>
             </TabPane>
           </Tabs>
-          
-          <div className="docx-actions">
-            <Button
-              type="primary"
-              onClick={handleDownloadDocx}
-              loading={loading}
-              icon={<FileWordOutlined />}
-              size="large"
-              disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
-            >
-              Скачать .docx
-            </Button>
-          </div>
         </Card>
       </Spin>
     </div>

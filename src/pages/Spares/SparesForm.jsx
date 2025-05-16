@@ -7,7 +7,6 @@ import {
   Card,
   message,
   Typography,
-  DatePicker,
   Select,
   Breadcrumb,
   Spin,
@@ -18,6 +17,7 @@ import {
 import { HomeOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import '../../styles/Spares/SparesForm.css';
+import DatePicker from '../../components/DatePicker/DatePicker';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -31,6 +31,7 @@ const SparesForm = () => {
   
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [locations, setLocations] = useState([
     'Склад 1',
     'Склад 2',
@@ -68,13 +69,17 @@ const SparesForm = () => {
           
           const data = await response.json();
           
+          // Set date state if available
+          if (data.Last_Replenishment_Date) {
+            setSelectedDate(new Date(data.Last_Replenishment_Date));
+          }
+          
           // Set form values
           form.setFieldsValue({
             name: data.Name,
             quantity: data.Quantity,
             unitCost: data.Unit_Cost,
             totalCost: data.Total_Cost,
-            lastReplenishmentDate: data.Last_Replenishment_Date ? dayjs(data.Last_Replenishment_Date) : null,
             location: data.Location,
             supplier: data.Supplier,
             status: data.Status || 'В наличии'
@@ -108,13 +113,18 @@ const SparesForm = () => {
     try {
       setLoading(true);
       
+      // Format the date for submission
+      const formattedDate = selectedDate ? 
+        `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}` : 
+        null;
+      
       // Prepare data for submission
       const spareData = {
         name: values.name,
         quantity: values.quantity,
         unitCost: values.unitCost,
         totalCost: values.totalCost || (values.quantity * values.unitCost),
-        lastReplenishmentDate: values.lastReplenishmentDate ? values.lastReplenishmentDate.format('YYYY-MM-DD') : null,
+        lastReplenishmentDate: formattedDate,
         location: values.location,
         supplier: values.supplier,
         status: values.status || 'В наличии'
@@ -157,6 +167,11 @@ const SparesForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle date change
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
   };
 
   // Return to spares list
@@ -268,13 +283,11 @@ const SparesForm = () => {
               
               {/* Last Replenishment Date */}
               <Form.Item
-                name="lastReplenishmentDate"
                 label="Дата последнего пополнения"
               >
                 <DatePicker 
-                  style={{ width: '100%' }} 
-                  placeholder="Выберите дату"
-                  format="YYYY-MM-DD"
+                  selectedDate={selectedDate} 
+                  onChange={handleDateChange} 
                 />
               </Form.Item>
             </div>
