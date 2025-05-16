@@ -1,0 +1,66 @@
+.expense-docx-page {
+  padding: 6px 24px 0px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #f7f9fc;
+  min-height: 100vh;
+}
+
+.expense-docx-card {
+  margin-bottom: 20px;
+}
+
+.expense-docx-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.expense-docx-title {
+  margin-bottom: 0 !important;
+}
+
+.form-section-card {
+  height: 100%;
+}
+
+.checkbox-group-wrapper {
+  margin-bottom: 20px;
+}
+
+.column-disabled {
+  color: #d9d9d9;
+  font-style: italic;
+}
+
+/* Стили для предварительного просмотра печати */
+@media print {
+  .no-print {
+    display: none;
+  }
+  
+  .print-only {
+    display: block;
+  }
+  
+  body {
+    font-size: 12pt;
+  }
+  
+  table {
+    page-break-inside: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  tfoot {
+    display: table-footer-group;
+  }
+}

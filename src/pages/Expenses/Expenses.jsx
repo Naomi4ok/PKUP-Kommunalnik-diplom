@@ -38,6 +38,7 @@ import {
   WalletOutlined,
   TagOutlined,
   CalendarOutlined,
+  FileDoneOutlined,
 } from '@ant-design/icons';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
@@ -320,6 +321,10 @@ const fetchSummaryData = async () => {
   const goToEditExpense = (id) => {
     navigate(`/expenses/edit/${id}`);
   };
+
+  const handleGenerateReport = () => {
+  navigate('/expenses/report');
+};
   
   // Delete expense handler
   const handleDeleteExpense = async (id) => {
@@ -960,13 +965,23 @@ const handleImport = async () => {
             <div className="header-right-content">
               {/* Filter button */}
               <Button
-                type="primary" 
-                icon={<FilterOutlined />}
-                onClick={toggleFilters}
-                className="ant-filter-button"
-              >
-                Фильтр
-              </Button>
+    type="primary" 
+    icon={<FilterOutlined />}
+    onClick={toggleFilters}
+    className="ant-filter-button"
+  >
+    Фильтр
+  </Button>
+  
+  {/* Report button */}
+  <Button
+    type="primary" 
+    icon={<FileDoneOutlined />}
+    onClick={handleGenerateReport}
+    className="ant-report-button"
+  >
+    Отчёт
+  </Button>
               
               {/* Search bar */}
               <div className="expenses-search-bar-container">

@@ -121,6 +121,12 @@
   animation: countUp 0.8s ease-out forwards;
 }
 
+/* Добавьте этот стиль, если он ещё не определен */
+.ant-report-button {
+  margin-right: 15px;
+  background-color: #1677ff; /* Или другой цвет, соответствующий вашему дизайну */
+}
+
 .filter-card {
   margin-bottom: 24px;
 }

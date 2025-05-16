@@ -27,6 +27,7 @@ import Auth from './pages/Auth/Auth';
 import UserManagement from './components/UserManagement/UserManagement';
 import Expenses from './pages/Expenses/Expenses';
 import ExpenseForm from './pages/Expenses/ExpenseForm';
+import ExpenseDocx from './pages/Expenses/ExpenseDocx';
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -237,6 +238,7 @@ function App() {
                         <ExpenseForm />
                       </ProtectedRoute>
                     } />
+<Route path="/expenses/report" element={<ExpenseDocx />} />
                     
                     {/* Redirect any unknown paths to the dashboard */}
                     <Route path="*" element={<Navigate to="/" replace />} />
