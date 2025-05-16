@@ -9,18 +9,23 @@ import {
   message,
   Breadcrumb,
   Space,
-  Divider,
+  Tabs,
   Row,
   Col,
   Spin,
   Table,
-  Checkbox
+  Checkbox,
+  Collapse
 } from 'antd';
 import {
   HomeOutlined,
   FileWordOutlined,
   ArrowLeftOutlined,
-  PrinterOutlined
+  PrinterOutlined,
+  SettingOutlined,
+  FileTextOutlined,
+  TableOutlined,
+  FilterOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import DateRangePicker from '../../components/DateRangePicker/DateRangePicker';
@@ -30,8 +35,13 @@ import '../../styles/Expenses/ExpenseDocx.css';
 import { Document, Packer, Paragraph, Table as DocxTable, TableRow, TableCell, TextRun, HeadingLevel, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
 
+// Импортируем компонент для предпросмотра
+import ExpenseDocxPreview from './ExpenseDocxPreview';
+
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { TabPane } = Tabs;
+const { Panel } = Collapse;
 
 const ExpenseDocx = () => {
   const navigate = useNavigate();
@@ -59,6 +69,7 @@ const ExpenseDocx = () => {
     resourceTypes: [],
     categories: []
   });
+  const [activeTab, setActiveTab] = useState('1');
 
   // Fetch all required data on component mount
   useEffect(() => {
@@ -523,163 +534,28 @@ const ExpenseDocx = () => {
   };
 
   // Handle print preview
-  const handlePrintPreview = () => {
-    // Create a print-friendly version using CSS media queries
-    const printWindow = window.open('', '_blank');
+const handlePrintPreview = () => {
+  try {
+    // Показываем сообщение
+    message.info('Открывается окно предварительного просмотра...');
     
-    if (!printWindow) {
-      message.error('Открытие окна предварительного просмотра заблокировано. Проверьте настройки блокировки всплывающих окон.');
-      return;
-    }
-    
-    const total = filteredExpenses.reduce((sum, expense) => sum + (expense.Amount || 0), 0);
-    
-    // Group by resource type
-    const resourceTypeSummary = {};
-    filteredExpenses.forEach(expense => {
-      const typeName = getResourceTypeDisplayName(expense.Resource_Type);
-      if (!resourceTypeSummary[typeName]) {
-        resourceTypeSummary[typeName] = 0;
-      }
-      resourceTypeSummary[typeName] += expense.Amount || 0;
+    // Используем компонент предпросмотра
+    const previewComponent = ExpenseDocxPreview({
+      filteredExpenses,
+      dateRange,
+      includeSummary,
+      includeDetails,
+      selectedColumns,
+      getResourceTypeDisplayName,
+      getResourceName,
+      formatCurrency
     });
     
-    // Group by category
-    const categorySummary = {};
-    filteredExpenses.forEach(expense => {
-      const category = expense.Category || 'Без категории';
-      if (!categorySummary[category]) {
-        categorySummary[category] = 0;
-      }
-      categorySummary[category] += expense.Amount || 0;
-    });
-
-    // Generate HTML content
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Отчёт о расходах</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 20px;
-              line-height: 1.5;
-            }
-            h1 {
-              font-size: 24px;
-              margin-bottom: 10px;
-            }
-            h2 {
-              font-size: 20px;
-              margin-top: 30px;
-              margin-bottom: 15px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 30px;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              text-align: left;
-            }
-            th {
-              background-color: #f2f2f2;
-              font-weight: bold;
-            }
-            .summary-info {
-              margin-bottom: 15px;
-            }
-            .footer {
-              margin-top: 30px;
-              font-size: 12px;
-              color: #666;
-            }
-            @media print {
-              button {
-                display: none;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div style="text-align: right;">
-            <button onclick="window.print()">Печать</button>
-          </div>
-          <h1>Отчёт о расходах</h1>
-          <p>За период: ${dateRange[0].format('DD.MM.YYYY')} - ${dateRange[1].format('DD.MM.YYYY')}</p>
-          
-          ${includeSummary ? `
-            <h2>Сводная информация</h2>
-            <p class="summary-info">Общая сумма расходов: ${formatCurrency(total)}</p>
-            
-            <h3>Расходы по типам ресурсов:</h3>
-            <table>
-              <tr>
-                <th>Тип ресурса</th>
-                <th>Сумма</th>
-              </tr>
-              ${Object.entries(resourceTypeSummary).map(([type, amount]) => `
-                <tr>
-                  <td>${type}</td>
-                  <td>${formatCurrency(amount)}</td>
-                </tr>
-              `).join('')}
-            </table>
-            
-            <h3>Расходы по категориям:</h3>
-            <table>
-              <tr>
-                <th>Категория</th>
-                <th>Сумма</th>
-              </tr>
-              ${Object.entries(categorySummary).map(([category, amount]) => `
-                <tr>
-                  <td>${category}</td>
-                  <td>${formatCurrency(amount)}</td>
-                </tr>
-              `).join('')}
-            </table>
-          ` : ''}
-          
-          ${includeDetails ? `
-            <h2>Детализация расходов</h2>
-            <table>
-              <tr>
-                ${selectedColumns.includes('date') ? '<th>Дата</th>' : ''}
-                ${selectedColumns.includes('resourceType') ? '<th>Тип ресурса</th>' : ''}
-                ${selectedColumns.includes('resource') ? '<th>Ресурс</th>' : ''}
-                ${selectedColumns.includes('category') ? '<th>Категория</th>' : ''}
-                ${selectedColumns.includes('amount') ? '<th>Сумма</th>' : ''}
-                ${selectedColumns.includes('description') ? '<th>Описание</th>' : ''}
-                ${selectedColumns.includes('paymentMethod') ? '<th>Способ оплаты</th>' : ''}
-                ${selectedColumns.includes('invoiceNumber') ? '<th>Номер счета</th>' : ''}
-              </tr>
-              ${filteredExpenses.map(expense => `
-                <tr>
-                  ${selectedColumns.includes('date') ? `<td>${moment(expense.Date).format('DD.MM.YYYY')}</td>` : ''}
-                  ${selectedColumns.includes('resourceType') ? `<td>${getResourceTypeDisplayName(expense.Resource_Type)}</td>` : ''}
-                  ${selectedColumns.includes('resource') ? `<td>${getResourceName(expense.Resource_Type, expense.Resource_ID)}</td>` : ''}
-                  ${selectedColumns.includes('category') ? `<td>${expense.Category || ''}</td>` : ''}
-                  ${selectedColumns.includes('amount') ? `<td>${formatCurrency(expense.Amount)}</td>` : ''}
-                  ${selectedColumns.includes('description') ? `<td>${expense.Description || ''}</td>` : ''}
-                  ${selectedColumns.includes('paymentMethod') ? `<td>${expense.Payment_Method || ''}</td>` : ''}
-                  ${selectedColumns.includes('invoiceNumber') ? `<td>${expense.Invoice_Number || ''}</td>` : ''}
-                </tr>
-              `).join('')}
-            </table>
-          ` : ''}
-          
-          <div class="footer">
-            Дата формирования отчёта: ${moment().format('DD.MM.YYYY HH:mm')}
-          </div>
-        </body>
-      </html>
-    `);
-    
-    printWindow.document.close();
-  };
+    previewComponent.openPrintPreview();
+  } catch (error) {
+    message.error(`Ошибка при открытии предварительного просмотра: ${error.message}`);
+  }
+};
 
   // Handle form submission
   const handleFormSubmit = () => {
@@ -713,6 +589,9 @@ const ExpenseDocx = () => {
     setSelectedColumns(checkedValues);
   };
 
+  // Total summary data
+  const totalAmount = filteredExpenses.reduce((sum, expense) => sum + (expense.Amount || 0), 0);
+
   return (
     <div className="expense-docx-page">
       <Breadcrumb className="page-breadcrumb">
@@ -727,204 +606,335 @@ const ExpenseDocx = () => {
         </Breadcrumb.Item>
       </Breadcrumb>
       
-      <Card className="expense-docx-card">
-        <div className="expense-docx-header">
-          <Button 
-            icon={<ArrowLeftOutlined />} 
-            onClick={() => navigate('/expenses')}
-            className="back-button"
+      <div className="page-header">
+        <Button 
+          icon={<ArrowLeftOutlined />} 
+          onClick={() => navigate('/expenses')}
+          className="back-button"
+        >
+          Назад к списку
+        </Button>
+        <Title level={3} className="expense-docx-title">
+          Формирование отчёта по расходам
+        </Title>
+      </div>
+      
+      <Spin spinning={initialLoading}>
+        <Card className="expense-docx-main-card">
+          <Tabs 
+            activeKey={activeTab} 
+            onChange={setActiveTab}
+            type="card"
+            className="expense-docx-tabs"
           >
-            Назад к списку расходов
-          </Button>
-          <Title level={2} className="expense-docx-title">
-            Формирование отчёта по расходам
-          </Title>
-        </div>
-        
-        <Spin spinning={initialLoading}>
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleFormSubmit}
-          >
-            <Row gutter={[24, 24]}>
-              <Col xs={24} md={12}>
-                <Card title="Параметры отчёта" className="form-section-card">
-                  <Form.Item
-                    label="Период отчёта"
-                    required
-                  >
-                    <DateRangePicker
-                      value={dateRange}
-                      onChange={handleDateRangeChange}
-                      style={{ width: '100%' }}
-                    />
-                  </Form.Item>
-                  
-                  <Form.Item
-                    name="resourceTypes"
-                    label="Типы ресурсов (оставьте пустым для выбора всех)"
-                  >
-                    <Select
-                      mode="multiple"
-                      placeholder="Выберите типы ресурсов"
-                      allowClear
-                      style={{ width: '100%' }}
-                      value={filterValues.resourceTypes}
-                      onChange={(values) => handleFilterChange('resourceTypes', values)}
+            <TabPane 
+              tab={
+                <span>
+                  <FilterOutlined />
+                  Параметры отчёта
+                </span>
+              } 
+              key="1"
+            >
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleFormSubmit}
+                className="expense-docx-form"
+              >
+                <Row gutter={[16, 16]}>
+                  {/* Левая колонка с фильтрами */}
+                  <Col xs={24} lg={12}>
+                    <Card 
+                      title="Период и фильтры" 
+                      className="filter-card"
+                      bordered={false}
                     >
-                      {resourceTypeOptions.map(option => (
-                        <Option key={option.value} value={option.value}>
-                          {option.label}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
+                      <Form.Item
+                        label="Период отчёта"
+                        required
+                      >
+                        <DateRangePicker
+                          value={dateRange}
+                          onChange={handleDateRangeChange}
+                          style={{ width: '100%' }}
+                        />
+                      </Form.Item>
+                      
+                      <Collapse 
+                        ghost 
+                        defaultActiveKey={[]} 
+                        className="filter-collapse"
+                      >
+                        <Panel header="Дополнительные фильтры" key="1">
+                          <Form.Item
+                            name="resourceTypes"
+                            label="Типы ресурсов"
+                          >
+                            <Select
+                              mode="multiple"
+                              placeholder="Все типы ресурсов"
+                              allowClear
+                              style={{ width: '100%' }}
+                              value={filterValues.resourceTypes}
+                              onChange={(values) => handleFilterChange('resourceTypes', values)}
+                            >
+                              {resourceTypeOptions.map(option => (
+                                <Option key={option.value} value={option.value}>
+                                  {option.label}
+                                </Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
+                          
+                          <Form.Item
+                            name="categories"
+                            label="Категории"
+                          >
+                            <Select
+                              mode="multiple"
+                              placeholder="Все категории"
+                              allowClear
+                              style={{ width: '100%' }}
+                              value={filterValues.categories}
+                              onChange={(values) => handleFilterChange('categories', values)}
+                            >
+                              {categories.map(category => (
+                                <Option key={category} value={category}>
+                                  {category}
+                                </Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
+                        </Panel>
+                      </Collapse>
+                    </Card>
+                  </Col>
                   
-                  <Form.Item
-                    name="categories"
-                    label="Категории расходов (оставьте пустым для выбора всех)"
-                  >
-                    <Select
-                      mode="multiple"
-                      placeholder="Выберите категории"
-                      allowClear
-                      style={{ width: '100%' }}
-                      value={filterValues.categories}
-                      onChange={(values) => handleFilterChange('categories', values)}
+                  {/* Правая колонка с настройками содержания */}
+                  <Col xs={24} lg={12}>
+                    <Card 
+                      title="Содержание отчёта" 
+                      className="content-card"
+                      bordered={false}
                     >
-                      {categories.map(category => (
-                        <Option key={category} value={category}>
-                          {category}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Card>
-              </Col>
-              
-              <Col xs={24} md={12}>
-                <Card title="Содержание отчёта" className="form-section-card">
-                  <div className="checkbox-group-wrapper">
-                    <Form.Item>
-                      <Checkbox
-                        checked={includeSummary}
-                        onChange={(e) => setIncludeSummary(e.target.checked)}
-                      >
-                        Включить сводную информацию
-                      </Checkbox>
-                    </Form.Item>
-                    
-                    <Form.Item>
-                      <Checkbox
-                        checked={includeDetails}
-                        onChange={(e) => setIncludeDetails(e.target.checked)}
-                      >
-                        Включить детализацию расходов
-                      </Checkbox>
-                    </Form.Item>
+                      <div className="content-options">
+                        <Form.Item>
+                          <Checkbox
+                            checked={includeSummary}
+                            onChange={(e) => setIncludeSummary(e.target.checked)}
+                          >
+                            <b>Включить сводную информацию</b>
+                          </Checkbox>
+                        </Form.Item>
+                        
+                        <Form.Item>
+                          <Checkbox
+                            checked={includeDetails}
+                            onChange={(e) => setIncludeDetails(e.target.checked)}
+                          >
+                            <b>Включить детализацию расходов</b>
+                          </Checkbox>
+                        </Form.Item>
+                      </div>
+                      
+                      {includeDetails && (
+                        <Collapse 
+                          ghost 
+                          defaultActiveKey={['1']} 
+                          className="columns-collapse"
+                        >
+                          <Panel header="Выбор столбцов" key="1">
+                            <Form.Item>
+                              <Checkbox.Group
+                                options={columnOptions}
+                                value={selectedColumns}
+                                onChange={handleColumnChange}
+                                className="column-checkbox-group"
+                              />
+                            </Form.Item>
+                          </Panel>
+                        </Collapse>
+                      )}
+                    </Card>
+                  </Col>
+                </Row>
+                
+                {/* Информация о найденных данных */}
+                <Card className="expense-summary-card" bordered={false}>
+                  <div className="expense-summary">
+                    <div className="expense-count">
+                      <Text>Найдено записей: <b>{filteredExpenses.length}</b></Text>
+                    </div>
+                    <div className="expense-total">
+                      <Text>Общая сумма: <b>{formatCurrency(totalAmount)}</b></Text>
+                    </div>
                   </div>
-                  
-                  {includeDetails && (
-                    <Form.Item
-                      label="Столбцы для детализации"
-                    >
-                      <Checkbox.Group
-                        options={columnOptions}
-                        value={selectedColumns}
-                        onChange={handleColumnChange}
-                      />
-                    </Form.Item>
-                  )}
                 </Card>
-              </Col>
-            </Row>
+              </Form>
+            </TabPane>
             
-            <div className="preview-section">
-              <Card title="Предварительный просмотр" className="preview-card">
-                <div style={{ marginBottom: '16px' }}>
-                  <Text>Записей найдено: {filteredExpenses.length}</Text>
-                </div>
-                
-                <Table
-                  dataSource={filteredExpenses.slice(0, 5)}
-                  columns={[
-                    {
-                      title: 'Дата',
-                      key: 'date',
-                      render: record => moment(record.Date).format('DD.MM.YYYY'),
-                      className: !selectedColumns.includes('date') ? 'column-disabled' : ''
-                    },
-                    {
-                      title: 'Тип ресурса',
-                      key: 'resourceType',
-                      render: record => getResourceTypeDisplayName(record.Resource_Type),
-                      className: !selectedColumns.includes('resourceType') ? 'column-disabled' : ''
-                    },
-                    {
-                      title: 'Ресурс',
-                      key: 'resource',
-                      render: record => getResourceName(record.Resource_Type, record.Resource_ID),
-                      className: !selectedColumns.includes('resource') ? 'column-disabled' : ''
-                    },
-                    {
-                      title: 'Категория',
-                      dataIndex: 'Category',
-                      key: 'category',
-                      className: !selectedColumns.includes('category') ? 'column-disabled' : ''
-                    },
-                    {
-                      title: 'Сумма',
-                      key: 'amount',
-                      render: record => formatCurrency(record.Amount),
-                      className: !selectedColumns.includes('amount') ? 'column-disabled' : ''
-                    }
-                  ]}
-                  rowKey="Expense_ID"
-                  pagination={false}
-                  size="small"
-                  locale={{ emptyText: 'Нет данных для отображения' }}
-                />
-                
-                {filteredExpenses.length > 5 && (
-                  <div style={{ marginTop: '8px', textAlign: 'center' }}>
-                    <Text type="secondary">Показаны первые 5 записей из {filteredExpenses.length}</Text>
+            <TabPane 
+              tab={
+                <span>
+                  <FileTextOutlined />
+                  Предпросмотр
+                </span>
+              } 
+              key="2"
+            >
+              <div className="preview-container">
+                {filteredExpenses.length > 0 ? (
+                  <>
+                    {includeSummary && (
+                      <Card 
+                        title="Сводная информация" 
+                        className="preview-summary-card"
+                        bordered={false}
+                      >
+                        <p className="summary-total">Общая сумма расходов: <b>{formatCurrency(totalAmount)}</b></p>
+                        
+                        <Row gutter={16}>
+                          <Col xs={24} md={12}>
+                            <Card title="По типам ресурсов" bordered={false} size="small">
+                              <Table
+                                dataSource={Object.entries(filteredExpenses.reduce((acc, expense) => {
+                                  const typeName = getResourceTypeDisplayName(expense.Resource_Type);
+                                  acc[typeName] = (acc[typeName] || 0) + (expense.Amount || 0);
+                                  return acc;
+                                }, {})).map(([type, amount]) => ({ type, amount }))}
+                                columns={[
+                                  { title: 'Тип ресурса', dataIndex: 'type', key: 'type' },
+                                  { 
+                                    title: 'Сумма', 
+                                    dataIndex: 'amount',
+                                    key: 'amount',
+                                    render: amount => formatCurrency(amount)
+                                  }
+                                ]}
+                                pagination={false}
+                                size="small"
+                              />
+                            </Card>
+                          </Col>
+                          <Col xs={24} md={12}>
+                            <Card title="По категориям" bordered={false} size="small">
+                              <Table
+                                dataSource={Object.entries(filteredExpenses.reduce((acc, expense) => {
+                                  const category = expense.Category || 'Без категории';
+                                  acc[category] = (acc[category] || 0) + (expense.Amount || 0);
+                                  return acc;
+                                }, {})).map(([category, amount]) => ({ category, amount }))}
+                                columns={[
+                                  { title: 'Категория', dataIndex: 'category', key: 'category' },
+                                  { 
+                                    title: 'Сумма', 
+                                    dataIndex: 'amount',
+                                    key: 'amount',
+                                    render: amount => formatCurrency(amount)
+                                  }
+                                ]}
+                                pagination={false}
+                                size="small"
+                              />
+                            </Card>
+                          </Col>
+                        </Row>
+                      </Card>
+                    )}
+                    
+                    {includeDetails && (
+                      <Card 
+                        title="Детализация расходов" 
+                        className="preview-details-card"
+                        bordered={false}
+                      >
+                        <Table
+                          dataSource={filteredExpenses}
+                          columns={[
+                            ...(selectedColumns.includes('date') ? [{
+                              title: 'Дата',
+                              key: 'date',
+                              render: record => moment(record.Date).format('DD.MM.YYYY')
+                            }] : []),
+                            ...(selectedColumns.includes('resourceType') ? [{
+                              title: 'Тип ресурса',
+                              key: 'resourceType',
+                              render: record => getResourceTypeDisplayName(record.Resource_Type)
+                            }] : []),
+                            ...(selectedColumns.includes('resource') ? [{
+                              title: 'Ресурс',
+                              key: 'resource',
+                              render: record => getResourceName(record.Resource_Type, record.Resource_ID)
+                            }] : []),
+                            ...(selectedColumns.includes('category') ? [{
+                              title: 'Категория',
+                              dataIndex: 'Category',
+                              key: 'category'
+                            }] : []),
+                            ...(selectedColumns.includes('amount') ? [{
+                              title: 'Сумма',
+                              key: 'amount',
+                              render: record => formatCurrency(record.Amount)
+                            }] : []),
+                            ...(selectedColumns.includes('description') ? [{
+                              title: 'Описание',
+                              dataIndex: 'Description',
+                              key: 'description'
+                            }] : []),
+                            ...(selectedColumns.includes('paymentMethod') ? [{
+                              title: 'Способ оплаты',
+                              dataIndex: 'Payment_Method',
+                              key: 'paymentMethod'
+                            }] : []),
+                            ...(selectedColumns.includes('invoiceNumber') ? [{
+                              title: 'Номер счета',
+                              dataIndex: 'Invoice_Number',
+                              key: 'invoiceNumber'
+                            }] : [])
+                          ]}
+                          rowKey="Expense_ID"
+                          pagination={{ pageSize: 10 }}
+                          size="small"
+                          locale={{ emptyText: 'Нет данных для отображения' }}
+                          scroll={{ x: 'max-content' }}
+                        />
+                      </Card>
+                    )}
+                  </>
+                ) : (
+                  <div className="no-data-message">
+                    <Text>Нет данных для отображения. Пожалуйста, измените параметры фильтрации.</Text>
                   </div>
                 )}
-              </Card>
-            </div>
-            
-            <Form.Item className="form-actions">
-              <Space>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={loading}
-                  icon={<FileWordOutlined />}
-                  size="large"
-                  disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
-                >
-                  Скачать .docx
-                </Button>
-                <Button 
-                  icon={<PrinterOutlined />}
-                  size="large"
-                  onClick={handlePrintPreview}
-                  disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
-                >
-                  Предпросмотр для печати
-                </Button>
-                <Button 
-                  onClick={() => navigate('/expenses')}
-                  size="large"
-                >
-                  Отмена
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Spin>
-      </Card>
+              </div>
+            </TabPane>
+          </Tabs>
+          
+          <div className="docx-actions">
+            <Space size="middle">
+              <Button
+                type="primary"
+                onClick={handleDownloadDocx}
+                loading={loading}
+                icon={<FileWordOutlined />}
+                size="large"
+                disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
+              >
+                Скачать .docx
+              </Button>
+              <Button 
+                onClick={handlePrintPreview}
+                icon={<PrinterOutlined />}
+                size="large"
+                disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
+              >
+                Предпросмотр для печати
+              </Button>
+            </Space>
+          </div>
+        </Card>
+      </Spin>
     </div>
   );
 };

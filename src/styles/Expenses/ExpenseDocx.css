@@ -1,36 +1,133 @@
 .expense-docx-page {
-  padding: 6px 24px 0px 24px;
+  padding: 16px 24px;
   max-width: 1400px;
   margin: 0 auto;
   background-color: #f7f9fc;
   min-height: 100vh;
 }
 
-.expense-docx-card {
-  margin-bottom: 20px;
-}
-
-.expense-docx-header {
+/* Заголовок страницы */
+.page-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  gap: 16px;
 }
 
 .expense-docx-title {
   margin-bottom: 0 !important;
+  flex: 1;
 }
 
-.form-section-card {
+.back-button {
+  flex-shrink: 0;
+}
+
+/* Основная карточка и табы */
+.expense-docx-main-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.expense-docx-tabs .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+/* Формы и фильтры */
+.expense-docx-form {
+  width: 100%;
+}
+
+.filter-card, .content-card {
   height: 100%;
+  border-radius: 8px;
+  background-color: #fafafa;
 }
 
-.checkbox-group-wrapper {
-  margin-bottom: 20px;
+.filter-collapse .ant-collapse-header,
+.columns-collapse .ant-collapse-header {
+  padding: 8px 0 !important;
+  color: #1890ff !important;
 }
 
-.column-disabled {
-  color: #d9d9d9;
-  font-style: italic;
+.filter-collapse .ant-collapse-content-box,
+.columns-collapse .ant-collapse-content-box {
+  padding: 0 !important;
+}
+
+.content-options {
+  margin-bottom: 16px;
+}
+
+.column-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.column-checkbox-group .ant-checkbox-wrapper {
+  margin-left: 0 !important;
+  min-width: 120px;
+}
+
+/* Карточка с информацией о найденных данных */
+.expense-summary-card {
+  margin-top: 16px;
+  background-color: #f0f7ff;
+  border-radius: 8px;
+}
+
+.expense-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expense-count {
+  font-size: 14px;
+}
+
+.expense-total {
+  font-size: 14px;
+}
+
+/* Предпросмотр */
+.preview-container {
+  padding: 0 8px;
+}
+
+.preview-summary-card {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.summary-total {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.preview-details-card {
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.no-data-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+/* Действия с документом */
+.docx-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
 }
 
 /* Стили для предварительного просмотра печати */
@@ -63,4 +160,39 @@
   tfoot {
     display: table-footer-group;
   }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .expense-docx-page {
+    padding: 8px 12px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .expense-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .docx-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .docx-actions .ant-btn {
+    width: 100%;
+  }
+}
+
+/* Стили для disabled колонок в таблице */
+.column-disabled {
+  color: #d9d9d9;
+  font-style: italic;
 }
