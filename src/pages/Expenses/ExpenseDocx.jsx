@@ -21,7 +21,6 @@ import {
   HomeOutlined,
   FileWordOutlined,
   ArrowLeftOutlined,
-  PrinterOutlined,
   SettingOutlined,
   FileTextOutlined,
   TableOutlined,
@@ -51,9 +50,6 @@ import {
   TableLayoutType 
 } from 'docx';
 import { saveAs } from 'file-saver';
-
-// Импортируем компонент для предпросмотра
-import ExpenseDocxPreview from './ExpenseDocxPreview';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -927,30 +923,6 @@ const doc = new Document({
     }
   };
 
-  // Handle print preview
-const handlePrintPreview = () => {
-  try {
-    // Показываем сообщение
-    message.info('Открывается окно предварительного просмотра...');
-    
-    // Используем компонент предпросмотра
-    const previewComponent = ExpenseDocxPreview({
-      filteredExpenses,
-      dateRange,
-      includeSummary,
-      includeDetails,
-      selectedColumns,
-      getResourceTypeDisplayName,
-      getResourceName,
-      formatCurrency
-    });
-    
-    previewComponent.openPrintPreview();
-  } catch (error) {
-    message.error(`Ошибка при открытии предварительного просмотра: ${error.message}`);
-  }
-};
-
   // Handle form submission
   const handleFormSubmit = () => {
     handleDownloadDocx();
@@ -1306,26 +1278,16 @@ const handlePrintPreview = () => {
           </Tabs>
           
           <div className="docx-actions">
-            <Space size="middle">
-              <Button
-                type="primary"
-                onClick={handleDownloadDocx}
-                loading={loading}
-                icon={<FileWordOutlined />}
-                size="large"
-                disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
-              >
-                Скачать .docx
-              </Button>
-              <Button 
-                onClick={handlePrintPreview}
-                icon={<PrinterOutlined />}
-                size="large"
-                disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
-              >
-                Предпросмотр для печати
-              </Button>
-            </Space>
+            <Button
+              type="primary"
+              onClick={handleDownloadDocx}
+              loading={loading}
+              icon={<FileWordOutlined />}
+              size="large"
+              disabled={filteredExpenses.length === 0 || (!includeSummary && !includeDetails)}
+            >
+              Скачать .docx
+            </Button>
           </div>
         </Card>
       </Spin>
