@@ -32,7 +32,24 @@ import DateRangePicker from '../../components/DateRangePicker/DateRangePicker';
 import '../../styles/Expenses/ExpenseDocx.css';
 
 // Импортируем библиотеку для создания docx документов
-import { Document, Packer, Paragraph, Table as DocxTable, TableRow, TableCell, TextRun, HeadingLevel, BorderStyle } from 'docx';
+// Импортируем библиотеку для создания docx документов
+import { 
+  Document, 
+  Packer, 
+  Paragraph, 
+  Table as DocxTable, 
+  TableRow, 
+  TableCell, 
+  TextRun, 
+  HeadingLevel, 
+  BorderStyle, 
+  AlignmentType, 
+  Header, 
+  Footer, 
+  PageNumber, 
+  WidthType, 
+  TableLayoutType 
+} from 'docx';
 import { saveAs } from 'file-saver';
 
 // Импортируем компонент для предпросмотра
@@ -276,250 +293,627 @@ const ExpenseDocx = () => {
       });
 
       // Create document
-      const doc = new Document({
-        sections: [
-          {
-            properties: {},
-            children: [
-              new Paragraph({
-                text: "Отчёт о расходах",
-                heading: HeadingLevel.HEADING_1,
-                spacing: {
-                  before: 200,
-                  after: 200
-                }
+const doc = new Document({
+  sections: [
+    {
+      properties: {
+        page: {
+          margin: {
+            top: 1000,
+            right: 1000,
+            bottom: 1000,
+            left: 1000,
+          },
+        },
+      },
+      headers: {
+        default: new Header({
+          children: [
+            new Paragraph({
+              text: "Отчёт о расходах",
+              style: "headerStyle",
+            }),
+          ],
+        }),
+      },
+      footers: {
+        default: new Footer({
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.RIGHT,
+              children: [
+                new TextRun("Страница "),
+                new TextRun({
+                  children: [PageNumber.CURRENT],
+                }),
+                new TextRun(" из "),
+                new TextRun({
+                  children: [PageNumber.TOTAL_PAGES],
+                }),
+              ],
+              style: "footerStyle",
+            }),
+          ],
+        }),
+      },
+      children: [
+        new Paragraph({
+          text: "Отчёт о расходах",
+          heading: HeadingLevel.HEADING_1,
+          alignment: AlignmentType.CENTER,
+          spacing: {
+            before: 200,
+            after: 200,
+          },
+          style: "headingStyle",
+        }),
+        new Paragraph({
+          text: `За период: ${dateRange[0].format('DD.MM.YYYY')} - ${dateRange[1].format('DD.MM.YYYY')}`,
+          alignment: AlignmentType.CENTER,
+          spacing: {
+            before: 100,
+            after: 400,
+          },
+          style: "normalText",
+        }),
+        
+        // Summary section
+        ...(includeSummary ? [
+          new Paragraph({
+            text: "Сводная информация",
+            heading: HeadingLevel.HEADING_2,
+            alignment: AlignmentType.LEFT,
+            spacing: {
+              before: 200,
+              after: 200,
+            },
+            style: "headingStyle",
+          }),
+          new Paragraph({
+            text: `Общая сумма расходов: ${formatCurrency(total)}`,
+            alignment: AlignmentType.JUSTIFIED,
+            spacing: {
+              before: 100,
+              after: 100,
+            },
+            style: "normalText",
+          }),
+          
+          // Resource type summary
+          new Paragraph({
+            text: "Расходы по типам ресурсов:",
+            alignment: AlignmentType.JUSTIFIED,
+            spacing: {
+              before: 200,
+              after: 100,
+            },
+            style: "normalText",
+          }),
+          new DocxTable({
+            width: {
+              size: 100,
+              type: WidthType.PERCENTAGE,
+            },
+            rows: [
+              new TableRow({
+                tableHeader: true,
+                children: [
+                  new TableCell({
+                    children: [new Paragraph({
+                      text: "Тип ресурса",
+                      alignment: AlignmentType.CENTER,
+                      style: "tableHeader",
+                    })],
+                    width: {
+                      size: 50,
+                      type: WidthType.PERCENTAGE,
+                    },
+                    shading: {
+                      fill: "F2F2F2",
+                    },
+                  }),
+                  new TableCell({
+                    children: [new Paragraph({
+                      text: "Сумма",
+                      alignment: AlignmentType.CENTER,
+                      style: "tableHeader",
+                    })],
+                    width: {
+                      size: 50,
+                      type: WidthType.PERCENTAGE,
+                    },
+                    shading: {
+                      fill: "F2F2F2",
+                    },
+                  })
+                ]
               }),
-              new Paragraph({
-                text: `За период: ${dateRange[0].format('DD.MM.YYYY')} - ${dateRange[1].format('DD.MM.YYYY')}`,
-                spacing: {
-                  before: 100,
-                  after: 400
-                }
-              }),
-              
-              // Summary section
-              ...(includeSummary ? [
-                new Paragraph({
-                  text: "Сводная информация",
-                  heading: HeadingLevel.HEADING_2,
-                  spacing: {
-                    before: 200,
-                    after: 200
-                  }
-                }),
-                new Paragraph({
-                  text: `Общая сумма расходов: ${formatCurrency(total)}`,
-                  spacing: {
-                    before: 100,
-                    after: 100
-                  }
-                }),
-                
-                // Resource type summary
-                new Paragraph({
-                  text: "Расходы по типам ресурсов:",
-                  spacing: {
-                    before: 200,
-                    after: 100
-                  }
-                }),
-                new DocxTable({
-                  rows: [
-                    new TableRow({
-                      children: [
-                        new TableCell({
-                          children: [new Paragraph("Тип ресурса")],
-                          width: {
-                            size: 50,
-                            type: "percentage"
-                          }
-                        }),
-                        new TableCell({
-                          children: [new Paragraph("Сумма")],
-                          width: {
-                            size: 50,
-                            type: "percentage"
-                          }
-                        })
-                      ]
+              ...Object.entries(resourceTypeSummary).map(([type, amount]) => 
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: type,
+                        alignment: AlignmentType.LEFT,
+                        style: "normalText",
+                      })]
                     }),
-                    ...Object.entries(resourceTypeSummary).map(([type, amount]) => 
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [new Paragraph(type)]
-                          }),
-                          new TableCell({
-                            children: [new Paragraph(formatCurrency(amount))]
-                          })
-                        ]
-                      })
-                    )
-                  ]
-                }),
-                
-                // Category summary
-                new Paragraph({
-                  text: "Расходы по категориям:",
-                  spacing: {
-                    before: 200,
-                    after: 100
-                  }
-                }),
-                new DocxTable({
-                  rows: [
-                    new TableRow({
-                      children: [
-                        new TableCell({
-                          children: [new Paragraph("Категория")],
-                          width: {
-                            size: 50,
-                            type: "percentage"
-                          }
-                        }),
-                        new TableCell({
-                          children: [new Paragraph("Сумма")],
-                          width: {
-                            size: 50,
-                            type: "percentage"
-                          }
-                        })
-                      ]
-                    }),
-                    ...Object.entries(categorySummary).map(([category, amount]) => 
-                      new TableRow({
-                        children: [
-                          new TableCell({
-                            children: [new Paragraph(category)]
-                          }),
-                          new TableCell({
-                            children: [new Paragraph(formatCurrency(amount))]
-                          })
-                        ]
-                      })
-                    )
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: formatCurrency(amount),
+                        alignment: AlignmentType.RIGHT,
+                        style: "normalText",
+                      })]
+                    })
                   ]
                 })
-              ] : []),
-              
-              // Details section
-              ...(includeDetails ? [
-                new Paragraph({
-                  text: "Детализация расходов",
-                  heading: HeadingLevel.HEADING_2,
-                  spacing: {
-                    before: 400,
-                    after: 200
-                  }
-                }),
-                new DocxTable({
-                  rows: [
-                    new TableRow({
-                      children: [
-                        ...(selectedColumns.includes('date') ? [
-                          new TableCell({
-                            children: [new Paragraph("Дата")]
-                          })
-                        ] : []),
-                        ...(selectedColumns.includes('resourceType') ? [
-                          new TableCell({
-                            children: [new Paragraph("Тип ресурса")]
-                          })
-                        ] : []),
-                        ...(selectedColumns.includes('resource') ? [
-                          new TableCell({
-                            children: [new Paragraph("Ресурс")]
-                          })
-                        ] : []),
-                        ...(selectedColumns.includes('category') ? [
-                          new TableCell({
-                            children: [new Paragraph("Категория")]
-                          })
-                        ] : []),
-                        ...(selectedColumns.includes('amount') ? [
-                          new TableCell({
-                            children: [new Paragraph("Сумма")]
-                          })
-                        ] : []),
-                        ...(selectedColumns.includes('description') ? [
-                          new TableCell({
-                            children: [new Paragraph("Описание")]
-                          })
-                        ] : []),
-                        ...(selectedColumns.includes('paymentMethod') ? [
-                          new TableCell({
-                            children: [new Paragraph("Способ оплаты")]
-                          })
-                        ] : []),
-                        ...(selectedColumns.includes('invoiceNumber') ? [
-                          new TableCell({
-                            children: [new Paragraph("Номер счета")]
-                          })
-                        ] : [])
-                      ]
+              )
+            ],
+            tableProperties: {
+              tableWidth: {
+                size: 100,
+                type: WidthType.PERCENTAGE,
+              },
+              borders: {
+                top: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                bottom: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                left: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                right: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                insideHorizontal: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                insideVertical: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+              },
+              layout: TableLayoutType.FIXED,
+            },
+          }),
+          
+          // Category summary
+          new Paragraph({
+            text: "Расходы по категориям:",
+            alignment: AlignmentType.JUSTIFIED,
+            spacing: {
+              before: 200,
+              after: 100,
+            },
+            style: "normalText",
+          }),
+          new DocxTable({
+            width: {
+              size: 100,
+              type: WidthType.PERCENTAGE,
+            },
+            rows: [
+              new TableRow({
+                tableHeader: true,
+                children: [
+                  new TableCell({
+                    children: [new Paragraph({
+                      text: "Категория",
+                      alignment: AlignmentType.CENTER,
+                      style: "tableHeader",
+                    })],
+                    width: {
+                      size: 50,
+                      type: WidthType.PERCENTAGE,
+                    },
+                    shading: {
+                      fill: "F2F2F2",
+                    },
+                  }),
+                  new TableCell({
+                    children: [new Paragraph({
+                      text: "Сумма",
+                      alignment: AlignmentType.CENTER,
+                      style: "tableHeader",
+                    })],
+                    width: {
+                      size: 50,
+                      type: WidthType.PERCENTAGE,
+                    },
+                    shading: {
+                      fill: "F2F2F2",
+                    },
+                  })
+                ]
+              }),
+              ...Object.entries(categorySummary).map(([category, amount]) => 
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: category,
+                        alignment: AlignmentType.LEFT,
+                        style: "normalText",
+                      })]
                     }),
-                    ...filteredExpenses.map(expense => 
-                      new TableRow({
-                        children: [
-                          ...(selectedColumns.includes('date') ? [
-                            new TableCell({
-                              children: [new Paragraph(moment(expense.Date).format('DD.MM.YYYY'))]
-                            })
-                          ] : []),
-                          ...(selectedColumns.includes('resourceType') ? [
-                            new TableCell({
-                              children: [new Paragraph(getResourceTypeDisplayName(expense.Resource_Type))]
-                            })
-                          ] : []),
-                          ...(selectedColumns.includes('resource') ? [
-                            new TableCell({
-                              children: [new Paragraph(getResourceName(expense.Resource_Type, expense.Resource_ID))]
-                            })
-                          ] : []),
-                          ...(selectedColumns.includes('category') ? [
-                            new TableCell({
-                              children: [new Paragraph(expense.Category || '')]
-                            })
-                          ] : []),
-                          ...(selectedColumns.includes('amount') ? [
-                            new TableCell({
-                              children: [new Paragraph(formatCurrency(expense.Amount))]
-                            })
-                          ] : []),
-                          ...(selectedColumns.includes('description') ? [
-                            new TableCell({
-                              children: [new Paragraph(expense.Description || '')]
-                            })
-                          ] : []),
-                          ...(selectedColumns.includes('paymentMethod') ? [
-                            new TableCell({
-                              children: [new Paragraph(expense.Payment_Method || '')]
-                            })
-                          ] : []),
-                          ...(selectedColumns.includes('invoiceNumber') ? [
-                            new TableCell({
-                              children: [new Paragraph(expense.Invoice_Number || '')]
-                            })
-                          ] : [])
-                        ]
-                      })
-                    )
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: formatCurrency(amount),
+                        alignment: AlignmentType.RIGHT,
+                        style: "normalText",
+                      })]
+                    })
                   ]
                 })
-              ] : []),
-              
-              // Footer
-              new Paragraph({
-                text: `Дата формирования отчёта: ${moment().format('DD.MM.YYYY HH:mm')}`,
-                spacing: {
-                  before: 400,
-                  after: 0
-                }
-              })
-            ]
-          }
-        ]
-      });
+              )
+            ],
+            tableProperties: {
+              tableWidth: {
+                size: 100,
+                type: WidthType.PERCENTAGE,
+              },
+              borders: {
+                top: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                bottom: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                left: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                right: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                insideHorizontal: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                insideVertical: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+              },
+              layout: TableLayoutType.FIXED,
+            },
+          })
+        ] : []),
+        
+        // Details section
+        ...(includeDetails ? [
+          new Paragraph({
+            text: "Детализация расходов",
+            heading: HeadingLevel.HEADING_2,
+            alignment: AlignmentType.LEFT,
+            spacing: {
+              before: 400,
+              after: 200,
+            },
+            style: "headingStyle",
+          }),
+          new DocxTable({
+            width: {
+              size: 100,
+              type: WidthType.PERCENTAGE,
+            },
+            rows: [
+              new TableRow({
+                tableHeader: true,
+                children: [
+                  ...(selectedColumns.includes('date') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Дата",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : []),
+                  ...(selectedColumns.includes('resourceType') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Тип ресурса",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : []),
+                  ...(selectedColumns.includes('resource') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Ресурс",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : []),
+                  ...(selectedColumns.includes('category') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Категория",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : []),
+                  ...(selectedColumns.includes('amount') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Сумма",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : []),
+                  ...(selectedColumns.includes('description') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Описание",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : []),
+                  ...(selectedColumns.includes('paymentMethod') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Способ оплаты",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : []),
+                  ...(selectedColumns.includes('invoiceNumber') ? [
+                    new TableCell({
+                      children: [new Paragraph({
+                        text: "Номер счета",
+                        alignment: AlignmentType.CENTER,
+                        style: "tableHeader",
+                      })],
+                      shading: {
+                        fill: "F2F2F2",
+                      },
+                    })
+                  ] : [])
+                ]
+              }),
+              ...filteredExpenses.map(expense => 
+                new TableRow({
+                  children: [
+                    ...(selectedColumns.includes('date') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: moment(expense.Date).format('DD.MM.YYYY'),
+                          alignment: AlignmentType.LEFT,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : []),
+                    ...(selectedColumns.includes('resourceType') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: getResourceTypeDisplayName(expense.Resource_Type),
+                          alignment: AlignmentType.LEFT,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : []),
+                    ...(selectedColumns.includes('resource') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: getResourceName(expense.Resource_Type, expense.Resource_ID),
+                          alignment: AlignmentType.LEFT,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : []),
+                    ...(selectedColumns.includes('category') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: expense.Category || '',
+                          alignment: AlignmentType.LEFT,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : []),
+                    ...(selectedColumns.includes('amount') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: formatCurrency(expense.Amount),
+                          alignment: AlignmentType.RIGHT,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : []),
+                    ...(selectedColumns.includes('description') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: expense.Description || '',
+                          alignment: AlignmentType.JUSTIFIED,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : []),
+                    ...(selectedColumns.includes('paymentMethod') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: expense.Payment_Method || '',
+                          alignment: AlignmentType.LEFT,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : []),
+                    ...(selectedColumns.includes('invoiceNumber') ? [
+                      new TableCell({
+                        children: [new Paragraph({
+                          text: expense.Invoice_Number || '',
+                          alignment: AlignmentType.LEFT,
+                          style: "normalText",
+                        })]
+                      })
+                    ] : [])
+                  ]
+                })
+              )
+            ],
+            tableProperties: {
+              tableWidth: {
+                size: 100,
+                type: WidthType.PERCENTAGE,
+              },
+              borders: {
+                top: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                bottom: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                left: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                right: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                insideHorizontal: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+                insideVertical: {
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                  color: "000000",
+                },
+              },
+              layout: TableLayoutType.FIXED,
+            },
+          })
+        ] : []),
+        
+        // Footer
+        new Paragraph({
+          text: `Дата формирования отчёта: ${moment().format('DD.MM.YYYY HH:mm')}`,
+          alignment: AlignmentType.RIGHT,
+          spacing: {
+            before: 400,
+            after: 0,
+          },
+          style: "normalText",
+        })
+      ]
+    }
+  ],
+  styles: {
+    paragraphStyles: [
+      {
+        id: "normalText",
+        name: "Normal Text",
+        run: {
+          size: 24, // 12pt
+          font: "Times New Roman",
+        },
+        paragraph: {
+          spacing: {
+            line: 276, // 1.15 line spacing
+          },
+        },
+      },
+      {
+        id: "headingStyle",
+        name: "Heading Style",
+        run: {
+          size: 28, // 14pt
+          font: "Times New Roman",
+          bold: true,
+        },
+        paragraph: {
+          spacing: {
+            line: 276, // 1.15 line spacing
+          },
+        },
+      },
+      {
+        id: "tableHeader",
+        name: "Table Header",
+        run: {
+          size: 24, // 12pt
+          font: "Times New Roman",
+          bold: true,
+        },
+      },
+      {
+        id: "headerStyle",
+        name: "Header Style",
+        run: {
+          size: 20, // 10pt
+          font: "Times New Roman",
+          color: "808080",
+        },
+      },
+      {
+        id: "footerStyle",
+        name: "Footer Style",
+        run: {
+          size: 18, // 9pt
+          font: "Times New Roman",
+          color: "808080",
+        },
+      },
+    ],
+  },
+});
 
       // Generate and save document
       Packer.toBlob(doc).then(blob => {
