@@ -2,119 +2,194 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 
+// Создание таблицы для хранения локаций, если она не существует
+db.run(`
+  CREATE TABLE IF NOT EXISTS storage_locations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    type TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`, (err) => {
+  if (err) {
+    console.error('Error creating storage_locations table:', err.message);
+  } else {
+    console.log('Storage locations table ready');
+  }
+});
+
 // Get all storage locations for tools
 router.get('/tools', (req, res) => {
+  // Получаем локации из таблицы storage_locations
   const sql = `
-    SELECT 
-      DISTINCT Location as name, 
-      Location as description,
-      COUNT(*) as itemCount
-    FROM tools 
-    WHERE Location IS NOT NULL AND Location != '' 
-    GROUP BY Location
+    SELECT id, name, description
+    FROM storage_locations
+    WHERE type = 'tools'
   `;
   
-  db.all(sql, [], (err, rows) => {
+  db.all(sql, [], (err, locations) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
     
-    // Transform to expected format with IDs
-    const locations = rows.map((row, index) => ({
-      id: index + 1,
-      name: row.name,
-      description: row.description || row.name,
-      itemCount: row.itemCount
-    }));
+    // Получаем количество инструментов в каждой локации
+    const countPromises = locations.map(location => {
+      return new Promise((resolve, reject) => {
+        const countSql = `
+          SELECT COUNT(*) as itemCount
+          FROM tools
+          WHERE Location = ?
+        `;
+        db.get(countSql, [location.name], (err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve({
+            ...location,
+            itemCount: result ? result.itemCount : 0
+          });
+        });
+      });
+    });
     
-    res.json(locations);
+    Promise.all(countPromises)
+      .then(locationsWithCount => {
+        res.json(locationsWithCount);
+      })
+      .catch(err => {
+        res.status(500).json({ error: err.message });
+      });
   });
 });
 
 // Get all storage locations for spares
 router.get('/spares', (req, res) => {
   const sql = `
-    SELECT 
-      DISTINCT Location as name, 
-      Location as description,
-      COUNT(*) as itemCount
-    FROM spares 
-    WHERE Location IS NOT NULL AND Location != '' 
-    GROUP BY Location
+    SELECT id, name, description
+    FROM storage_locations
+    WHERE type = 'spares'
   `;
   
-  db.all(sql, [], (err, rows) => {
+  db.all(sql, [], (err, locations) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
     
-    // Transform to expected format with IDs
-    const locations = rows.map((row, index) => ({
-      id: index + 1,
-      name: row.name,
-      description: row.description || row.name,
-      itemCount: row.itemCount
-    }));
+    const countPromises = locations.map(location => {
+      return new Promise((resolve, reject) => {
+        const countSql = `
+          SELECT COUNT(*) as itemCount
+          FROM spares
+          WHERE Location = ?
+        `;
+        db.get(countSql, [location.name], (err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve({
+            ...location,
+            itemCount: result ? result.itemCount : 0
+          });
+        });
+      });
+    });
     
-    res.json(locations);
+    Promise.all(countPromises)
+      .then(locationsWithCount => {
+        res.json(locationsWithCount);
+      })
+      .catch(err => {
+        res.status(500).json({ error: err.message });
+      });
   });
 });
 
 // Get all storage locations for materials
 router.get('/materials', (req, res) => {
   const sql = `
-    SELECT 
-      DISTINCT Location as name, 
-      Location as description,
-      COUNT(*) as itemCount
-    FROM materials 
-    WHERE Location IS NOT NULL AND Location != '' 
-    GROUP BY Location
+    SELECT id, name, description
+    FROM storage_locations
+    WHERE type = 'materials'
   `;
   
-  db.all(sql, [], (err, rows) => {
+  db.all(sql, [], (err, locations) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
     
-    // Transform to expected format with IDs
-    const locations = rows.map((row, index) => ({
-      id: index + 1,
-      name: row.name,
-      description: row.description || row.name,
-      itemCount: row.itemCount
-    }));
+    const countPromises = locations.map(location => {
+      return new Promise((resolve, reject) => {
+        const countSql = `
+          SELECT COUNT(*) as itemCount
+          FROM materials
+          WHERE Location = ?
+        `;
+        db.get(countSql, [location.name], (err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve({
+            ...location,
+            itemCount: result ? result.itemCount : 0
+          });
+        });
+      });
+    });
     
-    res.json(locations);
+    Promise.all(countPromises)
+      .then(locationsWithCount => {
+        res.json(locationsWithCount);
+      })
+      .catch(err => {
+        res.status(500).json({ error: err.message });
+      });
   });
 });
 
 // Get all storage locations for equipment
 router.get('/equipment', (req, res) => {
   const sql = `
-    SELECT 
-      DISTINCT Location as name, 
-      Location as description,
-      COUNT(*) as itemCount
-    FROM equipment 
-    WHERE Location IS NOT NULL AND Location != '' 
-    GROUP BY Location
+    SELECT id, name, description
+    FROM storage_locations
+    WHERE type = 'equipment'
   `;
   
-  db.all(sql, [], (err, rows) => {
+  db.all(sql, [], (err, locations) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
     
-    // Transform to expected format with IDs
-    const locations = rows.map((row, index) => ({
-      id: index + 1,
-      name: row.name,
-      description: row.description || row.name,
-      itemCount: row.itemCount
-    }));
+    const countPromises = locations.map(location => {
+      return new Promise((resolve, reject) => {
+        const countSql = `
+          SELECT COUNT(*) as itemCount
+          FROM equipment
+          WHERE Location = ?
+        `;
+        db.get(countSql, [location.name], (err, result) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve({
+            ...location,
+            itemCount: result ? result.itemCount : 0
+          });
+        });
+      });
+    });
     
-    res.json(locations);
+    Promise.all(countPromises)
+      .then(locationsWithCount => {
+        res.json(locationsWithCount);
+      })
+      .catch(err => {
+        res.status(500).json({ error: err.message });
+      });
   });
 });
 
@@ -126,27 +201,104 @@ router.post('/tools', (req, res) => {
     return res.status(400).json({ error: 'Name is required' });
   }
   
-  // In a real implementation, you'd add this to a storage_locations table
-  // For now, we'll just return success with a mock ID
-  res.json({
-    id: Date.now(),
-    name,
-    description,
-    itemCount: 0
+  const sql = `
+    INSERT INTO storage_locations (name, description, type)
+    VALUES (?, ?, 'tools')
+  `;
+  
+  db.run(sql, [name, description], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json({
+      id: this.lastID,
+      name,
+      description,
+      itemCount: 0
+    });
   });
 });
 
-// Similar routes for adding spares, materials, and equipment locations
+// Add a new storage location for spares
 router.post('/spares', (req, res) => {
-  // Similar implementation
+  const { name, description } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+  
+  const sql = `
+    INSERT INTO storage_locations (name, description, type)
+    VALUES (?, ?, 'spares')
+  `;
+  
+  db.run(sql, [name, description], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json({
+      id: this.lastID,
+      name,
+      description,
+      itemCount: 0
+    });
+  });
 });
 
+// Add a new storage location for materials
 router.post('/materials', (req, res) => {
-  // Similar implementation
+  const { name, description } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+  
+  const sql = `
+    INSERT INTO storage_locations (name, description, type)
+    VALUES (?, ?, 'materials')
+  `;
+  
+  db.run(sql, [name, description], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json({
+      id: this.lastID,
+      name,
+      description,
+      itemCount: 0
+    });
+  });
 });
 
+// Add a new storage location for equipment
 router.post('/equipment', (req, res) => {
-  // Similar implementation
+  const { name, description } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+  
+  const sql = `
+    INSERT INTO storage_locations (name, description, type)
+    VALUES (?, ?, 'equipment')
+  `;
+  
+  db.run(sql, [name, description], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    res.json({
+      id: this.lastID,
+      name,
+      description,
+      itemCount: 0
+    });
+  });
 });
 
 // Update a storage location
@@ -158,13 +310,27 @@ router.put('/:type/:id', (req, res) => {
     return res.status(400).json({ error: 'Name is required' });
   }
   
-  // In a real implementation, you'd update the storage_locations table
-  // For now, just return success
-  res.json({
-    id: parseInt(id),
-    name,
-    description,
-    type
+  const sql = `
+    UPDATE storage_locations
+    SET name = ?, description = ?
+    WHERE id = ? AND type = ?
+  `;
+  
+  db.run(sql, [name, description, id, type], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Location not found' });
+    }
+    
+    res.json({
+      id: parseInt(id),
+      name,
+      description,
+      itemCount: 0 // Это значение будет обновлено при следующем получении списка
+    });
   });
 });
 
@@ -172,10 +338,22 @@ router.put('/:type/:id', (req, res) => {
 router.delete('/:type/:id', (req, res) => {
   const { type, id } = req.params;
   
-  // In a real implementation, you'd delete from the storage_locations table
-  // and update references in the related tables
-  // For now, just return success
-  res.json({ success: true });
+  const sql = `
+    DELETE FROM storage_locations
+    WHERE id = ? AND type = ?
+  `;
+  
+  db.run(sql, [id, type], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Location not found' });
+    }
+    
+    res.json({ success: true });
+  });
 });
 
 module.exports = router;

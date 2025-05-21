@@ -31,6 +31,8 @@ const EquipmentForm = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);
   const [employees, setEmployees] = useState([]);
+  const [storageLocations, setStorageLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   const [types, setTypes] = useState([
     'Насосное оборудование',
     'Котельное оборудование',
@@ -74,6 +76,37 @@ const EquipmentForm = () => {
     fetchEmployees();
   }, []);
 
+  // Загрузка мест хранения оборудования
+  useEffect(() => {
+    const fetchStorageLocations = async () => {
+      try {
+        setLoadingLocations(true);
+        const response = await fetch('/api/storage/equipment');
+        
+        if (!response.ok) {
+          throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setStorageLocations(data);
+      } catch (err) {
+        message.error(`Не удалось загрузить места хранения: ${err.message}`);
+        // Fallback данные для демонстрации
+        setStorageLocations([
+          { id: 1, name: 'Насосная станция №1', description: 'Локация насосного оборудования', itemCount: 12 },
+          { id: 2, name: 'Котельная', description: 'Локация отопительного оборудования', itemCount: 8 },
+          { id: 3, name: 'Электроподстанция', description: 'Локация электрического оборудования', itemCount: 15 },
+          { id: 4, name: 'Компрессорная', description: 'Локация компрессорного оборудования', itemCount: 6 },
+          { id: 5, name: 'Цех №3', description: 'Локация производственного оборудования', itemCount: 22 }
+        ]);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+    
+    fetchStorageLocations();
+  }, []);
+
   // Загрузка данных об оборудовании при редактировании
   useEffect(() => {
     if (isEditing) {
@@ -100,7 +133,6 @@ const EquipmentForm = () => {
             manufacturer: data.Manufacturer,
             model: data.Model,
             inventoryNumber: data.Inventory_Number,
-            // commissionDate убрано отсюда, так как мы используем кастомный DatePicker
             responsibleEmployeeId: data.Responsible_Employee_ID,
             condition: data.Condition || 'Рабочее',
             location: data.Location
@@ -140,7 +172,7 @@ const EquipmentForm = () => {
         manufacturer: values.manufacturer,
         model: values.model,
         inventoryNumber: values.inventoryNumber,
-        commissionDate: formattedDate, // Используем отформатированную дату
+        commissionDate: formattedDate,
         responsibleEmployeeId: values.responsibleEmployeeId,
         condition: values.condition,
         location: values.location
@@ -360,12 +392,60 @@ const EquipmentForm = () => {
                 </Select>
               </Form.Item>
               
-              {/* Место нахождения */}
+              {/* Место нахождения - заменяем на Select с местами хранения */}
               <Form.Item
                 name="location"
                 label="Место нахождения"
+                rules={[
+                  { required: true, message: 'Пожалуйста, выберите место нахождения' }
+                ]}
               >
-                <Input placeholder="Введите место нахождения" />
+                <Select
+                  placeholder="Выберите место нахождения"
+                  showSearch
+                  allowClear
+                  loading={loadingLocations}
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }
+                  dropdownRender={menu => (
+                    <div>
+                      {menu}
+                      <Divider style={{ margin: '4px 0' }} />
+                      <div style={{ 
+                        padding: '8px', 
+                        textAlign: 'center',
+                        color: '#999',
+                        fontSize: '12px'
+                      }}>
+                        Новые места хранения можно добавить в разделе "Места хранения"
+                      </div>
+                    </div>
+                  )}
+                >
+                  {storageLocations.map(location => (
+                    <Option key={location.id} value={location.name} title={location.description}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{location.name}</span>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          color: '#999',
+                          marginLeft: '8px'
+                        }}>
+                          ({location.itemCount} ед.)
+                        </span>
+                      </div>
+                      <div style={{ 
+                        fontSize: '11px', 
+                        color: '#666',
+                        marginTop: '2px'
+                      }}>
+                        {location.description}
+                      </div>
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </div>
             

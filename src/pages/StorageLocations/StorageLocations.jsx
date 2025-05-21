@@ -83,32 +83,12 @@ const StorageLocations = () => {
       });
     } catch (error) {
       message.error(`Error fetching storage locations: ${error.message}`);
-      // Placeholder data for demonstration
+      // Если не удалось получить данные, используем пустые массивы
       setStorageLocations({
-        tools: [
-          { id: 1, name: 'Основной склад', description: 'Склад инструментов, главное здание', itemCount: 127 },
-          { id: 2, name: 'Центральный гараж', description: 'Гараж для хранения ремонтных инструментов', itemCount: 45 },
-          { id: 3, name: 'Инструментальная комната 1', description: 'Комната для хранения строительных инструментов', itemCount: 84 },
-          { id: 4, name: 'Склад 3', description: 'Склад для хранения электроинструментов', itemCount: 32 }
-        ],
-        spares: [
-          { id: 1, name: 'Склад запчастей №1', description: 'Основной склад для хранения запчастей', itemCount: 213 },
-          { id: 2, name: 'Склад запчастей №2', description: 'Склад для хранения запчастей для спецтехники', itemCount: 78 },
-          { id: 3, name: 'Гараж 2', description: 'Место для хранения автозапчастей', itemCount: 146 }
-        ],
-        materials: [
-          { id: 1, name: 'Склад стройматериалов', description: 'Основной склад для хранения стройматериалов', itemCount: 95 },
-          { id: 2, name: 'Склад цемента', description: 'Склад для хранения сыпучих материалов', itemCount: 24 },
-          { id: 3, name: 'Склад №5', description: 'Склад для хранения обрабатываемых материалов', itemCount: 57 },
-          { id: 4, name: 'Склад металла', description: 'Склад для хранения металлических конструкций', itemCount: 36 }
-        ],
-        equipment: [
-          { id: 1, name: 'Насосная станция №1', description: 'Локация насосного оборудования', itemCount: 12 },
-          { id: 2, name: 'Котельная', description: 'Локация отопительного оборудования', itemCount: 8 },
-          { id: 3, name: 'Электроподстанция', description: 'Локация электрического оборудования', itemCount: 15 },
-          { id: 4, name: 'Компрессорная', description: 'Локация компрессорного оборудования', itemCount: 6 },
-          { id: 5, name: 'Цех №3', description: 'Локация производственного оборудования', itemCount: 22 }
-        ]
+        tools: [],
+        spares: [],
+        materials: [],
+        equipment: []
       });
     } finally {
       setLoading(false);
@@ -153,21 +133,15 @@ const StorageLocations = () => {
       
       if (modalType === 'add') {
         // API call to add new location
-        // const response = await fetch(`/api/storage/${locationType}`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(values)
-        // });
+        const response = await fetch(`/api/storage/${locationType}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values)
+        });
         
-        // if (!response.ok) throw new Error('Failed to add location');
+        if (!response.ok) throw new Error('Failed to add location');
         
-        // Simulate API response for demonstration
-        const newLocation = {
-          id: Math.floor(Math.random() * 1000),
-          name: values.name,
-          description: values.description,
-          itemCount: 0
-        };
+        const newLocation = await response.json();
         
         setStorageLocations(prev => ({
           ...prev,
@@ -177,20 +151,21 @@ const StorageLocations = () => {
         message.success('Место хранения успешно добавлено');
       } else {
         // API call to update location
-        // const response = await fetch(`/api/storage/${locationType}/${currentLocation.id}`, {
-        //   method: 'PUT',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(values)
-        // });
+        const response = await fetch(`/api/storage/${locationType}/${currentLocation.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values)
+        });
         
-        // if (!response.ok) throw new Error('Failed to update location');
+        if (!response.ok) throw new Error('Failed to update location');
         
-        // Simulate API response for demonstration
+        const updatedLocation = await response.json();
+        
         setStorageLocations(prev => ({
           ...prev,
           [locationType]: prev[locationType].map(item => 
             item.id === currentLocation.id ? 
-            { ...item, name: values.name, description: values.description } : 
+            { ...updatedLocation, itemCount: item.itemCount } : 
             item
           )
         }));
@@ -208,13 +183,12 @@ const StorageLocations = () => {
   const handleDelete = async (type, id) => {
     try {
       // API call to delete location
-      // const response = await fetch(`/api/storage/${type}/${id}`, {
-      //   method: 'DELETE'
-      // });
+      const response = await fetch(`/api/storage/${type}/${id}`, {
+        method: 'DELETE'
+      });
       
-      // if (!response.ok) throw new Error('Failed to delete location');
+      if (!response.ok) throw new Error('Failed to delete location');
       
-      // Simulate API response for demonstration
       setStorageLocations(prev => ({
         ...prev,
         [type]: prev[type].filter(item => item.id !== id)
