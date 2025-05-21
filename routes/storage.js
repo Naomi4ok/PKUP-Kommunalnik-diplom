@@ -336,7 +336,6 @@ router.put('/:type/:id', (req, res) => {
 });
 
 // Delete a storage location
-// Delete a storage location
 router.delete('/:type/:id', (req, res) => {
   const { type, id } = req.params;
   
@@ -408,8 +407,165 @@ router.delete('/:type/:id', (req, res) => {
               );
             }
           );
-        } else {
-          // Если это не локация оборудования, просто удаляем локацию
+        } 
+        // Добавляем обработку локаций инструментов
+        else if (type === 'tools') {
+          // Сначала подсчитываем количество связанных инструментов
+          db.get(
+            'SELECT COUNT(*) as count FROM Tools WHERE Location = ?',
+            [location.name],
+            (err, result) => {
+              if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: err.message });
+              }
+              
+              const affectedCount = result ? result.count : 0;
+              
+              // Обновляем инструменты, устанавливая текст "Не указано" для локации
+              db.run(
+                'UPDATE Tools SET Location = "Не указано" WHERE Location = ?',
+                [location.name],
+                (err) => {
+                  if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(500).json({ error: err.message });
+                  }
+                  
+                  // Теперь удаляем саму локацию
+                  db.run(
+                    'DELETE FROM storage_locations WHERE id = ? AND type = ?',
+                    [id, type],
+                    function(err) {
+                      if (err) {
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ error: err.message });
+                      }
+                      
+                      if (this.changes === 0) {
+                        db.run('ROLLBACK');
+                        return res.status(404).json({ error: 'Location not found' });
+                      }
+                      
+                      db.run('COMMIT');
+                      res.json({ 
+                        success: true,
+                        updatedTools: true,
+                        affectedCount: affectedCount
+                      });
+                    }
+                  );
+                }
+              );
+            }
+          );
+        }
+        // Также добавим аналогичную логику для запчастей (spares)
+        else if (type === 'spares') {
+          // Сначала подсчитываем количество связанных запчастей
+          db.get(
+            'SELECT COUNT(*) as count FROM Spares WHERE Location = ?',
+            [location.name],
+            (err, result) => {
+              if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: err.message });
+              }
+              
+              const affectedCount = result ? result.count : 0;
+              
+              // Обновляем запчасти, устанавливая текст "Не указано" для локации
+              db.run(
+                'UPDATE Spares SET Location = "Не указано" WHERE Location = ?',
+                [location.name],
+                (err) => {
+                  if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(500).json({ error: err.message });
+                  }
+                  
+                  // Теперь удаляем саму локацию
+                  db.run(
+                    'DELETE FROM storage_locations WHERE id = ? AND type = ?',
+                    [id, type],
+                    function(err) {
+                      if (err) {
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ error: err.message });
+                      }
+                      
+                      if (this.changes === 0) {
+                        db.run('ROLLBACK');
+                        return res.status(404).json({ error: 'Location not found' });
+                      }
+                      
+                      db.run('COMMIT');
+                      res.json({ 
+                        success: true,
+                        updatedSpares: true,
+                        affectedCount: affectedCount
+                      });
+                    }
+                  );
+                }
+              );
+            }
+          );
+        }
+        // И для материалов (materials)
+        else if (type === 'materials') {
+          // Сначала подсчитываем количество связанных материалов
+          db.get(
+            'SELECT COUNT(*) as count FROM Materials WHERE Location = ?',
+            [location.name],
+            (err, result) => {
+              if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: err.message });
+              }
+              
+              const affectedCount = result ? result.count : 0;
+              
+              // Обновляем материалы, устанавливая текст "Не указано" для локации
+              db.run(
+                'UPDATE Materials SET Location = "Не указано" WHERE Location = ?',
+                [location.name],
+                (err) => {
+                  if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(500).json({ error: err.message });
+                  }
+                  
+                  // Теперь удаляем саму локацию
+                  db.run(
+                    'DELETE FROM storage_locations WHERE id = ? AND type = ?',
+                    [id, type],
+                    function(err) {
+                      if (err) {
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ error: err.message });
+                      }
+                      
+                      if (this.changes === 0) {
+                        db.run('ROLLBACK');
+                        return res.status(404).json({ error: 'Location not found' });
+                      }
+                      
+                      db.run('COMMIT');
+                      res.json({ 
+                        success: true,
+                        updatedMaterials: true,
+                        affectedCount: affectedCount
+                      });
+                    }
+                  );
+                }
+              );
+            }
+          );
+        }
+        else {
+          // Если это какая-то другая локация, просто удаляем её
           db.run(
             'DELETE FROM storage_locations WHERE id = ? AND type = ?',
             [id, type],

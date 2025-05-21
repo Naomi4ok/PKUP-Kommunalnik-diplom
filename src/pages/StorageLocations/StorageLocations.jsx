@@ -181,30 +181,36 @@ const StorageLocations = () => {
 
   // Handle location deletion
   const handleDelete = async (type, id) => {
-    try {
-      // API call to delete location
-      const response = await fetch(`/api/storage/${type}/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete location');
-      
-      const result = await response.json();
-      
-      setStorageLocations(prev => ({
-        ...prev,
-        [type]: prev[type].filter(item => item.id !== id)
-      }));
-      
-      if (type === 'equipment' && result.updatedEquipment) {
-        message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования.`);
-      } else {
-        message.success('Место хранения успешно удалено');
-      }
-    } catch (error) {
-      message.error(`Ошибка: ${error.message}`);
+  try {
+    // API call to delete location
+    const response = await fetch(`/api/storage/${type}/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) throw new Error('Failed to delete location');
+    
+    const result = await response.json();
+    
+    setStorageLocations(prev => ({
+      ...prev,
+      [type]: prev[type].filter(item => item.id !== id)
+    }));
+    
+    if (type === 'equipment' && result.updatedEquipment) {
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования.`);
+    } else if (type === 'tools' && result.updatedTools) {
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} инструментов.`);
+    } else if (type === 'spares' && result.updatedSpares) {
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} запчастей.`);
+    } else if (type === 'materials' && result.updatedMaterials) {
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. материалов.`);
+    } else {
+      message.success('Место хранения успешно удалено');
     }
-  };
+  } catch (error) {
+    message.error(`Ошибка: ${error.message}`);
+  }
+};
 
   // Function to get icon by type
   const getTypeIcon = (type) => {
@@ -285,18 +291,24 @@ const StorageLocations = () => {
                   onClick={() => showEditModal(type, location)} 
                 />,
                 <Popconfirm
-                  title="Удаление места хранения"
-                  description={
-                    type === 'equipment' && location.linkedEquipment > 0 ? 
-                    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.linkedEquipment} ед. оборудования.` : 
-                    "Вы уверены, что хотите удалить это место хранения?"
-                  }
-                  onConfirm={() => handleDelete(type, location.id)}
-                  okText="Да"
-                  cancelText="Нет"
-                >
-                  <Button type="text" icon={<DeleteOutlined />} danger />
-                </Popconfirm>
+  title="Удаление места хранения"
+  description={
+    type === 'equipment' && location.linkedEquipment > 0 ? 
+    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.linkedEquipment} ед. оборудования.` :
+    type === 'tools' && location.itemCount > 0 ?
+    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} инструментов.` :
+    type === 'spares' && location.itemCount > 0 ?
+    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} запчастей.` :
+    type === 'materials' && location.itemCount > 0 ?
+    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} ед. материалов.` :
+    "Вы уверены, что хотите удалить это место хранения?"
+  }
+  onConfirm={() => handleDelete(type, location.id)}
+  okText="Да"
+  cancelText="Нет"
+>
+  <Button type="text" icon={<DeleteOutlined />} danger />
+</Popconfirm>
               ]}
             >
               <div className="storage-location-card-content">

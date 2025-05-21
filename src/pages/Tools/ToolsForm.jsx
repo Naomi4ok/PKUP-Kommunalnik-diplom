@@ -42,13 +42,10 @@ const ToolsForm = () => {
     'Прочее'
   ]);
   
-  const [locations, setLocations] = useState([
-    'Склад 1',
-    'Склад 2',
-    'Мастерская',
-    'Гараж',
-    'Прочее'
-  ]);
+  // Удаляем статический массив локаций
+  // Добавляем новые состояния для хранения локаций из API
+  const [storageLocations, setStorageLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
 
   // Load employees list
   useEffect(() => {
@@ -68,6 +65,31 @@ const ToolsForm = () => {
     };
     
     fetchEmployees();
+  }, []);
+
+  // Добавляем новый useEffect для загрузки мест хранения инструментов
+  useEffect(() => {
+    const fetchStorageLocations = async () => {
+      try {
+        setLoadingLocations(true);
+        const response = await fetch('/api/storage/tools');
+        
+        if (!response.ok) {
+          throw new Error(`Ошибка HTTP! Статус: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setStorageLocations(data);
+      } catch (err) {
+        message.error(`Не удалось загрузить места хранения: ${err.message}`);
+        // Fallback данные для демонстрации, если не удалось загрузить
+        setStorageLocations([]);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+    
+    fetchStorageLocations();
   }, []);
 
   // Load tool data when editing
@@ -280,7 +302,7 @@ const ToolsForm = () => {
             </div>
             
             <div className="form-row">
-              {/* Location */}
+              {/* Location - Заменяем на Select с данными из API */}
               <Form.Item
                 name="location"
                 label="Место хранения"
@@ -292,29 +314,46 @@ const ToolsForm = () => {
                   placeholder="Выберите место хранения"
                   showSearch
                   allowClear
+                  loading={loadingLocations}
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option.children[0].props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }
                   dropdownRender={menu => (
                     <div>
                       {menu}
                       <Divider style={{ margin: '4px 0' }} />
-                      <div style={{ display: 'flex', flexWrap: 'nowrap', padding: 8 }}>
-                        <Input
-                          style={{ flex: 'auto' }}
-                          placeholder="Добавить новое место хранения"
-                          onPressEnter={(e) => {
-                            const value = e.target.value.trim();
-                            if (value && !locations.includes(value)) {
-                              setLocations([...locations, value]);
-                              form.setFieldsValue({ location: value });
-                            }
-                            e.target.value = '';
-                          }}
-                        />
+                      <div style={{ 
+                        padding: '8px', 
+                        textAlign: 'center',
+                        color: '#999',
+                        fontSize: '12px'
+                      }}>
+                        Новые места хранения инструментов можно добавить в разделе "Места хранения"
                       </div>
                     </div>
                   )}
                 >
-                  {locations.map(location => (
-                    <Option key={location} value={location}>{location}</Option>
+                  {storageLocations.map(location => (
+                    <Option key={location.id} value={location.name} title={location.description}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{location.name}</span>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          color: '#999',
+                          marginLeft: '8px'
+                        }}>
+                          ({location.itemCount} инстр.)
+                        </span>
+                      </div>
+                      <div style={{ 
+                        fontSize: '11px', 
+                        color: '#666',
+                        marginTop: '2px'
+                      }}>
+                        {location.description}
+                      </div>
+                    </Option>
                   ))}
                 </Select>
               </Form.Item>
