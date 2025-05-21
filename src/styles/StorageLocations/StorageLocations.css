@@ -1,0 +1,110 @@
+/* === StorageLocations Container === */
+.storage-locations-container {
+  padding: 8px 24px 0px 52px;
+  max-width: 1600px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.storage-breadcrumb {
+  margin-bottom: 16px;
+}
+
+.storage-locations-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background-color: #ffffff;
+}
+
+.storage-locations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* === Location Cards === */
+.storage-location-card {
+  height: 100%;
+  transition: all 0.3s;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.storage-location-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.storage-location-card-content {
+  display: flex;
+  align-items: flex-start;
+  min-height: 120px;
+}
+
+.storage-location-icon {
+  flex-shrink: 0;
+  margin-right: 16px;
+  background-color: #f5f5f5;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.storage-location-info {
+  flex: 1;
+}
+
+.storage-location-info h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.storage-location-count {
+  margin-top: 12px;
+}
+
+/* === Tabs Styling === */
+.ant-tabs-tab {
+  padding: 12px 16px !important;
+}
+
+.ant-tabs-tab-btn {
+  display: flex;
+  align-items: center;
+}
+
+.ant-tabs-tab-btn .anticon {
+  margin-right: 8px;
+}
+
+/* === Tab Content Animation === */
+.ant-tabs-tabpane {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Responsive styling === */
+@media (max-width: 576px) {
+  .storage-location-card-content {
+    flex-direction: column;
+  }
+  
+  .storage-location-icon {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+}

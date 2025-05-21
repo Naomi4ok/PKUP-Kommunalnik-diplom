@@ -28,6 +28,7 @@ import UserManagement from './components/UserManagement/UserManagement';
 import Expenses from './pages/Expenses/Expenses';
 import ExpenseForm from './pages/Expenses/ExpenseForm';
 import ExpenseDocx from './pages/Expenses/ExpenseDocx';
+import StorageLocations from './pages/StorageLocations/StorageLocations';
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -208,6 +209,12 @@ function App() {
                     <Route path="/materials/edit/:id" element={
                       <ProtectedRoute>
                         <MaterialsForm />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/storage-locations" element={
+                      <ProtectedRoute>
+                        <StorageLocations />
                       </ProtectedRoute>
                     } />
 

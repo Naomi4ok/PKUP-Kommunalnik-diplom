@@ -21,6 +21,7 @@ import {
   SettingFilled,
   CarryOutOutlined,
   DollarOutlined,
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 import Logo from '../Logo'; // Предполагаем, что компонент Logo существует
 import './SidebarComponent.css';
@@ -94,6 +95,13 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
       icon: <DashboardOutlined />,
       label: 'Панель управления',
       path: '/',
+    },
+
+    {
+      key: 'storage-locations',
+      icon: <EnvironmentOutlined />,
+      label: 'Места хранения',
+      path: '/storage-locations',
     },
 
     {

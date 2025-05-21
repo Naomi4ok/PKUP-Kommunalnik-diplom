@@ -14,6 +14,7 @@ const scheduleRoutes = require('./routes/schedule');
 const { router: authRoutes } = require('./routes/auth'); // Add this line
 const dbExpenses = require('./database/db_expenses');
 const expensesRoutes = require('./routes/expenses');
+const storageRoutes = require('./routes/storage');
 
 // Инициализация приложения
 const app = express();
@@ -45,6 +46,7 @@ app.use('/api/spares', sparesRoutes);
 app.use('/api/materials', materialsRoutes);
 app.use('/api/schedule', scheduleRoutes);
 app.use('/api/expenses', expensesRoutes);
+app.use('/api/storage', storageRoutes);
 
 // Маршрут для обслуживания React приложения
 app.get('*', (req, res) => {
