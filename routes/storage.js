@@ -177,7 +177,8 @@ router.get('/equipment', (req, res) => {
           }
           resolve({
             ...location,
-            itemCount: result ? result.itemCount : 0
+            itemCount: result ? result.itemCount : 0,
+            linkedEquipment: result ? result.itemCount : 0 // Добавляем отдельное поле для прозрачности
           });
         });
       });
@@ -335,25 +336,102 @@ router.put('/:type/:id', (req, res) => {
 });
 
 // Delete a storage location
+// Delete a storage location
 router.delete('/:type/:id', (req, res) => {
   const { type, id } = req.params;
   
-  const sql = `
-    DELETE FROM storage_locations
-    WHERE id = ? AND type = ?
-  `;
-  
-  db.run(sql, [id, type], function(err) {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+  // Сначала получаем имя локации перед удалением
+  db.get(
+    'SELECT name FROM storage_locations WHERE id = ? AND type = ?',
+    [id, type],
+    (err, location) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (!location) {
+        return res.status(404).json({ error: 'Location not found' });
+      }
+      
+      // Начинаем транзакцию для атомарного выполнения всех операций
+      db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+        
+        // Если это локация оборудования, обновляем связанные записи в таблице equipment
+        if (type === 'equipment') {
+          // Сначала подсчитываем количество связанных записей оборудования
+          db.get(
+            'SELECT COUNT(*) as count FROM Equipment WHERE Location = ?',
+            [location.name],
+            (err, result) => {
+              if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: err.message });
+              }
+              
+              const affectedCount = result ? result.count : 0;
+              
+              // Обновляем оборудование, устанавливая текст "Не указано" вместо NULL
+              db.run(
+                'UPDATE Equipment SET Location = "Не указано" WHERE Location = ?',
+                [location.name],
+                (err) => {
+                  if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(500).json({ error: err.message });
+                  }
+                  
+                  // Теперь удаляем саму локацию
+                  db.run(
+                    'DELETE FROM storage_locations WHERE id = ? AND type = ?',
+                    [id, type],
+                    function(err) {
+                      if (err) {
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ error: err.message });
+                      }
+                      
+                      if (this.changes === 0) {
+                        db.run('ROLLBACK');
+                        return res.status(404).json({ error: 'Location not found' });
+                      }
+                      
+                      db.run('COMMIT');
+                      res.json({ 
+                        success: true,
+                        updatedEquipment: true,
+                        affectedCount: affectedCount
+                      });
+                    }
+                  );
+                }
+              );
+            }
+          );
+        } else {
+          // Если это не локация оборудования, просто удаляем локацию
+          db.run(
+            'DELETE FROM storage_locations WHERE id = ? AND type = ?',
+            [id, type],
+            function(err) {
+              if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: err.message });
+              }
+              
+              if (this.changes === 0) {
+                db.run('ROLLBACK');
+                return res.status(404).json({ error: 'Location not found' });
+              }
+              
+              db.run('COMMIT');
+              res.json({ success: true });
+            }
+          );
+        }
+      });
     }
-    
-    if (this.changes === 0) {
-      return res.status(404).json({ error: 'Location not found' });
-    }
-    
-    res.json({ success: true });
-  });
+  );
 });
 
 module.exports = router;

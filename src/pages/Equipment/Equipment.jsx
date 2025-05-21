@@ -669,6 +669,7 @@ const Equipment = () => {
         value: location,
       })),
       onFilter: (value, record) => record.Location === value,
+      render: (text) => text || 'Не указано'
     },
     {
       title: 'Действия',

@@ -165,7 +165,7 @@ const StorageLocations = () => {
           ...prev,
           [locationType]: prev[locationType].map(item => 
             item.id === currentLocation.id ? 
-            { ...updatedLocation, itemCount: item.itemCount } : 
+            { ...updatedLocation, itemCount: item.itemCount, linkedEquipment: item.linkedEquipment } : 
             item
           )
         }));
@@ -189,12 +189,18 @@ const StorageLocations = () => {
       
       if (!response.ok) throw new Error('Failed to delete location');
       
+      const result = await response.json();
+      
       setStorageLocations(prev => ({
         ...prev,
         [type]: prev[type].filter(item => item.id !== id)
       }));
       
-      message.success('Место хранения успешно удалено');
+      if (type === 'equipment' && result.updatedEquipment) {
+        message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования.`);
+      } else {
+        message.success('Место хранения успешно удалено');
+      }
     } catch (error) {
       message.error(`Ошибка: ${error.message}`);
     }
@@ -280,7 +286,11 @@ const StorageLocations = () => {
                 />,
                 <Popconfirm
                   title="Удаление места хранения"
-                  description="Вы уверены, что хотите удалить это место хранения?"
+                  description={
+                    type === 'equipment' && location.linkedEquipment > 0 ? 
+                    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.linkedEquipment} ед. оборудования.` : 
+                    "Вы уверены, что хотите удалить это место хранения?"
+                  }
                   onConfirm={() => handleDelete(type, location.id)}
                   okText="Да"
                   cancelText="Нет"
