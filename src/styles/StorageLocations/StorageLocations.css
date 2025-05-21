@@ -11,8 +11,8 @@
 }
 
 .storage-locations-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   background-color: #ffffff;
 }
 
@@ -26,50 +26,132 @@
 /* === Location Cards === */
 .storage-location-card {
   height: 100%;
-  transition: all 0.3s;
-  border-radius: 8px;
+  transition: all 0.3s ease;
+  border-radius: 12px;
   overflow: hidden;
+  border: 1px solid #f0f0f0;
+  text-align: center;
 }
 
 .storage-location-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #15b800;  /* Зеленая обводка при наведении */
 }
 
 .storage-location-card-content {
   display: flex;
-  align-items: flex-start;
-  min-height: 120px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  padding: 16px 0;
 }
 
 .storage-location-icon {
-  flex-shrink: 0;
-  margin-right: 16px;
-  background-color: #f5f5f5;
+  margin-bottom: 16px;
+  background-color: #f0f8ff;
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.storage-location-card:hover .storage-location-icon {
+  transform: scale(1.1);
 }
 
 .storage-location-info {
-  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .storage-location-info h4 {
   margin-top: 0;
   margin-bottom: 8px;
+  font-weight: 600;
+  color: #262626;
+  transition: color 0.3s;
+}
+
+.storage-location-card:hover .storage-location-info h4 {
+  color: #15b800;  /* Меняем цвет заголовка на зеленый при наведении */
+}
+
+.storage-location-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+  margin: 0 auto;
 }
 
 .storage-location-count {
-  margin-top: 12px;
+  margin-top: 16px;
+}
+
+.storage-location-count .ant-tag {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-weight: 500;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+/* === Card Actions === */
+.storage-location-card .ant-card-actions {
+  opacity: 0;
+  transition: opacity 0.3s ease, background-color 0.3s;
+  background-color: rgba(250, 250, 250, 0.95);
+  border-top: 1px solid rgba(232, 232, 232, 0.8);
+}
+
+.storage-location-card:hover .ant-card-actions {
+  opacity: 1;
+  background-color: #15b800;  /* Зеленый фон для панели действий при наведении */
+  border-top: 1px solid #15b800;
+}
+
+/* Изменение цвета иконок в строке действий при наведении для лучшей видимости */
+.storage-location-card:hover .ant-card-actions .anticon {
+  color: white;
+}
+
+/* Изменение цвета текста кнопок в строке действий при наведении */
+.storage-location-card:hover .ant-card-actions button {
+  color: white;
+}
+
+/* Особое оформление для кнопки удаления при наведении */
+.storage-location-card:hover .ant-card-actions button[danger] {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.storage-location-card .ant-card-actions li {
+  margin: 0;
+}
+
+.storage-location-card .ant-card-actions button:hover {
+  transform: scale(1.15);
+  transition: transform 0.2s ease;
 }
 
 /* === Tabs Styling === */
 .ant-tabs-tab {
   padding: 12px 16px !important;
+  transition: background-color 0.3s;
+}
+
+.ant-tabs-tab:hover {
+  background-color: rgba(24, 144, 255, 0.04);
 }
 
 .ant-tabs-tab-btn {
@@ -79,6 +161,11 @@
 
 .ant-tabs-tab-btn .anticon {
   margin-right: 8px;
+}
+
+.ant-tabs-ink-bar {
+  height: 3px !important;
+  border-radius: 3px 3px 0 0;
 }
 
 /* === Tab Content Animation === */
@@ -97,14 +184,96 @@
   }
 }
 
+/* Custom category icons colors in cards */
+.tools-icon {
+  color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.spares-icon {
+  color: #52c41a;
+  background-color: rgba(82, 196, 26, 0.1);
+}
+
+.materials-icon {
+  color: #fa8c16;
+  background-color: rgba(250, 140, 22, 0.1);
+}
+
+.equipment-icon {
+  color: #722ed1;
+  background-color: rgba(114, 46, 209, 0.1);
+}
+
 /* === Responsive styling === */
 @media (max-width: 576px) {
   .storage-location-card-content {
-    flex-direction: column;
+    padding: 12px 8px;
   }
   
   .storage-location-icon {
-    margin-right: 0;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    width: 56px;
+    height: 56px;
   }
+}
+
+/* === Card Actions === */
+.storage-location-card .ant-card-actions {
+  opacity: 0;
+  transition: opacity 0.3s ease, background-color 0.3s;
+  background-color: rgba(250, 250, 250, 0.95);
+  border-top: 1px solid rgba(232, 232, 232, 0.8);
+}
+
+.storage-location-card:hover .ant-card-actions {
+  opacity: 1;
+  background-color: #15b800;  /* Зеленый фон для панели действий при наведении */
+  border-top: 1px solid #15b800;
+}
+
+/* Изменение цвета иконок в строке действий при наведении для лучшей видимости */
+.storage-location-card:hover .ant-card-actions .anticon {
+  color: white;
+}
+
+/* Изменение цвета текста кнопок в строке действий при наведении */
+.storage-location-card:hover .ant-card-actions button {
+  color: white;
+}
+
+.storage-location-card .ant-card-actions li {
+  margin: 0;
+  transition: background-color 0.2s ease;
+}
+
+/* Ховер для секции редактирования */
+.storage-location-card .ant-card-actions li:first-child:hover {
+  background-color: white !important;
+}
+
+.storage-location-card .ant-card-actions li:first-child:hover button {
+  color: #000000 !important;
+}
+
+.storage-location-card .ant-card-actions li:first-child:hover .anticon {
+  color: #000000 !important;
+}
+
+/* Ховер для секции удаления */
+.storage-location-card .ant-card-actions li:last-child:hover {
+  background-color: white !important;
+}
+
+.storage-location-card .ant-card-actions li:last-child:hover button {
+  color: #ff4d4f !important;
+}
+
+.storage-location-card .ant-card-actions li:last-child:hover .anticon {
+  color: #ff4d4f !important;
+}
+
+.storage-location-card .ant-card-actions button:hover {
+  transform: scale(1.15);
+  transition: transform 0.2s ease;
 }

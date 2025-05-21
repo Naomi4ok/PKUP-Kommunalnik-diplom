@@ -228,86 +228,119 @@ const StorageLocations = () => {
 
   // Function to get icon by type
   const getTypeIcon = (type) => {
+    const iconClass = `${type}-icon storage-location-icon`;
+    
     switch(type) {
       case 'tools':
-        return <ToolOutlined style={{ fontSize: '24px', color: '#1890ff' }} />;
+        return (
+          <div className={iconClass}>
+            <ToolOutlined style={{ fontSize: '28px' }} />
+          </div>
+        );
       case 'spares':
-        return <PartitionOutlined style={{ fontSize: '24px', color: '#52c41a' }} />;
+        return (
+          <div className={iconClass}>
+            <PartitionOutlined style={{ fontSize: '28px' }} />
+          </div>
+        );
       case 'materials':
-        return <DatabaseOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />;
+        return (
+          <div className={iconClass}>
+            <DatabaseOutlined style={{ fontSize: '28px' }} />
+          </div>
+        );
       case 'equipment':
-        return <AppstoreOutlined style={{ fontSize: '24px', color: '#722ed1' }} />;
+        return (
+          <div className={iconClass}>
+            <AppstoreOutlined style={{ fontSize: '28px' }} />
+          </div>
+        );
       default:
-        return <EnvironmentOutlined style={{ fontSize: '24px' }} />;
+        return (
+          <div className="storage-location-icon">
+            <EnvironmentOutlined style={{ fontSize: '28px' }} />
+          </div>
+        );
     }
+  };
+
+  // Get tag color based on item count
+  const getTagColorByCount = (count) => {
+    if (count === 0) return 'default';
+    if (count < 20) return 'cyan';
+    if (count < 50) return 'blue';
+    if (count < 100) return 'geekblue';
+    return 'purple';
   };
 
   // Render location cards for a given type
   const renderLocationCards = (type) => {
-    const locations = storageLocations[type];
-    
-    if (!locations || locations.length === 0) {
-      return (
-        <Empty 
-          description="Нет добавленных мест хранения" 
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
-      );
-    }
-    
+  const locations = storageLocations[type];
+  
+  if (!locations || locations.length === 0) {
     return (
-      <Row gutter={[16, 16]}>
-        {locations.map(location => (
-          <Col xs={24} sm={12} md={8} lg={6} key={location.id}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+      <Empty 
+        description="Нет добавленных мест хранения" 
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+      />
+    );
+  }
+  
+  return (
+    <Row gutter={[20, 20]}>
+      {locations.map(location => (
+        <Col xs={24} sm={12} md={8} lg={6} key={location.id}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card 
+              className="storage-location-card"
+              hoverable
+              actions={[
+                <Button 
+                  type="text" 
+                  icon={<EditOutlined />} 
+                  onClick={() => showEditModal(type, location)} 
+                />,
+                <Popconfirm
+                  title="Удаление места хранения"
+                  description="Вы уверены, что хотите удалить это место хранения?"
+                  onConfirm={() => handleDelete(type, location.id)}
+                  okText="Да"
+                  cancelText="Нет"
+                >
+                  <Button type="text" icon={<DeleteOutlined />} danger />
+                </Popconfirm>
+              ]}
             >
-              <Card 
-                className="storage-location-card"
-                hoverable
-                actions={[
-                  <Button 
-                    type="text" 
-                    icon={<EditOutlined />} 
-                    onClick={() => showEditModal(type, location)} 
-                  />,
-                  <Popconfirm
-                    title="Удаление места хранения"
-                    description="Вы уверены, что хотите удалить это место хранения?"
-                    onConfirm={() => handleDelete(type, location.id)}
-                    okText="Да"
-                    cancelText="Нет"
-                  >
-                    <Button type="text" icon={<DeleteOutlined />} danger />
-                  </Popconfirm>
-                ]}
-              >
-                <div className="storage-location-card-content">
-                  <div className="storage-location-icon">
-                    {getTypeIcon(type)}
-                  </div>
-                  <div className="storage-location-info">
-                    <Title level={4}>{location.name}</Title>
-                    <Text type="secondary">{location.description}</Text>
-                    <div className="storage-location-count">
-                      <Tag color="blue">{location.itemCount} {
+              <div className="storage-location-card-content">
+                {getTypeIcon(type)}
+                <div className="storage-location-info">
+                  <Title level={4}>{location.name}</Title>
+                  <Text type="secondary" className="storage-location-description">
+                    {location.description}
+                  </Text>
+                  <div className="storage-location-count">
+                    <Tag color={getTagColorByCount(location.itemCount)}>
+                      {location.itemCount} {
                         type === 'tools' ? 'инструментов' :
                         type === 'spares' ? 'запчастей' :
                         type === 'materials' ? 'материалов' :
                         'оборудования'
-                      }</Tag>
-                    </div>
+                      }
+                    </Tag>
                   </div>
                 </div>
-              </Card>
-            </motion.div>
-          </Col>
-        ))}
-      </Row>
-    );
-  };
+              </div>
+            </Card>
+          </motion.div>
+        </Col>
+      ))}
+    </Row>
+  );
+};
 
   return (
     <div className="storage-locations-container">
