@@ -98,6 +98,7 @@ const StorageLocations = () => {
   // Handle tab change
   const handleTabChange = (key) => {
     setActiveTab(key);
+    setLocationType(key);
   };
 
   // Open modal for adding new location
@@ -353,26 +354,25 @@ const StorageLocations = () => {
       <Card className="storage-locations-card">
         <div className="storage-locations-header">
           <Title level={2}>Места хранения и локации</Title>
+          <Button
+            type="primary"
+            className="ant-add-storage-button"
+            icon={<PlusOutlined />}
+            onClick={() => showAddModal(activeTab)}
+          >
+            Добавить {
+              activeTab === 'tools' ? 'место хранения инструментов' :
+              activeTab === 'spares' ? 'место хранения запчастей' :
+              activeTab === 'materials' ? 'место хранения материалов' :
+              'локацию оборудования'
+            }
+          </Button>
         </div>
 
         <Spin spinning={loading}>
           <Tabs
             activeKey={activeTab}
             onChange={handleTabChange}
-            tabBarExtraContent={
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => showAddModal(activeTab)}
-              >
-                Добавить {
-                  activeTab === 'tools' ? 'место хранения инструментов' :
-                  activeTab === 'spares' ? 'место хранения запчастей' :
-                  activeTab === 'materials' ? 'место хранения материалов' :
-                  'локацию оборудования'
-                }
-              </Button>
-            }
           >
             <TabPane 
               tab={
