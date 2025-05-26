@@ -20,7 +20,8 @@ import {
   Breadcrumb,
   Empty,
   Spin,
-  Popconfirm
+  Popconfirm,
+  Upload
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -31,13 +32,17 @@ import {
   CarOutlined, 
   EnvironmentOutlined, 
   ClockCircleOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  FileExcelOutlined,
+  ImportOutlined,
+  InboxOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import 'moment/locale/ru'; // Импортируем русскую локализацию moment
 import locale from 'antd/es/date-picker/locale/ru_RU'; // Импортируем русскую локализацию для DatePicker
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import '../../styles/Schedule/Schedule.css';
 import TimeRangePicker from '../../components/TimeRangePicker'; // Импортируем наш компонент TimeRangePicker
 
@@ -72,6 +77,12 @@ const Schedule = () => {
   // Состояние для хранения временного диапазона
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('17:00');
+
+  // Import/Export state
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importFileList, setImportFileList] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState('');
 
   // Priority and status options
   const priorityOptions = [
@@ -172,6 +183,347 @@ const Schedule = () => {
     } catch (error) {
       console.error('Error fetching processes:', error);
       return [];
+    }
+  };
+
+  // Форматирование даты из YYYY-MM-DD в DD.MM.YYYY
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Проверка на валидность даты
+      if (isNaN(date.getTime())) return '';
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}.${month}.${year}`;
+    } catch (error) {
+      return '';
+    }
+  };
+
+  // Export tasks to Excel
+  const exportToExcel = () => {
+    try {
+      // Create dataset for export
+      const exportData = tasks.map(item => {
+        // Find employees by IDs
+        const employeeNames = getEmployeeNames(item.employeeIds);
+        const equipmentNames = getEquipmentNames(item.equipmentIds);
+        const transportNames = getTransportNames(item.transportIds);
+        const processName = getProcessName(item.ProcessId);
+        
+        return {
+          'Название задачи': item.Title || '',
+          'Дата': formatDate(item.Date) || '',
+          'Время начала': item.StartTime || '',
+          'Время окончания': item.EndTime || '',
+          'Местоположение': item.Location || '',
+          'Процесс': processName,
+          'Сотрудники': employeeNames,
+          'Оборудование': equipmentNames,
+          'Транспорт': transportNames,
+          'Приоритет': priorityOptions.find(p => p.value === item.Priority)?.label || '',
+          'Статус': statusOptions.find(s => s.value === item.Status)?.label || '',
+          'Прогресс (%)': item.Progress || 0,
+          'Описание': item.Description || ''
+        };
+      });
+      
+      // Create worksheet from data
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      
+      // Set column widths
+      const wscols = [
+        { wch: 25 }, // Название задачи
+        { wch: 15 }, // Дата
+        { wch: 15 }, // Время начала
+        { wch: 15 }, // Время окончания
+        { wch: 25 }, // Местоположение
+        { wch: 20 }, // Процесс
+        { wch: 30 }, // Сотрудники
+        { wch: 30 }, // Оборудование
+        { wch: 30 }, // Транспорт
+        { wch: 15 }, // Приоритет
+        { wch: 15 }, // Статус
+        { wch: 15 }, // Прогресс
+        { wch: 35 }  // Описание
+      ];
+      worksheet['!cols'] = wscols;
+      
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Расписание');
+      
+      // Generate and download Excel file
+      const filename = `Расписание_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+      
+      message.success('Данные расписания успешно экспортированы!');
+    } catch (err) {
+      message.error(`Не удалось экспортировать данные: ${err.message}`);
+    }
+  };
+
+  // Open import modal
+  const showImportModal = () => {
+    setImportFileList([]);
+    setImportError('');
+    setImportModalVisible(true);
+  };
+
+  // Handle import file change
+  const handleImportFileChange = (info) => {
+    setImportFileList(info.fileList.slice(-1)); // Save only the last file
+  };
+
+  // Create template for download
+  const downloadTemplate = () => {
+    // Create sample data
+    const sampleData = [
+      {
+        'Название задачи': 'Ремонт канализации на ул. Ленина',
+        'Дата': '15.06.2024',
+        'Время начала': '08:00',
+        'Время окончания': '17:00',
+        'Местоположение': 'ул. Ленина, д. 10',
+        'Процесс': 'Канализация',
+        'Сотрудники': 'Иванов Иван, Петров Петр',
+        'Оборудование': 'Компрессор, Насос',
+        'Транспорт': 'ГАЗель 3302',
+        'Приоритет': 'Высокий',
+        'Статус': 'Запланировано',
+        'Прогресс (%)': 0,
+        'Описание': 'Плановый ремонт канализационной системы'
+      },
+      {
+        'Название задачи': 'Уборка парка',
+        'Дата': '16.06.2024',
+        'Время начала': '09:00',
+        'Время окончания': '16:00',
+        'Местоположение': 'Центральный парк',
+        'Процесс': 'Уборка',
+        'Сотрудники': 'Сидоров Сидор',
+        'Оборудование': 'Газонокосилка',
+        'Транспорт': '',
+        'Приоритет': 'Средний',
+        'Статус': 'В процессе',
+        'Прогресс (%)': 50,
+        'Описание': 'Еженедельная уборка территории парка'
+      }
+    ];
+    
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(sampleData);
+    
+    // Set column widths
+    const wscols = [
+      { wch: 25 }, // Название задачи
+      { wch: 15 }, // Дата
+      { wch: 15 }, // Время начала
+      { wch: 15 }, // Время окончания
+      { wch: 25 }, // Местоположение
+      { wch: 20 }, // Процесс
+      { wch: 30 }, // Сотрудники
+      { wch: 30 }, // Оборудование
+      { wch: 30 }, // Транспорт
+      { wch: 15 }, // Приоритет
+      { wch: 15 }, // Статус
+      { wch: 15 }, // Прогресс
+      { wch: 35 }  // Описание
+    ];
+    worksheet['!cols'] = wscols;
+    
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Шаблон');
+    
+    // Download
+    XLSX.writeFile(workbook, 'Шаблон_Импорта_Расписания.xlsx');
+  };
+
+  // Handle imported Excel file
+  const handleImport = async () => {
+    setImportError('');
+    
+    if (!importFileList || importFileList.length === 0) {
+      setImportError('Пожалуйста, выберите Excel-файл для импорта');
+      message.error('Пожалуйста, выберите Excel-файл для импорта');
+      return;
+    }
+
+    const file = importFileList[0].originFileObj;
+    
+    if (!file) {
+      setImportError('Неверный файловый объект');
+      message.error('Неверный файловый объект');
+      return;
+    }
+    
+    setImporting(true);
+
+    try {
+      // Read Excel file
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          // Parse Excel data
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          
+          // Get first worksheet
+          const worksheetName = workbook.SheetNames[0];
+          if (!worksheetName) {
+            throw new Error('Excel-файл не содержит листов');
+          }
+          
+          const worksheet = workbook.Sheets[worksheetName];
+          
+          // Convert to JSON
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A" });
+          
+          // Check data structure
+          if (!jsonData || jsonData.length <= 1) { // Including header row
+            throw new Error('Excel-файл пуст или содержит некорректные данные');
+          }
+          
+          // Find header row and identify column positions
+          const headerRow = jsonData[0];
+          const columns = {
+            title: Object.keys(headerRow).find(key => headerRow[key] === 'Название задачи'),
+            date: Object.keys(headerRow).find(key => headerRow[key] === 'Дата'),
+            startTime: Object.keys(headerRow).find(key => headerRow[key] === 'Время начала'),
+            endTime: Object.keys(headerRow).find(key => headerRow[key] === 'Время окончания'),
+            location: Object.keys(headerRow).find(key => headerRow[key] === 'Местоположение'),
+            process: Object.keys(headerRow).find(key => headerRow[key] === 'Процесс'),
+            employees: Object.keys(headerRow).find(key => headerRow[key] === 'Сотрудники'),
+            equipment: Object.keys(headerRow).find(key => headerRow[key] === 'Оборудование'),
+            transport: Object.keys(headerRow).find(key => headerRow[key] === 'Транспорт'),
+            priority: Object.keys(headerRow).find(key => headerRow[key] === 'Приоритет'),
+            status: Object.keys(headerRow).find(key => headerRow[key] === 'Статус'),
+            progress: Object.keys(headerRow).find(key => headerRow[key] === 'Прогресс (%)'),
+            description: Object.keys(headerRow).find(key => headerRow[key] === 'Описание')
+          };
+          
+          if (!columns.title) {
+            throw new Error('В Excel-файле отсутствует столбец Название задачи');
+          }
+          
+          // Transform rows to our format, skipping header row
+          const taskItems = jsonData.slice(1).map(row => {
+            // Parse date from DD.MM.YYYY to YYYY-MM-DD
+            let date = '';
+            if (columns.date && row[columns.date]) {
+              const dateParts = row[columns.date].split('.');
+              if (dateParts.length === 3) {
+                date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+              } else {
+                date = row[columns.date];
+              }
+            }
+
+            // Find employees by names
+            const employeeNames = columns.employees ? (row[columns.employees] || '').split(',').map(name => name.trim()).filter(Boolean) : [];
+            const employeeIds = employeeNames.map(name => {
+              const employee = employees.find(emp => emp.Full_Name === name);
+              return employee ? employee.Employee_ID : null;
+            }).filter(Boolean);
+
+            // Find equipment by names
+            const equipmentNames = columns.equipment ? (row[columns.equipment] || '').split(',').map(name => name.trim()).filter(Boolean) : [];
+            const equipmentIds = equipmentNames.map(name => {
+              const eq = equipment.find(eq => eq.Name === name);
+              return eq ? eq.Equipment_ID : null;
+            }).filter(Boolean);
+
+            // Find transport by brand/model
+            const transportNames = columns.transport ? (row[columns.transport] || '').split(',').map(name => name.trim()).filter(Boolean) : [];
+            const transportIds = transportNames.map(name => {
+              const tr = transport.find(tr => `${tr.Brand} ${tr.Model}`.includes(name) || name.includes(`${tr.Brand} ${tr.Model}`));
+              return tr ? tr.Transport_ID : null;
+            }).filter(Boolean);
+
+            // Find process by name
+            const processName = columns.process ? row[columns.process] || '' : '';
+            const process = processes.find(proc => proc.Name === processName);
+            const processId = process ? process.Process_ID : null;
+
+            // Map priority and status
+            const priorityText = columns.priority ? row[columns.priority] || '' : '';
+            const priority = priorityOptions.find(p => p.label === priorityText)?.value || 'medium';
+
+            const statusText = columns.status ? row[columns.status] || '' : '';
+            const status = statusOptions.find(s => s.label === statusText)?.value || 'scheduled';
+            
+            return {
+              title: columns.title ? row[columns.title] || '' : '',
+              date: date,
+              startTime: columns.startTime ? row[columns.startTime] || '08:00' : '08:00',
+              endTime: columns.endTime ? row[columns.endTime] || '17:00' : '17:00',
+              location: columns.location ? row[columns.location] || '' : '',
+              processId: processId,
+              employeeIds: employeeIds,
+              equipmentIds: equipmentIds,
+              transportIds: transportIds,
+              priority: priority,
+              status: status,
+              progress: columns.progress ? Number(row[columns.progress]) || 0 : 0,
+              description: columns.description ? row[columns.description] || '' : ''
+            };
+          });
+          
+          // Filter invalid records (missing required fields)
+          const validTasks = taskItems.filter(item => item.title.trim() !== '');
+          
+          if (validTasks.length === 0) {
+            throw new Error('Действительные данные о задачах не найдены. Название задачи обязательно.');
+          }
+          
+          // Send data to server
+          const response = await fetch('/api/schedule/import', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tasks: validTasks })
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Импорт не удался');
+          }
+          
+          const result = await response.json();
+          
+          setImportModalVisible(false);
+          message.success(`Успешно импортировано ${result.imported} задач`);
+          fetchTasks();
+          
+        } catch (err) {
+          setImportError(`Импорт не удался: ${err.message}`);
+          message.error(`Импорт не удался: ${err.message}`);
+        } finally {
+          setImporting(false);
+        }
+      };
+      
+      reader.onerror = (error) => {
+        setImportError('Не удалось прочитать файл');
+        message.error('Не удалось прочитать файл');
+        setImporting(false);
+      };
+      
+      reader.readAsArrayBuffer(file);
+      
+    } catch (err) {
+      setImportError(`Импорт не удался: ${err.message}`);
+      message.error(`Импорт не удался: ${err.message}`);
+      setImporting(false);
     }
   };
 
@@ -407,7 +759,28 @@ const Schedule = () => {
       </Breadcrumb>
       
       <div className="schedule-header">
-        <Title level={2}>Расписание задач</Title>
+        <div className="schedule-header-left">
+          <Title level={2}>Расписание задач</Title>
+          {/* Export and Import buttons */}
+          <div className="header-left-content">
+            <Button 
+              type="primary" 
+              icon={<FileExcelOutlined />} 
+              onClick={exportToExcel}
+              className="ant-export-button"
+            >
+              Экспорт
+            </Button>
+            <Button 
+              type="primary" 
+              icon={<ImportOutlined />} 
+              onClick={showImportModal}
+              className="ant-import-button"
+            >
+              Импорт
+            </Button>
+          </div>
+        </div>
         <Button
           className="schedule-add-button"  
           type="primary" 
@@ -769,6 +1142,71 @@ const Schedule = () => {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Import modal */}
+      <Modal
+        title="Импорт расписания из Excel"
+        open={importModalVisible}
+        onCancel={() => setImportModalVisible(false)}
+        footer={[
+          <Button key="template" onClick={downloadTemplate} style={{ float: 'left' }}>
+            Скачать шаблон
+          </Button>,
+          <Button key="cancel" onClick={() => setImportModalVisible(false)}>
+            Отмена
+          </Button>,
+          <Button
+            key="import"
+            type="primary"
+            loading={importing}
+            onClick={handleImport}
+            disabled={importFileList.length === 0}
+          >
+            Импорт
+          </Button>
+        ]}
+      >
+        <div className="import-instructions">
+          <p>Пожалуйста, загрузите Excel-файл со следующими столбцами:</p>
+          <ul>
+            <li><strong>Название задачи</strong> (обязательно)</li>
+            <li>Дата (формат DD.MM.YYYY)</li>
+            <li>Время начала (формат HH:MM)</li>
+            <li>Время окончания (формат HH:MM)</li>
+            <li>Местоположение</li>
+            <li>Процесс</li>
+            <li>Сотрудники (через запятую)</li>
+            <li>Оборудование (через запятую)</li>
+            <li>Транспорт (через запятую)</li>
+            <li>Приоритет (Низкий/Средний/Высокий/Критичный)</li>
+            <li>Статус (Запланировано/В процессе/Выполнено/Отложено/Отменено)</li>
+            <li>Прогресс (%)</li>
+            <li>Описание</li>
+          </ul>
+        </div>
+
+        {importError && (
+          <div className="import-error" style={{ color: 'red', marginBottom: '10px' }}>
+            Ошибка: {importError}
+          </div>
+        )}
+
+        <Upload.Dragger
+          accept=".xlsx,.xls"
+          beforeUpload={() => false} // Prevent automatic upload
+          fileList={importFileList}
+          onChange={handleImportFileChange}
+          maxCount={1}
+        >
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">Нажмите или перетащите файл в эту область для загрузки</p>
+          <p className="ant-upload-hint">
+            Поддерживается загрузка одного Excel-файла. Убедитесь, что ваш файл содержит необходимые столбцы.
+          </p>
+        </Upload.Dragger>
       </Modal>
     </div>
   );
