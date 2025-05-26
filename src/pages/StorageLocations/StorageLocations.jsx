@@ -25,9 +25,11 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  EnvironmentOutlined
+  EnvironmentOutlined,
+  SaveOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import Pagination from '../../components/Pagination';
 import '../../styles/StorageLocations/StorageLocations.css';
 
 const { Title, Text } = Typography;
@@ -43,6 +45,10 @@ const StorageLocations = () => {
     materials: [],
     equipment: []
   });
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
   
   // Modal states
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -99,6 +105,13 @@ const StorageLocations = () => {
   const handleTabChange = (key) => {
     setActiveTab(key);
     setLocationType(key);
+    setCurrentPage(1); // Сбрасываем к первой странице при смене вкладки
+  };
+
+  // Handle pagination change
+  const handlePageChange = (page, size) => {
+    setCurrentPage(page);
+    setPageSize(size);
   };
 
   // Open modal for adding new location
@@ -198,13 +211,13 @@ const StorageLocations = () => {
     }));
     
     if (type === 'equipment' && result.updatedEquipment) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования.`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования`);
     } else if (type === 'tools' && result.updatedTools) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} инструментов.`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} инструментов`);
     } else if (type === 'spares' && result.updatedSpares) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} запчастей.`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} запчастей`);
     } else if (type === 'materials' && result.updatedMaterials) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. материалов.`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. материалов`);
     } else {
       message.success('Место хранения успешно удалено');
     }
@@ -262,82 +275,104 @@ const StorageLocations = () => {
 
   // Render location cards for a given type
   const renderLocationCards = (type) => {
-  const locations = storageLocations[type];
-  
-  if (!locations || locations.length === 0) {
+    const locations = storageLocations[type];
+    
+    if (!locations || locations.length === 0) {
+      return (
+        <Empty 
+          description="Нет добавленных мест хранения" 
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+      );
+    }
+    
+    // Пагинация: вычисление начального и конечного индексов для отображения
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, locations.length);
+    
+    // Получение только текущей страницы элементов
+    const currentPageItems = locations.slice(startIndex, endIndex);
+    
     return (
-      <Empty 
-        description="Нет добавленных мест хранения" 
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-      />
-    );
-  }
-  
-  return (
-    <Row gutter={[20, 20]}>
-      {locations.map(location => (
-        <Col xs={24} sm={12} md={8} lg={6} key={location.id}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card 
-              className="storage-location-card"
-              hoverable
-              actions={[
-                <Button 
-                  type="text" 
-                  icon={<EditOutlined />} 
-                  onClick={() => showEditModal(type, location)} 
-                />,
-                <Popconfirm
-  title="Удаление места хранения"
-  description={
-    type === 'equipment' && location.linkedEquipment > 0 ? 
-    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.linkedEquipment} ед. оборудования.` :
-    type === 'tools' && location.itemCount > 0 ?
-    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} инструментов.` :
-    type === 'spares' && location.itemCount > 0 ?
-    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} запчастей.` :
-    type === 'materials' && location.itemCount > 0 ?
-    `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} ед. материалов.` :
-    "Вы уверены, что хотите удалить это место хранения?"
-  }
-  onConfirm={() => handleDelete(type, location.id)}
-  okText="Да"
-  cancelText="Нет"
->
-  <Button type="text" icon={<DeleteOutlined />} danger />
-</Popconfirm>
-              ]}
-            >
-              <div className="storage-location-card-content">
-                {getTypeIcon(type)}
-                <div className="storage-location-info">
-                  <Title level={4}>{location.name}</Title>
-                  <Text type="secondary" className="storage-location-description">
-                    {location.description}
-                  </Text>
-                  <div className="storage-location-count">
-                    <Tag color={getTagColorByCount(location.itemCount)}>
-                      {location.itemCount} {
-                        type === 'tools' ? 'инструментов' :
-                        type === 'spares' ? 'запчастей' :
-                        type === 'materials' ? 'материалов' :
-                        'оборудования'
+      <>
+        <Row gutter={[20, 20]}>
+          {currentPageItems.map(location => (
+            <Col xs={24} sm={12} md={8} lg={6} key={location.id}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card 
+                  className="storage-location-card"
+                  hoverable
+                  actions={[
+                    <Button 
+                      type="text" 
+                      icon={<EditOutlined />} 
+                      onClick={() => showEditModal(type, location)} 
+                    />,
+                    <Popconfirm
+                      title="Удаление места хранения"
+                      description={
+                        type === 'equipment' && location.linkedEquipment > 0 ? 
+                        `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.linkedEquipment} ед. оборудования.` :
+                        type === 'tools' && location.itemCount > 0 ?
+                        `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} инструментов.` :
+                        type === 'spares' && location.itemCount > 0 ?
+                        `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} запчастей.` :
+                        type === 'materials' && location.itemCount > 0 ?
+                        `Вы уверены, что хотите удалить это место хранения? Информация о местонахождении будет удалена из ${location.itemCount} ед. материалов.` :
+                        "Вы уверены, что хотите удалить это место хранения?"
                       }
-                    </Tag>
+                      onConfirm={() => handleDelete(type, location.id)}
+                      okText="Да"
+                      cancelText="Нет"
+                    >
+                      <Button type="text" icon={<DeleteOutlined />} danger />
+                    </Popconfirm>
+                  ]}
+                >
+                  <div className="storage-location-card-content">
+                    {getTypeIcon(type)}
+                    <div className="storage-location-info">
+                      <Title level={4}>{location.name}</Title>
+                      <Text type="secondary" className="storage-location-description">
+                        {location.description}
+                      </Text>
+                      <div className="storage-location-count">
+                        <Tag color={getTagColorByCount(location.itemCount)}>
+                          {location.itemCount} {
+                            type === 'tools' ? 'инструментов' :
+                            type === 'spares' ? 'запчастей' :
+                            type === 'materials' ? 'материалов' :
+                            'оборудования'
+                          }
+                        </Tag>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        </Col>
-      ))}
-    </Row>
-  );
-};
+                </Card>
+              </motion.div>
+            </Col>
+          ))}
+        </Row>
+        
+        {/* Добавляем компонент пагинации */}
+        {locations.length > 0 && (
+          <div className="storage-locations-pagination">
+            <Pagination
+              totalItems={locations.length}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              pageSizeOptions={[8, 16, 24, 32]}
+              initialPageSize={8}
+            />
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className="storage-locations-container">
@@ -445,11 +480,20 @@ const StorageLocations = () => {
         open={isModalVisible}
         onCancel={handleCancel}
         footer={[
-          <Button key="cancel" onClick={handleCancel}>
-            Отмена
-          </Button>,
-          <Button key="submit" type="primary" onClick={handleFormSubmit}>
+          <Button key="submit"
+          icon={<SaveOutlined />}
+          type="primary"
+          className="user-submit-button"
+          size="large"
+          onClick={handleFormSubmit}>
             {modalType === 'add' ? 'Добавить' : 'Сохранить'}
+          </Button>,
+          <Button key="cancel"
+          onClick={handleCancel}
+          size="large"
+          >
+            
+            Отмена
           </Button>
         ]}
       >

@@ -7,7 +7,17 @@
 }
 
 .storage-breadcrumb {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.storage-breadcrumb a {
+  color: #0AB101;
+  transition: color 0.3s;
+}
+
+.storage-breadcrumb a:hover {
+  color: #078800;
 }
 
 .storage-locations-card {
@@ -21,6 +31,11 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+}
+
+.storage-modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* === Location Cards === */
@@ -301,4 +316,27 @@
   background-color: #15b800 !important;
   border-color: #15b800 !important;
   color: white !important;
+}
+
+.storage-locations-pagination {
+  margin-top: 20px;
+}
+
+/* Убираем фон у кнопок действий при наведении */
+.storage-location-card .ant-card-actions li span:hover {
+  background-color: transparent !important;
+}
+
+/* Убираем фон у кнопок редактирования и удаления */
+.storage-location-card .ant-btn-text:hover {
+  background-color: transparent !important;
+}
+
+/* Сохраняем цвет иконок при наведении */
+.storage-location-card .ant-btn-text:hover .anticon-edit {
+  color: #1890ff;
+}
+
+.storage-location-card .ant-btn-text.ant-btn-dangerous:hover .anticon-delete {
+  color: #ff4d4f;
 }
