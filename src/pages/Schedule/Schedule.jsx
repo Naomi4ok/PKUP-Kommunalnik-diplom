@@ -100,6 +100,20 @@ const Schedule = () => {
     { value: 'cancelled', label: 'Отменено', color: '#595959' }
   ];
 
+  // Функция для проверки, является ли дата прошедшей
+  const isDateInPast = (date) => {
+    if (!date) return false;
+    const today = moment().startOf('day');
+    const selectedDate = moment(date).startOf('day');
+    return selectedDate.isBefore(today);
+  };
+
+  // Функция для отключения прошедших дат в DatePicker
+  const disabledDate = (current) => {
+    // Отключаем все даты до сегодняшнего дня
+    return current && current < moment().startOf('day');
+  };
+
   // Fetch all data on component mount
   useEffect(() => {
     fetchAllData();
@@ -287,7 +301,7 @@ const Schedule = () => {
     const sampleData = [
       {
         'Название задачи': 'Ремонт канализации на ул. Ленина',
-        'Дата': '15.06.2024',
+        'Дата': moment().add(1, 'day').format('DD.MM.YYYY'), // Завтрашняя дата
         'Время начала': '08:00',
         'Время окончания': '17:00',
         'Местоположение': 'ул. Ленина, д. 10',
@@ -302,7 +316,7 @@ const Schedule = () => {
       },
       {
         'Название задачи': 'Уборка парка',
-        'Дата': '16.06.2024',
+        'Дата': moment().add(2, 'days').format('DD.MM.YYYY'), // Послезавтрашняя дата
         'Время начала': '09:00',
         'Время окончания': '16:00',
         'Местоположение': 'Центральный парк',
@@ -425,6 +439,11 @@ const Schedule = () => {
               } else {
                 date = row[columns.date];
               }
+            }
+
+            // Проверка даты на задним числом для импорта
+            if (date && isDateInPast(date)) {
+              throw new Error(`Задача "${row[columns.title]}" имеет дату ${formatDate(date)}, которая находится в прошлом. Создание задач задним числом запрещено.`);
             }
 
             // Find employees by names
@@ -579,9 +598,11 @@ const Schedule = () => {
     setCurrentTask(null);
     form.resetFields();
     
-    // Set default values
+    // Set default values - используем сегодняшнюю дату или выбранную, если она не в прошлом
+    const defaultDate = isDateInPast(selectedDate) ? moment() : moment(selectedDate);
+    
     form.setFieldsValue({
-      date: moment(selectedDate),
+      date: defaultDate,
       status: 'scheduled',
       priority: 'medium',
       progress: 0
@@ -635,6 +656,11 @@ const Schedule = () => {
         try {
           // Format date
           const date = values.date.format('YYYY-MM-DD');
+          
+          // Проверка даты на задним числом при создании новой задачи
+          if (!isEditing && isDateInPast(date)) {
+            throw new Error('Нельзя создавать задачи задним числом. Пожалуйста, выберите текущую или будущую дату.');
+          }
           
           // Валидация времени (проверка, что время начала раньше времени окончания)
           const startMoment = moment(startTime, 'HH:mm');
@@ -859,6 +885,7 @@ const Schedule = () => {
                   onChange={(date) => onSelect(date)}
                   format="DD.MM.YYYY"
                   locale={locale} // Добавляем русскую локализацию для DatePicker
+                  disabledDate={disabledDate} // Отключаем прошедшие даты
                 />
               </div>
               
@@ -967,12 +994,23 @@ const Schedule = () => {
               <Form.Item
                 name="date"
                 label="Дата"
-                rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
+                rules={[
+                  { required: true, message: 'Пожалуйста, выберите дату' },
+                  {
+                    validator: (_, value) => {
+                      if (!isEditing && value && isDateInPast(value.format('YYYY-MM-DD'))) {
+                        return Promise.reject(new Error('Нельзя создавать задачи задним числом. Выберите текущую или будущую дату.'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
               >
                 <DatePicker 
                   style={{ width: '100%' }} 
                   format="DD.MM.YYYY" 
                   locale={locale} // Добавляем русскую локализацию
+                  disabledDate={!isEditing ? disabledDate : undefined} // Отключаем прошедшие даты только для новых задач
                 />
               </Form.Item>
             </Col>
@@ -1171,7 +1209,7 @@ const Schedule = () => {
           <p>Пожалуйста, загрузите Excel-файл со следующими столбцами:</p>
           <ul>
             <li><strong>Название задачи</strong> (обязательно)</li>
-            <li>Дата (формат DD.MM.YYYY)</li>
+            <li>Дата (формат DD.MM.YYYY, <strong>не в прошлом</strong>)</li>
             <li>Время начала (формат HH:MM)</li>
             <li>Время окончания (формат HH:MM)</li>
             <li>Местоположение</li>
@@ -1184,6 +1222,7 @@ const Schedule = () => {
             <li>Прогресс (%)</li>
             <li>Описание</li>
           </ul>
+          <p><strong>Внимание:</strong> Создание задач задним числом запрещено. Все даты должны быть сегодняшними или будущими.</p>
         </div>
 
         {importError && (

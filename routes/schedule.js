@@ -60,6 +60,17 @@ router.get('/:id', (req, res) => {
   });
 });
 
+// Helper function to check if date is in the past
+const isDateInPast = (dateString) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to beginning of day
+  
+  const taskDate = new Date(dateString);
+  taskDate.setHours(0, 0, 0, 0); // Reset time to beginning of day
+  
+  return taskDate < today;
+};
+
 // POST create new task
 router.post('/', (req, res) => {
   const {
@@ -82,6 +93,13 @@ router.post('/', (req, res) => {
   if (!title || !date || !startTime || !endTime) {
     return res.status(400).json({ 
       error: 'Title, date, startTime, and endTime are required' 
+    });
+  }
+
+  // Check if date is in the past
+  if (isDateInPast(date)) {
+    return res.status(400).json({ 
+      error: 'Нельзя создавать задачи на прошедшие даты. Пожалуйста, выберите сегодняшнюю дату или дату в будущем.' 
     });
   }
 
@@ -168,61 +186,81 @@ router.put('/:id', (req, res) => {
     });
   }
 
-  // Convert arrays to JSON strings
-  const employeeIdsJson = JSON.stringify(employeeIds || []);
-  const equipmentIdsJson = JSON.stringify(equipmentIds || []);
-  const transportIdsJson = JSON.stringify(transportIds || []);
-  
-  const currentDate = new Date().toISOString();
-  
-  const sql = `
-    UPDATE Schedule 
-    SET Title = ?, 
-        Date = ?, 
-        StartTime = ?, 
-        EndTime = ?, 
-        EmployeeIds = ?, 
-        EquipmentIds = ?, 
-        TransportIds = ?, 
-        ProcessId = ?, 
-        Location = ?, 
-        Status = ?, 
-        Priority = ?, 
-        Description = ?, 
-        Progress = ?,
-        Updated_At = ?
-    WHERE Task_ID = ?
-  `;
-  
-  db.run(sql, [
-    title, 
-    date, 
-    startTime, 
-    endTime, 
-    employeeIdsJson, 
-    equipmentIdsJson, 
-    transportIdsJson, 
-    processId, 
-    location, 
-    status || 'scheduled', 
-    priority || 'medium', 
-    description, 
-    progress || 0,
-    currentDate,
-    id
-  ], function(err) {
+  // For existing tasks, we still check if we're trying to change date to past
+  // but allow editing existing tasks with past dates (just can't change date to past)
+  db.get('SELECT Date FROM Schedule WHERE Task_ID = ?', [id], (err, row) => {
     if (err) {
-      console.error('Error updating task:', err);
+      console.error('Error fetching task for date validation:', err);
       return res.status(500).json({ error: err.message });
     }
     
-    if (this.changes === 0) {
+    if (!row) {
       return res.status(404).json({ error: 'Task not found' });
     }
     
-    res.json({ 
-      message: 'Task updated successfully',
-      changes: this.changes 
+    // If the date is being changed and the new date is in the past, reject
+    if (row.Date !== date && isDateInPast(date)) {
+      return res.status(400).json({ 
+        error: 'Нельзя изменять дату задачи на прошедшую дату. Пожалуйста, выберите сегодняшнюю дату или дату в будущем.' 
+      });
+    }
+
+    // Convert arrays to JSON strings
+    const employeeIdsJson = JSON.stringify(employeeIds || []);
+    const equipmentIdsJson = JSON.stringify(equipmentIds || []);
+    const transportIdsJson = JSON.stringify(transportIds || []);
+    
+    const currentDate = new Date().toISOString();
+    
+    const sql = `
+      UPDATE Schedule 
+      SET Title = ?, 
+          Date = ?, 
+          StartTime = ?, 
+          EndTime = ?, 
+          EmployeeIds = ?, 
+          EquipmentIds = ?, 
+          TransportIds = ?, 
+          ProcessId = ?, 
+          Location = ?, 
+          Status = ?, 
+          Priority = ?, 
+          Description = ?, 
+          Progress = ?,
+          Updated_At = ?
+      WHERE Task_ID = ?
+    `;
+    
+    db.run(sql, [
+      title, 
+      date, 
+      startTime, 
+      endTime, 
+      employeeIdsJson, 
+      equipmentIdsJson, 
+      transportIdsJson, 
+      processId, 
+      location, 
+      status || 'scheduled', 
+      priority || 'medium', 
+      description, 
+      progress || 0,
+      currentDate,
+      id
+    ], function(err) {
+      if (err) {
+        console.error('Error updating task:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      res.json({ 
+        message: 'Task updated successfully',
+        changes: this.changes 
+      });
     });
   });
 });
@@ -385,6 +423,12 @@ router.post('/import', (req, res) => {
     // Basic validation
     if (!title || !date) {
       errors.push(`Строка ${index + 2}: Название задачи и дата обязательны`);
+      return;
+    }
+
+    // Check if date is in the past for imported tasks too
+    if (isDateInPast(date)) {
+      errors.push(`Строка ${index + 2}: Нельзя импортировать задачи на прошедшие даты`);
       return;
     }
 
@@ -614,6 +658,13 @@ router.post('/:id/duplicate', (req, res) => {
   const { id } = req.params;
   const { newDate } = req.body;
   
+  // Check if new date is provided and not in the past
+  if (newDate && isDateInPast(newDate)) {
+    return res.status(400).json({ 
+      error: 'Нельзя дублировать задачу на прошедшую дату. Пожалуйста, выберите сегодняшнюю дату или дату в будущем.' 
+    });
+  }
+  
   // First get the original task
   db.get('SELECT * FROM Schedule WHERE Task_ID = ?', [id], (err, row) => {
     if (err) {
@@ -623,6 +674,15 @@ router.post('/:id/duplicate', (req, res) => {
     
     if (!row) {
       return res.status(404).json({ error: 'Task not found' });
+    }
+    
+    const duplicateDate = newDate || row.Date;
+    
+    // Double check the date isn't in the past
+    if (isDateInPast(duplicateDate)) {
+      return res.status(400).json({ 
+        error: 'Нельзя дублировать задачу на прошедшую дату. Пожалуйста, выберите сегодняшнюю дату или дату в будущем.' 
+      });
     }
     
     const currentDate = new Date().toISOString();
@@ -651,7 +711,7 @@ router.post('/:id/duplicate', (req, res) => {
     
     db.run(sql, [
       row.Title + ' (копия)',
-      newDate || row.Date,
+      duplicateDate,
       row.StartTime,
       row.EndTime,
       row.EmployeeIds,
