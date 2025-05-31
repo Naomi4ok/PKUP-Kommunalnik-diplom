@@ -341,12 +341,6 @@ const SidebarComponent = ({ collapsed, setCollapsed }) => {
             {/* Выпадающее меню пользователя */}
             <div className={`user-dropdown ${userMenuVisible ? 'visible' : ''}`}>
               <div className="dropdown-menu">
-                <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); }}>
-                  <UserSwitchOutlined /> <span>Профиль</span>
-                </div>
-                <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); }}>
-                  <SettingOutlined /> <span>Настройки</span>
-                </div>
                 <div className="dropdown-item logout" onClick={(e) => { e.stopPropagation(); handleLogout(); }}>
                   <LogoutOutlined /> <span>Выход</span>
                 </div>

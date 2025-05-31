@@ -785,27 +785,24 @@ const Schedule = () => {
       </Breadcrumb>
       
       <div className="schedule-header">
-        <div className="schedule-header-left">
-          <Title level={2}>Расписание задач</Title>
-          {/* Export and Import buttons */}
-          <div className="header-left-content">
-            <Button 
-              type="primary" 
-              icon={<FileExcelOutlined />} 
-              onClick={exportToExcel}
-              className="ant-export-button"
-            >
-              Экспорт
-            </Button>
-            <Button 
-              type="primary" 
-              icon={<ImportOutlined />} 
-              onClick={showImportModal}
-              className="ant-import-button"
-            >
-              Импорт
-            </Button>
-          </div>
+        <div className="schedule-header-left" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Title level={2} style={{ margin: 0 }}>Расписание задач</Title>
+          <Button 
+            type="primary" 
+            icon={<FileExcelOutlined />} 
+            onClick={exportToExcel}
+            className="ant-export-button"
+          >
+            Экспорт
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<ImportOutlined />} 
+            onClick={showImportModal}
+            className="ant-import-button"
+          >
+            Импорт
+          </Button>
         </div>
         <Button
           className="schedule-add-button"  
