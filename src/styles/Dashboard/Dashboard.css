@@ -103,7 +103,9 @@
 
 .weather-condition {
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.95;
+  margin-bottom: 2px;
 }
 
 .weather-temp {
@@ -117,6 +119,15 @@
   opacity: 0.9;
   display: flex;
   flex-direction: column;
+}
+
+.weather-meta span {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.weather-meta span:last-child {
+  margin-bottom: 0;
 }
 
 /* Card styles */

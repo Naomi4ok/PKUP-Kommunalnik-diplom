@@ -233,6 +233,10 @@ background-color: #19cc00 !important;
   color: white !important;
 }
 
+.ant-input:focus {
+  border-color: #15b800 !important;
+}
+
 /* Responsive layout for small screens */
 @media (max-width: 768px) {
   .user-form-container {

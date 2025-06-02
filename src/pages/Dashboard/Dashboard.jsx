@@ -1,4 +1,4 @@
-  import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Row, Col, Card, Statistic, Table, Alert, 
   Badge, Spin, Typography, Avatar, Divider, Progress, 
@@ -15,13 +15,86 @@ import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import '../../styles/Dashboard/Dashboard.css';
 import moment from 'moment';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
+// Функция для перевода погодных условий на русский язык
+const translateWeatherCondition = (condition) => {
+  const translations = {
+    // Ясная погода
+    'Sunny': 'Солнечно',
+    'Clear': 'Ясно',
+    'Partly cloudy': 'Переменная облачность',
+    'Cloudy': 'Облачно',
+    'Overcast': 'Пасмурно',
+    
+    // Дождь
+    'Patchy rain possible': 'Возможен небольшой дождь',
+    'Light rain shower': 'Легкий дождь',
+    'Light rain': 'Небольшой дождь',
+    'Moderate rain at times': 'Временами умеренный дождь',
+    'Moderate rain': 'Умеренный дождь',
+    'Heavy rain at times': 'Временами сильный дождь',
+    'Heavy rain': 'Сильный дождь',
+    'Light drizzle': 'Легкая морось',
+    'Drizzle': 'Морось',
+    'Torrential rain shower': 'Ливневый дождь',
+    'Patchy light drizzle': 'Местами легкая морось',
+    'Patchy light rain': 'Местами легкий дождь',
+    'Moderate or heavy rain shower': 'Умеренный или сильный ливень',
+    'Light rain with thunder': 'Легкий дождь с грозой',
+    
+    // Снег
+    'Patchy snow possible': 'Возможен снег',
+    'Light snow showers': 'Легкий снег',
+    'Light snow': 'Небольшой снег',
+    'Moderate snow': 'Умеренный снег',
+    'Heavy snow': 'Сильный снег',
+    'Blizzard': 'Метель',
+    'Blowing snow': 'Позёмок',
+    'Patchy light snow': 'Местами легкий снег',
+    'Moderate or heavy snow showers': 'Умеренный или сильный снегопад',
+    'Patchy moderate snow': 'Местами умеренный снег',
+    'Moderate or heavy snow with thunder': 'Умеренный или сильный снег с грозой',
+    
+    // Туман
+    'Mist': 'Легкий туман',
+    'Fog': 'Туман',
+    'Freezing fog': 'Замерзающий туман',
+    
+    // Гроза
+    'Thundery outbreaks possible': 'Возможна гроза',
+    'Patchy light rain with thunder': 'Местами легкий дождь с грозой',
+    'Moderate or heavy rain with thunder': 'Умеренный или сильный дождь с грозой',
+    'Patchy light snow with thunder': 'Местами легкий снег с грозой',
+    
+    // Мокрый снег и изморось
+    'Freezing drizzle': 'Замерзающая морось',
+    'Heavy freezing drizzle': 'Сильная замерзающая морось',
+    'Ice pellets': 'Ледяная крупа',
+    'Light sleet': 'Легкий мокрый снег',
+    'Moderate or heavy sleet': 'Умеренный или сильный мокрый снег',
+    'Light sleet showers': 'Легкий мокрый снег',
+    'Moderate or heavy sleet showers': 'Умеренный или сильный мокрый снег',
+    
+    // Дополнительные условия
+    'Patchy freezing drizzle possible': 'Возможна замерзающая морось',
+    'Light freezing rain': 'Легкий ледяной дождь',
+    'Moderate or heavy freezing rain': 'Умеренный или сильный ледяной дождь',
+    'Light showers of ice pellets': 'Легкая ледяная крупа',
+    'Moderate or heavy showers of ice pellets': 'Умеренная или сильная ледяная крупа',
+    
+    // Если перевод не найден
+    'No data': 'Нет данных'
+  };
+  
+  return translations[condition] || condition;
+};
+
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate(); // Initialize the navigate function
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     employeesCount: 0,
@@ -271,38 +344,65 @@ const Dashboard = () => {
   };
 
   // Fetch real weather data for Brest, Belarus using WeatherAPI
-  const fetchWeatherData = async () => {
-    try {
-      setWeatherLoading(true);
-      
-      const API_KEY = 'e2d480ee39474050a56215834252504';
-      const response = await axios.get(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=Brest,Belarus&aqi=no`);
-      const data = response.data;
-      
-      const weather = {
-        condition: data.current.condition.text,
-        temperature: data.current.temp_c,
-        humidity: data.current.humidity,
-        wind: data.current.wind_kph / 3.6,
-        icon: getWeatherIcon(data.current.condition.code),
-        location: `${data.location.name}, ${data.location.country}`
+// Обновленная функция fetchWeatherData
+const fetchWeatherData = async () => {
+  try {
+    setWeatherLoading(true);
+    
+    const API_KEY = 'e2d480ee39474050a56215834252504';
+    const response = await axios.get(`https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=Brest,Belarus&aqi=no`);
+    const data = response.data;
+    
+    // Функция для перевода названий городов и стран
+    const translateLocation = (city, country) => {
+      const cityTranslations = {
+        'Brest': 'Брест',
+        'Minsk': 'Минск',
+        'Gomel': 'Гомель',
+        'Vitebsk': 'Витебск',
+        'Grodno': 'Гродно',
+        'Mogilev': 'Могилёв'
       };
       
-      setWeatherData(weather);
-      setWeatherLoading(false);
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
-      setWeatherData({
-        condition: 'Нет данных',
-        temperature: '--',
-        humidity: '--',
-        wind: '--',
-        icon: '❓',
-        location: 'Брест, Беларусь'
-      });
-      setWeatherLoading(false);
-    }
-  };
+      const countryTranslations = {
+        'Belarus': 'Беларусь',
+        'Russia': 'Россия',
+        'Ukraine': 'Украина',
+        'Poland': 'Польша',
+        'Lithuania': 'Литва',
+        'Latvia': 'Латвия'
+      };
+      
+      const translatedCity = cityTranslations[city] || city;
+      const translatedCountry = countryTranslations[country] || country;
+      
+      return `${translatedCity}, ${translatedCountry}`;
+    };
+    
+    const weather = {
+      condition: translateWeatherCondition(data.current.condition.text),
+      temperature: data.current.temp_c,
+      humidity: data.current.humidity,
+      wind: data.current.wind_kph / 3.6,
+      icon: getWeatherIcon(data.current.condition.code),
+      location: translateLocation(data.location.name, data.location.country)
+    };
+    
+    setWeatherData(weather);
+    setWeatherLoading(false);
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    setWeatherData({
+      condition: 'Нет данных',
+      temperature: '--',
+      humidity: '--',
+      wind: '--',
+      icon: '❓',
+      location: 'Брест, Беларусь'
+    });
+    setWeatherLoading(false);
+  }
+};
 
   // Helper function to map condition codes to emoji icons
   const getWeatherIcon = (code) => {
@@ -348,10 +448,14 @@ const Dashboard = () => {
       <div className="weather-container">
         <div className="weather-icon">{weatherData.icon}</div>
         <div className="weather-details">
-          <div className="weather-location">{weatherData.location}, {weatherData.condition}</div>
+          <div className="weather-location">{weatherData.location}</div>
+          <div className="weather-condition">{weatherData.condition}</div>
           <div className="weather-temp">{weatherData.temperature}°C</div>
           <div className="weather-meta">
             <span>Влажность: {weatherData.humidity}%</span>
+            {weatherData.wind !== '--' && (
+              <span>Ветер: {Math.round(weatherData.wind)} м/с</span>
+            )}
           </div>
         </div>
       </div>
