@@ -34,7 +34,8 @@ import {
   InboxOutlined,
   EllipsisOutlined,
   FilterOutlined,
-  HomeOutlined
+  HomeOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../../styles/Equipment/Equipment.css';
@@ -515,6 +516,10 @@ const Equipment = () => {
     navigate(`/equipment/edit/${id}`);
   };
 
+      const handleGenerateReport = () => {
+  navigate('/equipment/report');
+};
+
   // Обработка удаления оборудования
   const handleDelete = async (id) => {
     try {
@@ -765,6 +770,15 @@ const Equipment = () => {
               >
                 Фильтр
               </Button>
+
+                              <Button
+                                type="primary" 
+                                icon={<FileDoneOutlined />}
+                                onClick={handleGenerateReport}
+                                className="ant-report-button"
+                              >
+                                Создать отчёт
+                              </Button>
               
               {/* Строка поиска */}
               <div className="equipment-search-bar-container">

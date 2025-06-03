@@ -34,7 +34,8 @@ import {
   InboxOutlined,
   EllipsisOutlined,
   FilterOutlined,
-  HomeOutlined
+  HomeOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../../styles/Tools/Tools.css';
@@ -474,6 +475,11 @@ const Tools = () => {
     navigate(`/tools/edit/${id}`);
   };
 
+      const handleGenerateReport = () => {
+  navigate('/tools/report');
+};
+
+
   // Handle tool deletion
   const handleDelete = async (id) => {
     try {
@@ -684,6 +690,15 @@ const Tools = () => {
                 Фильтр
               </Button>
               
+                  <Button
+                  type="primary" 
+                  icon={<FileDoneOutlined />}
+                  onClick={handleGenerateReport}
+                  className="ant-report-button"
+                >
+                  Создать отчёт
+                </Button>
+
               {/* Search bar */}
               <div className="tools-search-bar-container">
                 <SearchBar 

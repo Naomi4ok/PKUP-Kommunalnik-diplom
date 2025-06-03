@@ -1,0 +1,262 @@
+.employee-docx-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.page-breadcrumb {
+  margin-bottom: 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.employee-docx-title {
+  margin: 0 !important;
+  flex: 1;
+  text-align: center;
+}
+
+.employee-docx-main-card {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.employee-docx-tabs .ant-tabs-tab {
+  font-weight: 500;
+}
+
+.employee-docx-form {
+  padding: 0;
+}
+
+.docx-filter-card,
+.docx-content-card {
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.docx-filter-card .ant-card-head,
+.docx-content-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.additional-filters .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.content-options {
+  margin-bottom: 16px;
+}
+
+.content-options .ant-form-item {
+  margin-bottom: 12px;
+}
+
+.columns-collapse {
+  margin-top: 16px;
+}
+
+.column-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.column-checkbox-group .ant-checkbox-wrapper {
+  margin: 0;
+  padding: 4px 0;
+}
+
+.employee-summary-card {
+  margin-top: 20px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.employee-summary-card .ant-card-body {
+  padding: 16px 24px;
+}
+
+.employee-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.employee-count,
+.employee-total {
+  flex: 1;
+  min-width: 200px;
+}
+
+.employee-summary .ant-typography {
+  color: white !important;
+  font-size: 16px;
+}
+
+.preview-container {
+  padding: 0;
+}
+
+.preview-summary-card,
+.preview-details-card {
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.summary-total {
+  font-size: 18px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 8px;
+  color: #999;
+}
+
+.no-data-message .ant-typography {
+  font-size: 16px;
+  color: #999;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .employee-docx-page {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .employee-docx-title {
+    text-align: left;
+  }
+  
+  .employee-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .employee-count,
+  .employee-total {
+    min-width: unset;
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .employee-docx-page {
+    padding: 12px;
+  }
+  
+  .page-header {
+    padding: 12px 16px;
+  }
+  
+  .employee-docx-main-card .ant-card-body {
+    padding: 16px;
+  }
+  
+  .employee-summary-card .ant-card-body {
+    padding: 12px 16px;
+  }
+}
+
+/* Дополнительные стили для таблиц в предпросмотре */
+.preview-summary-card .ant-table-small {
+  font-size: 12px;
+}
+
+.preview-details-card .ant-table-small {
+  font-size: 12px;
+}
+
+.preview-summary-card .ant-card-head {
+  padding: 8px 12px;
+  min-height: auto;
+}
+
+.preview-summary-card .ant-card-head-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.preview-details-card .ant-table-thead > tr > th {
+  font-weight: 600;
+  background: #fafafa;
+}
+
+/* Стили для чекбоксов */
+.content-options .ant-checkbox-wrapper {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.columns-collapse .ant-collapse-header {
+  font-weight: 500;
+  padding: 12px 0 !important;
+}
+
+/* Анимации */
+.employee-docx-main-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Кастомные стили для кнопок */
+.ant-add-button {
+  background: #52c41a;
+  border-color: #52c41a;
+  font-weight: 500;
+}
+
+.ant-add-button:hover,
+.ant-add-button:focus {
+  background: #73d13d;
+  border-color: #73d13d;
+}
+
+.ant-add-button:disabled {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+  color: #bfbfbf;
+}

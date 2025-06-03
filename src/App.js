@@ -29,6 +29,13 @@ import Expenses from './pages/Expenses/Expenses';
 import ExpenseForm from './pages/Expenses/ExpenseForm';
 import ExpenseDocx from './pages/Expenses/ExpenseDocx';
 import StorageLocations from './pages/StorageLocations/StorageLocations';
+import EmployeeDocx from './pages/Employee/EmployeeDocx';
+import ScheduleDocx from './pages/Schedule/ScheduleDocx';
+import EquipmentDocx from './pages/Equipment/EquipmentDocx';
+import TransportDocx from './pages/Transport/TransportDocx';
+import ToolsDocx from './pages/Tools/ToolsDocx';
+import SparesDocx from './pages/Spares/SparesDocx';
+import MaterialsDocx from './pages/Materials/MaterialsDocx';
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -163,6 +170,12 @@ function App() {
                         <TransportForm />
                       </ProtectedRoute>
                     } />
+
+                      <Route path="/transport/report" element={
+                      <ProtectedRoute>
+                        <TransportDocx />
+                      </ProtectedRoute>
+                    } />
                     
                     <Route path="/tools" element={
                       <ProtectedRoute>
@@ -180,6 +193,12 @@ function App() {
                       </ProtectedRoute>
                     } />
 
+                    <Route path="/tools/report" element={
+                    <ProtectedRoute>
+                      <ToolsDocx />
+                    </ProtectedRoute>
+                  } />
+
                     <Route path="/spares" element={
                       <ProtectedRoute>
                         <Spares />
@@ -196,6 +215,12 @@ function App() {
                       </ProtectedRoute>
                     } />
 
+                    <Route path="/spares/report" element={
+                    <ProtectedRoute>
+                      <SparesDocx />
+                    </ProtectedRoute>
+                  } />
+
                     <Route path="/materials" element={
                       <ProtectedRoute>
                         <Materials />
@@ -211,6 +236,12 @@ function App() {
                         <MaterialsForm />
                       </ProtectedRoute>
                     } />
+
+                    <Route path="/materials/report" element={
+                    <ProtectedRoute>
+                      <MaterialsDocx />
+                    </ProtectedRoute>
+                  } />
                     
                     <Route path="/storage-locations" element={
                       <ProtectedRoute>
@@ -246,6 +277,9 @@ function App() {
                       </ProtectedRoute>
                     } />
 <Route path="/expenses/report" element={<ExpenseDocx />} />
+<Route path="/employees/report" element={<EmployeeDocx />} />
+<Route path="/schedule/report" element={<ScheduleDocx />} />
+<Route path="/equipment/report" element={<EquipmentDocx />} />
                     
                     {/* Redirect any unknown paths to the dashboard */}
                     <Route path="*" element={<Navigate to="/" replace />} />

@@ -35,7 +35,8 @@ import {
   ExclamationCircleOutlined,
   FileExcelOutlined,
   ImportOutlined,
-  InboxOutlined
+  InboxOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import 'moment/locale/ru'; // Импортируем русскую локализацию moment
@@ -294,6 +295,10 @@ const Schedule = () => {
   const handleImportFileChange = (info) => {
     setImportFileList(info.fileList.slice(-1)); // Save only the last file
   };
+
+    const handleGenerateReport = () => {
+  navigate('/schedule/report');
+};
 
   // Create template for download
   const downloadTemplate = () => {
@@ -803,6 +808,15 @@ const Schedule = () => {
           >
             Импорт
           </Button>
+
+            <Button
+              type="primary" 
+              icon={<FileDoneOutlined />}
+              onClick={handleGenerateReport}
+              className="ant-report-button"
+            >
+              Создать отчёт
+            </Button>
         </div>
         <Button
           className="schedule-add-button"  

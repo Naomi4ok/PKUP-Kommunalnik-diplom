@@ -34,7 +34,8 @@ import {
   EllipsisOutlined,
   FilterOutlined,
   HomeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../../styles/Materials/Materials.css';
@@ -491,6 +492,10 @@ const Materials = () => {
     navigate(`/materials/edit/${id}`);
   };
 
+      const handleGenerateReport = () => {
+  navigate('/materials/report');
+};
+
   // Handle material deletion
   const handleDelete = async (id) => {
     try {
@@ -718,6 +723,15 @@ const Materials = () => {
               >
                 Фильтр
               </Button>
+
+                              <Button
+                                type="primary" 
+                                icon={<FileDoneOutlined />}
+                                onClick={handleGenerateReport}
+                                className="ant-report-button"
+                              >
+                                Создать отчёт
+                              </Button>
               
               {/* Search bar */}
               <div className="materials-search-bar-container">

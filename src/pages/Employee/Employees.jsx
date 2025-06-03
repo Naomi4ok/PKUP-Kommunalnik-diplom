@@ -36,7 +36,8 @@ import {
   InboxOutlined,
   EllipsisOutlined,
   FilterOutlined,
-  HomeOutlined
+  HomeOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../../styles/Employee/Employees.css';
@@ -573,6 +574,10 @@ const Employees = () => {
     navigate(`/employees/edit/${id}`);
   };
 
+    const handleGenerateReport = () => {
+  navigate('/employees/report');
+};
+
   // Обработка удаления сотрудника
   const handleDelete = async (id) => {
     try {
@@ -802,6 +807,15 @@ const Employees = () => {
               >
                 Фильтр
               </Button>
+
+                <Button
+                  type="primary" 
+                  icon={<FileDoneOutlined />}
+                  onClick={handleGenerateReport}
+                  className="ant-report-button"
+                >
+                  Создать отчёт
+                </Button>
               
               {/* Строка поиска */}
               <div className="employees-search-bar-container">

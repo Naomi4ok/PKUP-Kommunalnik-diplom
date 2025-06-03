@@ -29,7 +29,8 @@ import {
   HomeOutlined,
   FileExcelOutlined,
   ImportOutlined,
-  InboxOutlined
+  InboxOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import TransportCard from '../../components/Transport/TransportCard';
@@ -236,6 +237,10 @@ const Transport = () => {
   const handleEditTransport = (id) => {
     navigate(`/transport/edit/${id}`);
   };
+
+      const handleGenerateReport = () => {
+  navigate('/transport/report');
+};
   
   // Show delete confirmation
   const showDeleteConfirm = (id) => {
@@ -638,6 +643,15 @@ const Transport = () => {
               >
                 Фильтр
               </Button>
+
+                              <Button
+                                type="primary" 
+                                icon={<FileDoneOutlined />}
+                                onClick={handleGenerateReport}
+                                className="ant-report-button"
+                              >
+                                Создать отчёт
+                              </Button>
               
               {/* Строка поиска */}
               <div className="transport-search-bar-container">

@@ -34,7 +34,8 @@ import {
   EllipsisOutlined,
   FilterOutlined,
   HomeOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  FileDoneOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../../styles/Spares/Spares.css';
@@ -491,6 +492,10 @@ const Spares = () => {
     navigate(`/spares/edit/${id}`);
   };
 
+      const handleGenerateReport = () => {
+  navigate('/spares/report');
+};
+
   // Handle spare part deletion
   const handleDelete = async (id) => {
     try {
@@ -718,6 +723,15 @@ const Spares = () => {
               >
                 Фильтр
               </Button>
+
+                              <Button
+                                type="primary" 
+                                icon={<FileDoneOutlined />}
+                                onClick={handleGenerateReport}
+                                className="ant-report-button"
+                              >
+                                Создать отчёт
+                              </Button>
               
               {/* Search bar */}
               <div className="spares-search-bar-container">
