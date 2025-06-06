@@ -292,3 +292,107 @@
   color: #2c3e50;
   font-weight: 600;
 }
+
+.month-navigation-card {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.month-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 0;
+  background: #ffffff;
+  border-radius: 8px;
+  color: #19cc00;
+}
+
+.month-nav-button {
+  color: #19cc00 !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 50% !important;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.month-nav-button:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.1);
+}
+
+.month-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 40px;
+  min-width: 200px;
+}
+
+.month-title {
+  color: #19cc00 !important;
+  margin: 0 !important;
+  text-align: center;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.current-month-button {
+  color: #000000 !important;
+  padding: 0 !important;
+  font-size: 12px;
+  margin-top: 4px;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.current-month-button:hover {
+  color: #19cc00 !important;
+}
+
+/* Обновляем стили статистических карточек для лучшего отображения */
+.stats-row {
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.stat-card-icon {
+  margin-right: 8px;
+  color: #1890ff;
+  font-size: 18px;
+}
+
+.expense-stat .ant-statistic-title {
+  display: flex;
+  align-items: center;
+  color: #666;
+  font-weight: 500;
+}
+
+.currency-suffix {
+  font-size: 14px;
+  color: #666;
+  margin-left: 4px;
+}
+
+.stat-category {
+  font-size: 12px;
+  color: #999;
+  font-weight: normal;
+}
