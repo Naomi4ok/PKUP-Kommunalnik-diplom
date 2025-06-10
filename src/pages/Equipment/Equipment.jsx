@@ -20,7 +20,8 @@ import {
   Row,
   Col,
   DatePicker,
-  Breadcrumb
+  Breadcrumb,
+  Avatar
 } from 'antd';
 import {
   ToolOutlined,
@@ -35,7 +36,8 @@ import {
   EllipsisOutlined,
   FilterOutlined,
   HomeOutlined,
-  FileDoneOutlined
+  FileDoneOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../../styles/Equipment/Equipment.css';
@@ -544,7 +546,32 @@ const Equipment = () => {
     setPageSize(newPageSize);
   };
 
-  // Получение имени сотрудника по ID
+  // Получение имени сотрудника по ID и рендеринг с аватаркой
+  const renderEmployeeWithAvatar = (employeeId) => {
+    const employee = employees.find(emp => emp.Employee_ID === employeeId);
+    
+    if (!employee) {
+      return (
+        <Space>
+          <Avatar size="small" icon={<UserOutlined />} />
+          <span>Не назначен</span>
+        </Space>
+      );
+    }
+    
+    return (
+      <Space>
+        <Avatar 
+          size="small" 
+          src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
+          icon={!employee.Photo ? <UserOutlined /> : undefined} 
+        />
+        <span>{employee.Full_Name}</span>
+      </Space>
+    );
+  };
+
+  // Получение имени сотрудника по ID (для фильтрации и экспорта)
   const getEmployeeName = (employeeId) => {
     const employee = employees.find(emp => emp.Employee_ID === employeeId);
     return employee ? employee.Full_Name : 'Не назначен';
@@ -646,7 +673,7 @@ const Equipment = () => {
       dataIndex: 'Responsible_Employee_ID',
       key: 'responsibleEmployee',
       ellipsis: true,
-      render: employeeId => getEmployeeName(employeeId),
+      render: renderEmployeeWithAvatar, // Используем новую функцию с аватаркой
       filters: employees.map(employee => ({
         text: employee.Full_Name,
         value: employee.Employee_ID,
@@ -901,7 +928,16 @@ const Equipment = () => {
             maxTagCount="responsive"
           >
             {employees.map(employee => (
-              <Option key={employee.Employee_ID} value={employee.Employee_ID}>{employee.Full_Name}</Option>
+              <Option key={employee.Employee_ID} value={employee.Employee_ID}>
+                <Space>
+                  <Avatar 
+                    size="small" 
+                    src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
+                    icon={!employee.Photo ? <UserOutlined /> : undefined} 
+                  />
+                  {employee.Full_Name}
+                </Space>
+              </Option>
             ))}
           </Select>
         </div>

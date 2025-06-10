@@ -11,9 +11,16 @@ import {
   Breadcrumb,
   Spin,
   Divider,
-  Space
+  Space,
+  Avatar
 } from 'antd';
-import { HomeOutlined, SaveOutlined, RollbackOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { 
+  HomeOutlined, 
+  SaveOutlined, 
+  RollbackOutlined, 
+  ArrowLeftOutlined,
+  UserOutlined 
+} from '@ant-design/icons';
 import dayjs from 'dayjs'; // Using dayjs instead of moment
 import '../../styles/Equipment/EquipmentForm.css';
 import DatePicker from '../../components/DatePicker/DatePicker'; // Импортируем кастомный DatePicker
@@ -354,7 +361,7 @@ const EquipmentForm = () => {
                 />
               </Form.Item>
               
-              {/* Ответственный за эксплуатацию */}
+              {/* Ответственный за эксплуатацию - добавляем аватарки как в ExpenseForm */}
               <Form.Item
                 name="responsibleEmployeeId"
                 label="Ответственный за эксплуатацию"
@@ -366,13 +373,22 @@ const EquipmentForm = () => {
                   placeholder="Выберите ответственного сотрудника"
                   showSearch
                   optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                  }
+                  filterOption={(input, option) => {
+                    return option.children && 
+                      typeof option.children.props.children[1] === 'string' && 
+                      option.children.props.children[1].toLowerCase().includes(input.toLowerCase());
+                  }}
                 >
                   {employees.map(employee => (
                     <Option key={employee.Employee_ID} value={employee.Employee_ID}>
-                      {employee.Full_Name}
+                      <Space>
+                        <Avatar 
+                          size="small" 
+                          src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
+                          icon={!employee.Photo ? <UserOutlined /> : undefined} 
+                        />
+                        {employee.Full_Name}
+                      </Space>
                     </Option>
                   ))}
                 </Select>

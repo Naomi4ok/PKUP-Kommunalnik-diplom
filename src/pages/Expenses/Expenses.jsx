@@ -21,7 +21,8 @@ import {
   Dropdown,
   Modal,
   Upload,
-  DatePicker
+  DatePicker,
+  Avatar
 } from 'antd';
 import {
   PlusOutlined,
@@ -40,7 +41,8 @@ import {
   CalendarOutlined,
   FileDoneOutlined,
   LeftOutlined,
-  RightOutlined
+  RightOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
@@ -811,6 +813,51 @@ const Expenses = () => {
     }
   };
 
+  // Новая функция для получения данных ресурса с фото
+  const getResourceWithPhoto = (type, id) => {
+    if (!id) return { name: '-', photo: null };
+    
+    switch(type) {
+      case 'Employee':
+        const employee = resourceOptions.employees.find(e => e.Employee_ID === id);
+        return {
+          name: employee?.Full_Name || `ID: ${id}`,
+          photo: employee?.Photo || null
+        };
+      case 'Equipment':
+        return {
+          name: resourceOptions.equipment.find(e => e.Equipment_ID === id)?.Name || `ID: ${id}`,
+          photo: null
+        };
+      case 'Transportation':
+        const transport = resourceOptions.transportation.find(t => t.Transport_ID === id);
+        return {
+          name: transport ? `${transport.Brand} ${transport.Model}` : `ID: ${id}`,
+          photo: null
+        };
+      case 'Tool':
+        return {
+          name: resourceOptions.tools.find(t => t.Tool_ID === id)?.Name || `ID: ${id}`,
+          photo: null
+        };
+      case 'Spare':
+        return {
+          name: resourceOptions.spares.find(s => s.Spare_ID === id)?.Name || `ID: ${id}`,
+          photo: null
+        };
+      case 'Material':
+        return {
+          name: resourceOptions.materials.find(m => m.Material_ID === id)?.Name || `ID: ${id}`,
+          photo: null
+        };
+      default:
+        return {
+          name: `${type} ID: ${id}`,
+          photo: null
+        };
+    }
+  };
+
   // Get resource type display name
   const getResourceTypeDisplayName = (type) => {
     const typeMap = {
@@ -842,7 +889,26 @@ const Expenses = () => {
     {
       title: 'Ресурс',
       key: 'resource',
-      render: record => getResourceName(record.Resource_Type, record.Resource_ID)
+      render: record => {
+        const resourceData = getResourceWithPhoto(record.Resource_Type, record.Resource_ID);
+        
+        // Если это сотрудник, показываем аватарку
+        if (record.Resource_Type === 'Employee') {
+          return (
+            <Space>
+              <Avatar 
+                size="small" 
+                src={resourceData.photo ? `data:image/jpeg;base64,${resourceData.photo}` : undefined} 
+                icon={!resourceData.photo ? <UserOutlined /> : undefined} 
+              />
+              {resourceData.name}
+            </Space>
+          );
+        }
+        
+        // Для остальных типов ресурсов просто показываем название
+        return resourceData.name;
+      }
     },
     {
       title: 'Категория',
