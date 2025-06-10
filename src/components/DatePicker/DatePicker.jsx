@@ -212,6 +212,7 @@ const DatePicker = ({ selectedDate, onChange }) => {
         <div className="calendar-popup">
           <div className="calendar-header">
             <button 
+              type="button"
               onClick={handlePrevMonth}
               className="month-nav-button"
             >
@@ -230,6 +231,7 @@ const DatePicker = ({ selectedDate, onChange }) => {
               {showMonthPicker && renderMonthPicker()}
             </div>
             <button 
+              type="button"
               onClick={handleNextMonth}
               className="month-nav-button"
             >

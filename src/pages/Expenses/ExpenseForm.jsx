@@ -14,13 +14,15 @@ import {
   Divider,
   Row,
   Col,
-  Spin
+  Spin,
+  Avatar
 } from 'antd';
 import {
   HomeOutlined,
   DollarOutlined,
   SaveOutlined,
   ArrowLeftOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import '../../styles/Expenses/ExpenseForm.css';
@@ -157,7 +159,8 @@ const ExpenseForm = () => {
       case 'Employee':
         return resourceOptions.employees.map(e => ({
           value: e.Employee_ID,
-          label: e.Full_Name
+          label: e.Full_Name,
+          photo: e.Photo // Добавляем фото для аватарки
         }));
       case 'Equipment':
         return resourceOptions.equipment.map(e => ({
@@ -344,10 +347,28 @@ const ExpenseForm = () => {
                 <Select 
                   placeholder="Выберите ресурс"
                   disabled={!selectedResourceType}
+                  showSearch={selectedResourceType === 'Employee'}
+                  optionFilterProp={selectedResourceType === 'Employee' ? "children" : undefined}
+                  filterOption={selectedResourceType === 'Employee' ? (input, option) => {
+                    return option.children && 
+                      typeof option.children.props.children[1] === 'string' && 
+                      option.children.props.children[1].toLowerCase().includes(input.toLowerCase());
+                  } : undefined}
                 >
                   {getResourceIdOptions().map(option => (
                     <Option key={option.value} value={option.value}>
-                      {option.label}
+                      {selectedResourceType === 'Employee' ? (
+                        <Space>
+                          <Avatar 
+                            size="small" 
+                            src={option.photo ? `data:image/jpeg;base64,${option.photo}` : undefined} 
+                            icon={!option.photo ? <UserOutlined /> : undefined} 
+                          />
+                          {option.label}
+                        </Space>
+                      ) : (
+                        option.label
+                      )}
                     </Option>
                   ))}
                 </Select>
@@ -372,14 +393,14 @@ const ExpenseForm = () => {
               </Form.Item>
               
               <Form.Item
-  label="Дата"
-  rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
->
-<DatePicker 
-    selectedDate={selectedDate} 
-    onChange={handleDateChange} 
-  />
-</Form.Item>
+                label="Дата"
+                rules={[{ required: true, message: 'Пожалуйста, выберите дату' }]}
+              >
+                <DatePicker 
+                  selectedDate={selectedDate} 
+                  onChange={handleDateChange} 
+                />
+              </Form.Item>
             </div>
             
             <div className="form-row">
