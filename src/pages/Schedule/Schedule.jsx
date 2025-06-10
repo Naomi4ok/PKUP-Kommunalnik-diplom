@@ -21,7 +21,8 @@ import {
   Empty,
   Spin,
   Popconfirm,
-  Upload
+  Upload,
+  Alert
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -83,6 +84,9 @@ const Schedule = () => {
   // Состояние для кастомного DatePicker
   const [taskDate, setTaskDate] = useState(new Date());
 
+  // Состояние для отображения ошибки даты
+  const [dateError, setDateError] = useState('');
+
   // Import/Export state
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importFileList, setImportFileList] = useState([]);
@@ -133,6 +137,15 @@ const Schedule = () => {
   useEffect(() => {
     filterTasksByDate(selectedDate);
   }, [selectedDate, tasks]);
+
+  // Проверяем дату при её изменении
+  useEffect(() => {
+    if (!isEditing && taskDate && isDateInPast(taskDate)) {
+      setDateError('Нельзя создавать задачи задним числом. Пожалуйста, выберите текущую или будущую дату.');
+    } else {
+      setDateError('');
+    }
+  }, [taskDate, isEditing]);
 
   // Main data fetching function
   const fetchAllData = async () => {
@@ -633,6 +646,9 @@ const Schedule = () => {
     // Установка даты для кастомного DatePicker
     setTaskDate(defaultDate);
     
+    // Сброс ошибки даты
+    setDateError('');
+    
     setModalVisible(true);
   };
 
@@ -660,6 +676,9 @@ const Schedule = () => {
     
     // Установка даты для кастомного DatePicker
     setTaskDate(new Date(task.Date));
+    
+    // Сброс ошибки даты для редактирования
+    setDateError('');
     
     setModalVisible(true);
   };
@@ -999,6 +1018,7 @@ const Schedule = () => {
             type="primary" 
             onClick={handleSubmit}
             loading={isLoading}
+            disabled={!isEditing && dateError} // Блокируем кнопку если есть ошибка даты при создании новой задачи
           >
             {isEditing ? "Сохранить" : "Добавить"}
           </Button>,
@@ -1038,6 +1058,16 @@ const Schedule = () => {
                   selectedDate={taskDate} 
                   onChange={handleTaskDateChange} 
                 />
+                {/* Визуальное отображение ошибки даты */}
+                {!isEditing && dateError && (
+                  <Alert
+                    message={dateError}
+                    type="error"
+                    showIcon
+                    style={{ marginTop: '8px' }}
+                    icon={<ExclamationCircleOutlined />}
+                  />
+                )}
               </Form.Item>
             </Col>
             <Col span={12}>
