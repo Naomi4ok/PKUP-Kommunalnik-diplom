@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import './DatePicker.css';
 
 const DatePicker = ({ selectedDate, onChange }) => {
@@ -7,6 +7,8 @@ const DatePicker = ({ selectedDate, onChange }) => {
   const [currentSelectedDate, setCurrentSelectedDate] = useState(selectedDate || new Date());
   const [currentMonth, setCurrentMonth] = useState(selectedDate || new Date());
   const [isOpen, setIsOpen] = useState(false);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
 
   // Update internal state when prop changes
   useEffect(() => {
@@ -22,6 +24,16 @@ const DatePicker = ({ selectedDate, onChange }) => {
   ];
   
   const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+  // Generate array of years (current year ± 50 years)
+  const generateYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear - 50; year <= currentYear + 50; year++) {
+      years.push(year);
+    }
+    return years;
+  };
 
   const getDaysInMonth = (year, month) => {
     return new Date(year, month + 1, 0).getDate();
@@ -60,8 +72,32 @@ const DatePicker = ({ selectedDate, onChange }) => {
     }
   };
 
+  const handleYearSelect = (year) => {
+    setCurrentMonth(prevMonth => new Date(year, prevMonth.getMonth()));
+    setShowYearPicker(false);
+  };
+
+  const handleMonthSelect = (monthIndex) => {
+    setCurrentMonth(prevMonth => new Date(prevMonth.getFullYear(), monthIndex));
+    setShowMonthPicker(false);
+  };
+
   const toggleCalendar = () => {
     setIsOpen(!isOpen);
+    setShowYearPicker(false);
+    setShowMonthPicker(false);
+  };
+
+  const toggleYearPicker = (e) => {
+    e.stopPropagation();
+    setShowYearPicker(!showYearPicker);
+    setShowMonthPicker(false);
+  };
+
+  const toggleMonthPicker = (e) => {
+    e.stopPropagation();
+    setShowMonthPicker(!showMonthPicker);
+    setShowYearPicker(false);
   };
 
   const formatDate = (date) => {
@@ -112,6 +148,47 @@ const DatePicker = ({ selectedDate, onChange }) => {
     return days;
   };
 
+  const renderYearPicker = () => {
+    const years = generateYears();
+    const currentYear = currentMonth.getFullYear();
+    
+    return (
+      <div className="picker-dropdown year-picker">
+        <div className="picker-list">
+          {years.map(year => (
+            <div
+              key={year}
+              onClick={() => handleYearSelect(year)}
+              className={`picker-item ${year === currentYear ? 'selected' : ''}`}
+            >
+              {year}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMonthPicker = () => {
+    const currentMonthIndex = currentMonth.getMonth();
+    
+    return (
+      <div className="picker-dropdown month-picker">
+        <div className="picker-list">
+          {months.map((month, index) => (
+            <div
+              key={index}
+              onClick={() => handleMonthSelect(index)}
+              className={`picker-item ${index === currentMonthIndex ? 'selected' : ''}`}
+            >
+              {month}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="date-picker-container">
       <div className="date-input-wrapper">
@@ -140,8 +217,17 @@ const DatePicker = ({ selectedDate, onChange }) => {
             >
               <ChevronLeft size={20} />
             </button>
-            <div className="current-month">
-              {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+            <div className="current-month-year">
+              <div className="month-selector" onClick={toggleMonthPicker}>
+                <span className="month-text">{months[currentMonth.getMonth()]}</span>
+                <ChevronDown size={14} className={`dropdown-icon ${showMonthPicker ? 'rotated' : ''}`} />
+              </div>
+              <div className="year-selector" onClick={toggleYearPicker}>
+                <span className="year-text">{currentMonth.getFullYear()}</span>
+                <ChevronDown size={14} className={`dropdown-icon ${showYearPicker ? 'rotated' : ''}`} />
+              </div>
+              {showYearPicker && renderYearPicker()}
+              {showMonthPicker && renderMonthPicker()}
             </div>
             <button 
               onClick={handleNextMonth}

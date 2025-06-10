@@ -431,7 +431,7 @@ const Expenses = () => {
           'Ресурс': getResourceName(expense.Resource_Type, expense.Resource_ID),
           'Категория': expense.Category || '',
           'Сумма': expense.Amount || 0,
-          'Описание': expense.Description || '',
+          'Описание': expense.Description || 'Нет описания',
           'Способ оплаты': expense.Payment_Method || '',
           'Номер счета': expense.Invoice_Number || ''
         };
@@ -860,7 +860,12 @@ const Expenses = () => {
       title: 'Описание',
       dataIndex: 'Description',
       key: 'description',
-      ellipsis: true
+      ellipsis: true,
+      render: text => (
+        <Text style={{ color: text ? 'inherit' : '#999' }}>
+          {text || 'Нет описания'}
+        </Text>
+      )
     },
     {
       title: 'Действия',

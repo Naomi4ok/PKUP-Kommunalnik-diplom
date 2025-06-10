@@ -63,6 +63,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    position: relative;
   }
   
   .month-nav-button {
@@ -82,9 +83,123 @@
     background-color: #f0f0f0;
   }
   
-  .current-month {
+  .current-month-year {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+  
+  .month-selector,
+  .year-selector {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    user-select: none;
+  }
+  
+  .month-selector:hover,
+  .year-selector:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .month-text,
+  .year-text {
     font-weight: 500;
     font-size: 14px;
+  }
+  
+  .dropdown-icon {
+    transition: transform 0.2s ease;
+  }
+  
+  .dropdown-icon.rotated {
+    transform: rotate(180deg);
+  }
+  
+  .picker-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    max-height: 200px;
+    overflow: hidden;
+    animation: dropdownFadeIn 0.2s ease-in-out;
+  }
+  
+  @keyframes dropdownFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+  
+  .year-picker {
+    width: 80px;
+  }
+  
+  .month-picker {
+    width: 120px;
+  }
+  
+  .picker-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .picker-item {
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .picker-item:last-child {
+    border-bottom: none;
+  }
+  
+  .picker-item:hover {
+    background-color: #E0FCDC;
+  }
+  
+  .picker-item.selected {
+    background-color: #E0FCDC;
+    color: #0AB101;
+    font-weight: 500;
+  }
+  
+  /* Custom scrollbar for picker lists */
+  .picker-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .picker-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .picker-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+  
+  .picker-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
   
   .calendar-grid {
