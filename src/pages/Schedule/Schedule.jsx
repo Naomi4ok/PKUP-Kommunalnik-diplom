@@ -12,7 +12,7 @@ import {
   Modal, 
   Form, 
   Input, 
-  DatePicker, 
+  // DatePicker, // Удаляем импорт DatePicker из Ant Design
   Select, 
   Slider, 
   message, 
@@ -46,6 +46,7 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import '../../styles/Schedule/Schedule.css';
 import TimeRangePicker from '../../components/TimeRangePicker'; // Импортируем наш компонент TimeRangePicker
+import DatePicker from '../../components/DatePicker/DatePicker'; // Импортируем кастомный DatePicker
 
 // Устанавливаем русскую локализацию для moment
 moment.locale('ru');
@@ -79,6 +80,9 @@ const Schedule = () => {
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('17:00');
 
+  // Состояние для кастомного DatePicker
+  const [taskDate, setTaskDate] = useState(new Date());
+
   // Import/Export state
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importFileList, setImportFileList] = useState([]);
@@ -105,7 +109,12 @@ const Schedule = () => {
   const isDateInPast = (date) => {
     if (!date) return false;
     const today = moment().startOf('day');
-    const selectedDate = moment(date).startOf('day');
+    let selectedDate;
+    if (date instanceof Date) {
+      selectedDate = moment(date).startOf('day');
+    } else {
+      selectedDate = moment(date).startOf('day');
+    }
     return selectedDate.isBefore(today);
   };
 
@@ -597,6 +606,11 @@ const Schedule = () => {
     setEndTime(range.to);
   };
 
+  // Обработчик изменения даты в кастомном DatePicker
+  const handleTaskDateChange = (date) => {
+    setTaskDate(date);
+  };
+
   // Add a new task
   const showAddTaskModal = () => {
     setIsEditing(false);
@@ -604,10 +618,9 @@ const Schedule = () => {
     form.resetFields();
     
     // Set default values - используем сегодняшнюю дату или выбранную, если она не в прошлом
-    const defaultDate = isDateInPast(selectedDate) ? moment() : moment(selectedDate);
+    const defaultDate = isDateInPast(selectedDate) ? new Date() : new Date(selectedDate);
     
     form.setFieldsValue({
-      date: defaultDate,
       status: 'scheduled',
       priority: 'medium',
       progress: 0
@@ -616,6 +629,9 @@ const Schedule = () => {
     // Установка начальных значений для временного диапазона
     setStartTime('08:00');
     setEndTime('17:00');
+    
+    // Установка даты для кастомного DatePicker
+    setTaskDate(defaultDate);
     
     setModalVisible(true);
   };
@@ -627,7 +643,6 @@ const Schedule = () => {
     
     form.setFieldsValue({
       title: task.Title,
-      date: moment(task.Date),
       employeeIds: task.employeeIds,
       equipmentIds: task.equipmentIds,
       transportIds: task.transportIds,
@@ -642,6 +657,9 @@ const Schedule = () => {
     // Установка значений времени для TimeRangePicker
     setStartTime(task.StartTime || '08:00');
     setEndTime(task.EndTime || '17:00');
+    
+    // Установка даты для кастомного DatePicker
+    setTaskDate(new Date(task.Date));
     
     setModalVisible(true);
   };
@@ -659,11 +677,11 @@ const Schedule = () => {
         setIsLoading(true);
         
         try {
-          // Format date
-          const date = values.date.format('YYYY-MM-DD');
+          // Format date from Date object to YYYY-MM-DD
+          const date = `${taskDate.getFullYear()}-${(taskDate.getMonth() + 1).toString().padStart(2, '0')}-${taskDate.getDate().toString().padStart(2, '0')}`;
           
           // Проверка даты на задним числом при создании новой задачи
-          if (!isEditing && isDateInPast(date)) {
+          if (!isEditing && isDateInPast(taskDate)) {
             throw new Error('Нельзя создавать задачи задним числом. Пожалуйста, выберите текущую или будущую дату.');
           }
           
@@ -892,11 +910,11 @@ const Schedule = () => {
                   Задачи на {moment(selectedDate).format('DD.MM.YYYY')}
                 </Title>
                 <DatePicker 
-                  value={moment(selectedDate)} 
-                  onChange={(date) => onSelect(date)}
-                  format="DD.MM.YYYY"
-                  locale={locale} // Добавляем русскую локализацию для DatePicker
-                  disabledDate={disabledDate} // Отключаем прошедшие даты
+                  selectedDate={new Date(selectedDate)}
+                  onChange={(date) => {
+                    const dateString = moment(date).format('YYYY-MM-DD');
+                    setSelectedDate(dateString);
+                  }}
                 />
               </div>
               
@@ -1003,13 +1021,12 @@ const Schedule = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="date"
                 label="Дата"
                 rules={[
                   { required: true, message: 'Пожалуйста, выберите дату' },
                   {
                     validator: (_, value) => {
-                      if (!isEditing && value && isDateInPast(value.format('YYYY-MM-DD'))) {
+                      if (!isEditing && taskDate && isDateInPast(taskDate)) {
                         return Promise.reject(new Error('Нельзя создавать задачи задним числом. Выберите текущую или будущую дату.'));
                       }
                       return Promise.resolve();
@@ -1018,10 +1035,8 @@ const Schedule = () => {
                 ]}
               >
                 <DatePicker 
-                  style={{ width: '100%' }} 
-                  format="DD.MM.YYYY" 
-                  locale={locale} // Добавляем русскую локализацию
-                  disabledDate={!isEditing ? disabledDate : undefined} // Отключаем прошедшие даты только для новых задач
+                  selectedDate={taskDate} 
+                  onChange={handleTaskDateChange} 
                 />
               </Form.Item>
             </Col>
