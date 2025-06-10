@@ -372,12 +372,6 @@
   transform: translateY(-2px);
 }
 
-.stat-card-icon {
-  margin-right: 8px;
-  color: #1890ff;
-  font-size: 18px;
-}
-
 .expense-stat .ant-statistic-title {
   display: flex;
   align-items: center;
@@ -392,7 +386,5 @@
 }
 
 .stat-category {
-  font-size: 12px;
-  color: #999;
-  font-weight: normal;
+  font-size: 15px;
 }

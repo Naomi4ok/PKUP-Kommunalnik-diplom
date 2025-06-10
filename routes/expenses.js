@@ -3,27 +3,13 @@ const router = express.Router();
 const db = require('../database/db');
 
 // GET всех расходов
+// Добавляем поддержку фильтрации по датам в основной endpoint
 router.get('/', (req, res) => {
-  const { resourceType, resourceId, startDate, endDate, category } = req.query;
+  const { startDate, endDate } = req.query;
   
   let sql = 'SELECT * FROM Expenses';
-  const params = [];
   const conditions = [];
-  
-  if (resourceType) {
-    conditions.push('Resource_Type = ?');
-    params.push(resourceType);
-  }
-  
-  if (resourceId) {
-    conditions.push('Resource_ID = ?');
-    params.push(resourceId);
-  }
-  
-  if (category) {
-    conditions.push('Category = ?');
-    params.push(category);
-  }
+  const params = [];
   
   if (startDate) {
     conditions.push('Date >= ?');
@@ -44,9 +30,9 @@ router.get('/', (req, res) => {
   db.all(sql, params, (err, rows) => {
     if (err) {
       console.error('Error fetching expenses:', err);
-      return res.status(500).json({ error: err.message });
+      res.status(500).json({ error: err.message });
+      return;
     }
-    
     res.json(rows);
   });
 });

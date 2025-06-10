@@ -10,7 +10,6 @@ import {
   Popconfirm,
   Tag,
   Breadcrumb,
-  // DatePicker, // Removed Ant Design DatePicker
   Select,
   Input,
   Row,
@@ -21,7 +20,8 @@ import {
   Divider,
   Dropdown,
   Modal,
-  Upload
+  Upload,
+  DatePicker
 } from 'antd';
 import {
   PlusOutlined,
@@ -39,17 +39,17 @@ import {
   TagOutlined,
   CalendarOutlined,
   FileDoneOutlined,
+  LeftOutlined,
+  RightOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
 import '../../styles/Expenses/Expenses.css';
 import SearchBar from '../../components/SearchBar';
 import Pagination from '../../components/Pagination';
-// Import your custom DateRangePicker component
 import DateRangePicker from '../../components/DateRangePicker/DateRangePicker';
 
 const { Title, Text } = Typography;
-// const { RangePicker } = DatePicker; // Removed Ant Design RangePicker
 const { Option } = Select;
 
 const Expenses = () => {
@@ -72,6 +72,19 @@ const Expenses = () => {
     byCategory: [],
     currentMonth: 0
   });
+  
+  // Новые состояния для навигации по месяцам
+  const [selectedMonth, setSelectedMonth] = useState(moment());
+  const [monthlyData, setMonthlyData] = useState({
+    expenses: [],
+    summary: {
+      total: 0,
+      byType: [],
+      byCategory: [],
+      count: 0
+    }
+  });
+  
   const [filterValues, setFilterValues] = useState({
     dateRange: [moment().startOf('month'), moment()],
     resourceTypes: [],
@@ -104,12 +117,80 @@ const Expenses = () => {
     fetchResourceOptions();
   }, []);
   
+  // Fetch monthly data when selected month changes
+  useEffect(() => {
+    fetchMonthlyData();
+  }, [selectedMonth]);
+  
   // Update filtered expenses when expenses, filters or search query change
   useEffect(() => {
     applyFiltersAndSearch();
-  }, [expenses, filterValues, searchQuery]);
+  }, [monthlyData.expenses, filterValues, searchQuery]);
   
-  // Fetch expenses with filters applied
+  // Новая функция для получения данных за выбранный месяц
+  const fetchMonthlyData = async () => {
+    try {
+      setLoading(true);
+      
+      const startDate = selectedMonth.clone().startOf('month').format('YYYY-MM-DD');
+      const endDate = selectedMonth.clone().endOf('month').format('YYYY-MM-DD');
+      
+      // Получаем расходы за выбранный месяц
+      const expensesResponse = await fetch(`/api/expenses?startDate=${startDate}&endDate=${endDate}`);
+      if (!expensesResponse.ok) {
+        throw new Error(`HTTP error! Status: ${expensesResponse.status}`);
+      }
+      const expensesData = await expensesResponse.json();
+      
+      // Получаем сводную информацию за месяц
+      const params = new URLSearchParams();
+      params.append('startDate', startDate);
+      params.append('endDate', endDate);
+      
+      const [totalResponse, byTypeResponse, byCategoryResponse] = await Promise.all([
+        fetch(`/api/expenses/summary/total?${params.toString()}`).then(res => res.json()),
+        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=resource_type`).then(res => res.json()),
+        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=category`).then(res => res.json())
+      ]);
+      
+      const sortedCategories = [...byCategoryResponse].sort((a, b) => b.Total - a.Total);
+      
+      setMonthlyData({
+        expenses: expensesData,
+        summary: {
+          total: totalResponse[0]?.Total || 0,
+          byType: byTypeResponse || [],
+          byCategory: sortedCategories || [],
+          count: expensesData.length
+        }
+      });
+      
+    } catch (err) {
+      message.error(`Не удалось загрузить данные за месяц: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Функция навигации по месяцам
+  const handleMonthChange = (direction) => {
+    const newMonth = selectedMonth.clone();
+    if (direction === 'prev') {
+      newMonth.subtract(1, 'month');
+    } else {
+      newMonth.add(1, 'month');
+    }
+    setSelectedMonth(newMonth);
+    setCurrentPage(1); // Сбрасываем на первую страницу при смене месяца
+  };
+  
+  // Функция для перехода к текущему месяцу
+  const goToCurrentMonth = () => {
+    setSelectedMonth(moment());
+    setCurrentPage(1);
+  };
+  
+  // Обновленная функция fetchExpenses (для общих данных)
   const fetchExpenses = async () => {
     try {
       setLoading(true);
@@ -183,59 +264,48 @@ const Expenses = () => {
     }
   };
   
-  // Обновленная функция fetchSummaryData
-const fetchSummaryData = async () => {
-  try {
-    // Construct query params for date range
-    const params = new URLSearchParams();
-    if (filterValues.dateRange && filterValues.dateRange[0]) {
-      params.append('startDate', filterValues.dateRange[0].format('YYYY-MM-DD'));
-    }
-    if (filterValues.dateRange && filterValues.dateRange[1]) {
-      params.append('endDate', filterValues.dateRange[1].format('YYYY-MM-DD'));
-    }
-    
-    // Fetch current month data
-    const currentMonthParams = new URLSearchParams();
-    currentMonthParams.append('startDate', moment().startOf('month').format('YYYY-MM-DD'));
-    currentMonthParams.append('endDate', moment().format('YYYY-MM-DD'));
-    
-    // Fetch summary data in parallel
-    const [totalResponse, byTypeResponse, byCategoryResponse, currentMonthResponse] = await Promise.all([
-      fetch(`/api/expenses/summary/total?${params.toString()}`).then(res => res.json()),
-      fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=resource_type`).then(res => res.json()),
-      fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=category`).then(res => res.json()),
-      fetch(`/api/expenses/summary/total?${currentMonthParams.toString()}`).then(res => res.json())
-    ]);
-    
-    // Сортировка категорий по сумме (Total) в порядке убывания
-    const sortedCategories = [...byCategoryResponse].sort((a, b) => b.Total - a.Total);
-    
-    setSummaryData({
-      total: totalResponse[0]?.Total || 0,
-      byType: byTypeResponse || [],
-      byCategory: sortedCategories || [], // используем отсортированный массив
-      currentMonth: currentMonthResponse[0]?.Total || 0
-    });
-  } catch (err) {
-    message.error(`Failed to load summary data: ${err.message}`);
-  }
-};
-
-  // Applying filters and search to the expenses
-  const applyFiltersAndSearch = () => {
-    let filtered = [...expenses];
-    
-    // Apply date range filter
-    if (filterValues.dateRange && filterValues.dateRange[0] && filterValues.dateRange[1]) {
-      const startDate = filterValues.dateRange[0].startOf('day');
-      const endDate = filterValues.dateRange[1].endOf('day');
+  // Обновленная функция fetchSummaryData (для общей статистики)
+  const fetchSummaryData = async () => {
+    try {
+      // Construct query params for date range
+      const params = new URLSearchParams();
+      if (filterValues.dateRange && filterValues.dateRange[0]) {
+        params.append('startDate', filterValues.dateRange[0].format('YYYY-MM-DD'));
+      }
+      if (filterValues.dateRange && filterValues.dateRange[1]) {
+        params.append('endDate', filterValues.dateRange[1].format('YYYY-MM-DD'));
+      }
       
-      filtered = filtered.filter(expense => {
-        const expenseDate = moment(expense.Date);
-        return expenseDate.isBetween(startDate, endDate, null, '[]');
+      // Fetch current month data
+      const currentMonthParams = new URLSearchParams();
+      currentMonthParams.append('startDate', moment().startOf('month').format('YYYY-MM-DD'));
+      currentMonthParams.append('endDate', moment().format('YYYY-MM-DD'));
+      
+      // Fetch summary data in parallel
+      const [totalResponse, byTypeResponse, byCategoryResponse, currentMonthResponse] = await Promise.all([
+        fetch(`/api/expenses/summary/total?${params.toString()}`).then(res => res.json()),
+        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=resource_type`).then(res => res.json()),
+        fetch(`/api/expenses/summary/total?${params.toString()}&groupBy=category`).then(res => res.json()),
+        fetch(`/api/expenses/summary/total?${currentMonthParams.toString()}`).then(res => res.json())
+      ]);
+      
+      // Сортировка категорий по сумме (Total) в порядке убывания
+      const sortedCategories = [...byCategoryResponse].sort((a, b) => b.Total - a.Total);
+      
+      setSummaryData({
+        total: totalResponse[0]?.Total || 0,
+        byType: byTypeResponse || [],
+        byCategory: sortedCategories || [],
+        currentMonth: currentMonthResponse[0]?.Total || 0
       });
+    } catch (err) {
+      message.error(`Failed to load summary data: ${err.message}`);
     }
+  };
+
+  // Applying filters and search to the monthly expenses
+  const applyFiltersAndSearch = () => {
+    let filtered = [...monthlyData.expenses];
     
     // Apply resource type filter
     if (filterValues.resourceTypes.length > 0) {
@@ -323,8 +393,8 @@ const fetchSummaryData = async () => {
   };
 
   const handleGenerateReport = () => {
-  navigate('/expenses/report');
-};
+    navigate('/expenses/report');
+  };
   
   // Delete expense handler
   const handleDeleteExpense = async (id) => {
@@ -338,7 +408,7 @@ const fetchSummaryData = async () => {
       }
 
       message.success('Расход успешно удален!');
-      fetchExpenses();
+      fetchMonthlyData(); // Обновляем данные за месяц
     } catch (err) {
       message.error(`Не удалось удалить расход: ${err.message}`);
     }
@@ -354,7 +424,7 @@ const fetchSummaryData = async () => {
   const exportToExcel = () => {
     try {
       // Create dataset for export
-      const exportData = expenses.map(expense => {
+      const exportData = monthlyData.expenses.map(expense => {
         return {
           'Дата': moment(expense.Date).format('DD.MM.YYYY'),
           'Тип ресурса': getResourceTypeDisplayName(expense.Resource_Type),
@@ -388,7 +458,7 @@ const fetchSummaryData = async () => {
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Расходы');
       
       // Generate and download Excel file
-      const filename = `Расходы_${moment().format('YYYY-MM-DD')}.xlsx`;
+      const filename = `Расходы_${selectedMonth.format('YYYY-MM')}.xlsx`;
       XLSX.writeFile(workbook, filename);
       
       message.success('Данные о расходах успешно экспортированы!');
@@ -410,330 +480,313 @@ const fetchSummaryData = async () => {
   };
   
   // Create template for download
-// Обновление функции downloadTemplate с использованием наименования ресурса вместо ID
-const downloadTemplate = () => {
-  // Create sample data
-  const sampleData = [
-    {
-      'Дата': '01.05.2025',
-      'Тип ресурса': 'Сотрудник',
-      'Ресурс': 'Иванов Иван Иванович',  // Заменил ID на наименование
-      'Категория': 'Зарплата',
-      'Сумма': 5000,
-      'Описание': 'Выплата аванса',
-      'Способ оплаты': 'Банковский перевод',
-      'Номер счета': 'INV-001'
-    },
-    {
-      'Дата': '05.05.2025',
-      'Тип ресурса': 'Транспорт',
-      'Ресурс': 'Toyota Camry',  // Заменил ID на наименование
-      'Категория': 'Топливо',
-      'Сумма': 1200,
-      'Описание': 'Заправка автомобиля',
-      'Способ оплаты': 'Банковская карта',
-      'Номер счета': 'INV-002'
-    }
-  ];
-  
-  // Create worksheet
-  const worksheet = XLSX.utils.json_to_sheet(sampleData);
-  
-  // Set column widths
-  const wscols = [
-    { wch: 12 }, // Дата
-    { wch: 15 }, // Тип ресурса
-    { wch: 25 }, // Ресурс (расширил для наименований)
-    { wch: 20 }, // Категория
-    { wch: 15 }, // Сумма
-    { wch: 30 }, // Описание
-    { wch: 20 }, // Способ оплаты
-    { wch: 15 }  // Номер счета
-  ];
-  worksheet['!cols'] = wscols;
-  
-  // Create workbook
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Шаблон');
-  
-  // Download
-  XLSX.writeFile(workbook, 'Шаблон_Импорта_Расходов.xlsx');
-};
-
-// Добавим функцию для поиска ID ресурса по его наименованию и типу
-const findResourceIdByName = (resourceType, resourceName) => {
-  if (!resourceName || !resourceType) return null;
-  
-  const nameLower = resourceName.toLowerCase();
-  
-  switch(resourceType) {
-    case 'Employee':
-      const employee = resourceOptions.employees.find(e => 
-        e.Full_Name && e.Full_Name.toLowerCase() === nameLower);
-      return employee ? employee.Employee_ID : null;
-      
-    case 'Equipment':
-      const equipment = resourceOptions.equipment.find(e => 
-        e.Name && e.Name.toLowerCase() === nameLower);
-      return equipment ? equipment.Equipment_ID : null;
-      
-    case 'Transportation':
-      const transport = resourceOptions.transportation.find(t => {
-        const fullName = `${t.Brand} ${t.Model}`.toLowerCase();
-        return fullName === nameLower;
-      });
-      return transport ? transport.Transport_ID : null;
-      
-    case 'Tool':
-      const tool = resourceOptions.tools.find(t => 
-        t.Name && t.Name.toLowerCase() === nameLower);
-      return tool ? tool.Tool_ID : null;
-      
-    case 'Spare':
-      const spare = resourceOptions.spares.find(s => 
-        s.Name && s.Name.toLowerCase() === nameLower);
-      return spare ? spare.Spare_ID : null;
-      
-    case 'Material':
-      const material = resourceOptions.materials.find(m => 
-        m.Name && m.Name.toLowerCase() === nameLower);
-      return material ? material.Material_ID : null;
-      
-    default:
-      return null;
-  }
-};
-
-// Обновление функции handleImport для работы с именами ресурсов вместо ID
-const handleImport = async () => {
-  setImportError('');
-  
-  if (!importFileList || importFileList.length === 0) {
-    setImportError('Пожалуйста, выберите Excel-файл для импорта');
-    message.error('Пожалуйста, выберите Excel-файл для импорта');
-    return;
-  }
-
-  const file = importFileList[0].originFileObj;
-  
-  if (!file) {
-    setImportError('Неверный файловый объект');
-    message.error('Неверный файловый объект');
-    return;
-  }
-  
-  setImporting(true);
-
-  try {
-    // Read Excel file
-    const reader = new FileReader();
+  const downloadTemplate = () => {
+    // Create sample data
+    const sampleData = [
+      {
+        'Дата': '01.05.2025',
+        'Тип ресурса': 'Сотрудник',
+        'Ресурс': 'Иванов Иван Иванович',
+        'Категория': 'Зарплата',
+        'Сумма': 5000,
+        'Описание': 'Выплата аванса',
+        'Способ оплаты': 'Банковский перевод',
+        'Номер счета': 'INV-001'
+      },
+      {
+        'Дата': '05.05.2025',
+        'Тип ресурса': 'Транспорт',
+        'Ресурс': 'Toyota Camry',
+        'Категория': 'Топливо',
+        'Сумма': 1200,
+        'Описание': 'Заправка автомобиля',
+        'Способ оплаты': 'Банковская карта',
+        'Номер счета': 'INV-002'
+      }
+    ];
     
-    reader.onload = async (e) => {
-      try {
-        // Parse Excel data
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(sampleData);
+    
+    // Set column widths
+    const wscols = [
+      { wch: 12 }, // Дата
+      { wch: 15 }, // Тип ресурса
+      { wch: 25 }, // Ресурс (расширил для наименований)
+      { wch: 20 }, // Категория
+      { wch: 15 }, // Сумма
+      { wch: 30 }, // Описание
+      { wch: 20 }, // Способ оплаты
+      { wch: 15 }  // Номер счета
+    ];
+    worksheet['!cols'] = wscols;
+    
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Шаблон');
+    
+    // Download
+    XLSX.writeFile(workbook, 'Шаблон_Импорта_Расходов.xlsx');
+  };
+
+  // Добавим функцию для поиска ID ресурса по его наименованию и типу
+  const findResourceIdByName = (resourceType, resourceName) => {
+    if (!resourceName || !resourceType) return null;
+    
+    const nameLower = resourceName.toLowerCase();
+    
+    switch(resourceType) {
+      case 'Employee':
+        const employee = resourceOptions.employees.find(e => 
+          e.Full_Name && e.Full_Name.toLowerCase() === nameLower);
+        return employee ? employee.Employee_ID : null;
         
-        // Get first worksheet
-        const worksheetName = workbook.SheetNames[0];
-        if (!worksheetName) {
-          throw new Error('Excel-файл не содержит листов');
-        }
+      case 'Equipment':
+        const equipment = resourceOptions.equipment.find(e => 
+          e.Name && e.Name.toLowerCase() === nameLower);
+        return equipment ? equipment.Equipment_ID : null;
         
-        const worksheet = workbook.Sheets[worksheetName];
+      case 'Transportation':
+        const transport = resourceOptions.transportation.find(t => {
+          const fullName = `${t.Brand} ${t.Model}`.toLowerCase();
+          return fullName === nameLower;
+        });
+        return transport ? transport.Transport_ID : null;
         
-        // Convert to JSON
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A" });
+      case 'Tool':
+        const tool = resourceOptions.tools.find(t => 
+          t.Name && t.Name.toLowerCase() === nameLower);
+        return tool ? tool.Tool_ID : null;
         
-        // Check data structure
-        if (!jsonData || jsonData.length <= 1) { // Including header row
-          throw new Error('Excel-файл пуст или содержит некорректные данные');
-        }
+      case 'Spare':
+        const spare = resourceOptions.spares.find(s => 
+          s.Name && s.Name.toLowerCase() === nameLower);
+        return spare ? spare.Spare_ID : null;
         
-        // Find header row and identify column positions
-        const headerRow = jsonData[0];
-        const columns = {
-          date: Object.keys(headerRow).find(key => headerRow[key] === 'Дата'),
-          resourceType: Object.keys(headerRow).find(key => headerRow[key] === 'Тип ресурса'),
-          resourceName: Object.keys(headerRow).find(key => headerRow[key] === 'Ресурс'), // Изменено на resourceName
-          category: Object.keys(headerRow).find(key => headerRow[key] === 'Категория'),
-          amount: Object.keys(headerRow).find(key => headerRow[key] === 'Сумма'),
-          description: Object.keys(headerRow).find(key => headerRow[key] === 'Описание'),
-          paymentMethod: Object.keys(headerRow).find(key => headerRow[key] === 'Способ оплаты'),
-          invoiceNumber: Object.keys(headerRow).find(key => headerRow[key] === 'Номер счета')
-        };
+      case 'Material':
+        const material = resourceOptions.materials.find(m => 
+          m.Name && m.Name.toLowerCase() === nameLower);
+        return material ? material.Material_ID : null;
         
-        if (!columns.date || !columns.resourceType || !columns.resourceName || !columns.category || !columns.amount) {
-          throw new Error('В Excel-файле отсутствуют обязательные столбцы');
-        }
-        
-        // Map resource type names to actual values
-        const resourceTypeMap = {
-          'Сотрудник': 'Employee',
-          'Оборудование': 'Equipment',
-          'Транспорт': 'Transportation',
-          'Инструмент': 'Tool',
-          'Запчасть': 'Spare',
-          'Материал': 'Material'
-        };
-        
-        // Transform rows to our format, skipping header row
-        const expenseItems = [];
-        const errors = [];
-        
-        for (let i = 1; i < jsonData.length; i++) {
-          const row = jsonData[i];
+      default:
+        return null;
+    }
+  };
+
+  // Обновление функции handleImport для работы с именами ресурсов вместо ID
+  const handleImport = async () => {
+    setImportError('');
+    
+    if (!importFileList || importFileList.length === 0) {
+      setImportError('Пожалуйста, выберите Excel-файл для импорта');
+      message.error('Пожалуйста, выберите Excel-файл для импорта');
+      return;
+    }
+
+    const file = importFileList[0].originFileObj;
+    
+    if (!file) {
+      setImportError('Неверный файловый объект');
+      message.error('Неверный файловый объект');
+      return;
+    }
+    
+    setImporting(true);
+
+    try {
+      // Read Excel file
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          // Parse Excel data
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
           
-          // Parse date from different formats
-          let dateValue = row[columns.date];
-          let parsedDate;
-          
-          if (typeof dateValue === 'string') {
-            // Try different date formats
-            const formats = ['DD.MM.YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'];
-            for (const format of formats) {
-              const momentDate = moment(dateValue, format);
-              if (momentDate.isValid()) {
-                parsedDate = momentDate.format('YYYY-MM-DD');
-                break;
-              }
-            }
-          } else if (dateValue instanceof Date) {
-            parsedDate = moment(dateValue).format('YYYY-MM-DD');
+          // Get first worksheet
+          const worksheetName = workbook.SheetNames[0];
+          if (!worksheetName) {
+            throw new Error('Excel-файл не содержит листов');
           }
           
-          // Convert localized resource type to system value
-          const resourceTypeValue = row[columns.resourceType];
-          const resourceType = resourceTypeMap[resourceTypeValue] || resourceTypeValue;
+          const worksheet = workbook.Sheets[worksheetName];
           
-          // Get the resource name and find its ID
-          const resourceName = row[columns.resourceName];
-          const resourceId = findResourceIdByName(resourceType, resourceName);
+          // Convert to JSON
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A" });
           
-          if (!resourceId) {
-            errors.push({
-              row: i + 1,
-              message: `Не удалось найти ресурс "${resourceName}" типа "${resourceTypeValue}"`
-            });
-            continue; // Skip this row if resource not found
+          // Check data structure
+          if (!jsonData || jsonData.length <= 1) { // Including header row
+            throw new Error('Excel-файл пуст или содержит некорректные данные');
           }
           
-          expenseItems.push({
-            resourceType: resourceType,
-            resourceId: resourceId,
-            amount: Number(row[columns.amount]) || 0,
-            description: columns.description ? row[columns.description] || '' : '',
-            date: parsedDate || moment().format('YYYY-MM-DD'),
-            category: row[columns.category] || '',
-            paymentMethod: columns.paymentMethod ? row[columns.paymentMethod] || '' : '',
-            invoiceNumber: columns.invoiceNumber ? row[columns.invoiceNumber] || '' : ''
-          });
-        }
-        
-        // Filter invalid records (missing required fields)
-        const validExpenses = expenseItems.filter(item => 
-          item.resourceType && 
-          item.resourceId && 
-          item.amount > 0 && 
-          item.date && 
-          item.category
-        );
-        
-        if (validExpenses.length === 0) {
-          if (errors.length > 0) {
-            throw new Error(`Не найдены совпадения для следующих записей:\n${errors.map(e => `Строка ${e.row}: ${e.message}`).join('\n')}`);
-          } else {
-            throw new Error('Действительные данные о расходах не найдены. Все обязательные поля должны быть заполнены.');
+          // Find header row and identify column positions
+          const headerRow = jsonData[0];
+          const columns = {
+            date: Object.keys(headerRow).find(key => headerRow[key] === 'Дата'),
+            resourceType: Object.keys(headerRow).find(key => headerRow[key] === 'Тип ресурса'),
+            resourceName: Object.keys(headerRow).find(key => headerRow[key] === 'Ресурс'),
+            category: Object.keys(headerRow).find(key => headerRow[key] === 'Категория'),
+            amount: Object.keys(headerRow).find(key => headerRow[key] === 'Сумма'),
+            description: Object.keys(headerRow).find(key => headerRow[key] === 'Описание'),
+            paymentMethod: Object.keys(headerRow).find(key => headerRow[key] === 'Способ оплаты'),
+            invoiceNumber: Object.keys(headerRow).find(key => headerRow[key] === 'Номер счета')
+          };
+          
+          if (!columns.date || !columns.resourceType || !columns.resourceName || !columns.category || !columns.amount) {
+            throw new Error('В Excel-файле отсутствуют обязательные столбцы');
           }
-        }
-        
-        // Import each expense one by one
-        const results = [];
-        for (const expense of validExpenses) {
-          try {
-            const response = await fetch('/api/expenses', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(expense)
-            });
+          
+          // Map resource type names to actual values
+          const resourceTypeMap = {
+            'Сотрудник': 'Employee',
+            'Оборудование': 'Equipment',
+            'Транспорт': 'Transportation',
+            'Инструмент': 'Tool',
+            'Запчасть': 'Spare',
+            'Материал': 'Material'
+          };
+          
+          // Transform rows to our format, skipping header row
+          const expenseItems = [];
+          const errors = [];
+          
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
             
-            if (!response.ok) {
-              const errorData = await response.json();
+            // Parse date from different formats
+            let dateValue = row[columns.date];
+            let parsedDate;
+            
+            if (typeof dateValue === 'string') {
+              // Try different date formats
+              const formats = ['DD.MM.YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'];
+              for (const format of formats) {
+                const momentDate = moment(dateValue, format);
+                if (momentDate.isValid()) {
+                  parsedDate = momentDate.format('YYYY-MM-DD');
+                  break;
+                }
+              }
+            } else if (dateValue instanceof Date) {
+              parsedDate = moment(dateValue).format('YYYY-MM-DD');
+            }
+            
+            // Convert localized resource type to system value
+            const resourceTypeValue = row[columns.resourceType];
+            const resourceType = resourceTypeMap[resourceTypeValue] || resourceTypeValue;
+            
+            // Get the resource name and find its ID
+            const resourceName = row[columns.resourceName];
+            const resourceId = findResourceIdByName(resourceType, resourceName);
+            
+            if (!resourceId) {
+              errors.push({
+                row: i + 1,
+                message: `Не удалось найти ресурс "${resourceName}" типа "${resourceTypeValue}"`
+              });
+              continue; // Skip this row if resource not found
+            }
+            
+            expenseItems.push({
+              resourceType: resourceType,
+              resourceId: resourceId,
+              amount: Number(row[columns.amount]) || 0,
+              description: columns.description ? row[columns.description] || '' : '',
+              date: parsedDate || moment().format('YYYY-MM-DD'),
+              category: row[columns.category] || '',
+              paymentMethod: columns.paymentMethod ? row[columns.paymentMethod] || '' : '',
+              invoiceNumber: columns.invoiceNumber ? row[columns.invoiceNumber] || '' : ''
+            });
+          }
+          
+          // Filter invalid records (missing required fields)
+          const validExpenses = expenseItems.filter(item => 
+            item.resourceType && 
+            item.resourceId && 
+            item.amount > 0 && 
+            item.date && 
+            item.category
+          );
+          
+          if (validExpenses.length === 0) {
+            if (errors.length > 0) {
+              throw new Error(`Не найдены совпадения для следующих записей:\n${errors.map(e => `Строка ${e.row}: ${e.message}`).join('\n')}`);
+            } else {
+              throw new Error('Действительные данные о расходах не найдены. Все обязательные поля должны быть заполнены.');
+            }
+          }
+          
+          // Import each expense one by one
+          const results = [];
+          for (const expense of validExpenses) {
+            try {
+              const response = await fetch('/api/expenses', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(expense)
+              });
+              
+              if (!response.ok) {
+                const errorData = await response.json();
+                results.push({
+                  success: false,
+                  error: errorData.error || 'Импорт не удался'
+                });
+              } else {
+                results.push({ success: true });
+              }
+            } catch (err) {
               results.push({
                 success: false,
-                error: errorData.error || 'Импорт не удался'
+                error: err.message
               });
-            } else {
-              results.push({ success: true });
             }
-          } catch (err) {
-            results.push({
-              success: false,
-              error: err.message
-            });
           }
+          
+          // Count successes and failures
+          const successes = results.filter(r => r.success).length;
+          const failures = results.length - successes;
+          
+          // Display warnings about rows that couldn't be matched
+          if (errors.length > 0) {
+            const errorMessage = `Предупреждение: ${errors.length} записей не удалось импортировать из-за несоответствия ресурсов.`;
+            message.warning(errorMessage);
+          }
+          
+          setImportModalVisible(false);
+          
+          if (failures === 0) {
+            message.success(`Успешно импортировано ${successes} расходов`);
+          } else {
+            message.warning(`Импортировано ${successes} расходов, не удалось импортировать ${failures} записей`);
+          }
+          
+          fetchMonthlyData(); // Обновляем данные за месяц
+          
+        } catch (err) {
+          setImportError(`Импорт не удался: ${err.message}`);
+          message.error(`Импорт не удался: ${err.message}`);
+        } finally {
+          setImporting(false);
         }
-        
-        // Count successes and failures
-        const successes = results.filter(r => r.success).length;
-        const failures = results.length - successes;
-        
-        // Display warnings about rows that couldn't be matched
-        if (errors.length > 0) {
-          // Создаем сообщение с перечислением всех ресурсов, которые не удалось найти
-          const errorMessage = `Предупреждение: ${errors.length} записей не удалось импортировать из-за несоответствия ресурсов.`;
-          message.warning(errorMessage);
-        }
-        
-        setImportModalVisible(false);
-        
-        if (failures === 0) {
-          message.success(`Успешно импортировано ${successes} расходов`);
-        } else {
-          message.warning(`Импортировано ${successes} расходов, не удалось импортировать ${failures} записей`);
-        }
-        
-        fetchExpenses();
-        
-      } catch (err) {
-        setImportError(`Импорт не удался: ${err.message}`);
-        message.error(`Импорт не удался: ${err.message}`);
-      } finally {
+      };
+      
+      reader.onerror = (error) => {
+        setImportError('Не удалось прочитать файл');
+        message.error('Не удалось прочитать файл');
         setImporting(false);
-      }
-    };
-    
-    reader.onerror = (error) => {
-      setImportError('Не удалось прочитать файл');
-      message.error('Не удалось прочитать файл');
+      };
+      
+      reader.readAsArrayBuffer(file);
+      
+    } catch (err) {
+      setImportError(`Импорт не удался: ${err.message}`);
+      message.error(`Импорт не удался: ${err.message}`);
       setImporting(false);
-    };
-    
-    reader.readAsArrayBuffer(file);
-    
-  } catch (err) {
-    setImportError(`Импорт не удался: ${err.message}`);
-    message.error(`Импорт не удался: ${err.message}`);
-    setImporting(false);
-  }
-};
-
-// Изменяем текст инструкции в модальном окне импорта
-<div className="import-instructions">
-  <p>Пожалуйста, загрузите Excel-файл со следующими столбцами:</p>
-  <ul>
-    <li><strong>Дата</strong> (обязательно, формат DD.MM.YYYY)</li>
-    <li><strong>Тип ресурса</strong> (обязательно)</li>
-    <li><strong>Ресурс</strong> (обязательно, полное наименование)</li>
-    <li><strong>Категория</strong> (обязательно)</li>
-    <li><strong>Сумма</strong> (обязательно)</li>
-    <li>Описание</li>
-    <li>Способ оплаты</li>
-    <li>Номер счета</li>
-  </ul>
-</div>
+    }
+  };
 
   // Get resource name by type and id
   const getResourceName = (type, id) => {
@@ -871,78 +924,128 @@ const handleImport = async () => {
         </Breadcrumb.Item>
       </Breadcrumb>
       
-      {/* Статистика по расходам */}
+      {/* Навигация по месяцам */}
+      <Card className="month-navigation-card">
+        <div className="month-navigation">
+          <Button 
+            type="text" 
+            icon={<LeftOutlined />} 
+            onClick={() => handleMonthChange('prev')}
+            className="month-nav-button"
+          />
+          <div className="month-display">
+            <Title level={3} className="month-title">
+              {selectedMonth.format('MMMM YYYY')}
+            </Title>
+            <Button 
+              type="link" 
+              onClick={goToCurrentMonth}
+              className="current-month-button"
+            >
+              Текущий месяц
+            </Button>
+          </div>
+          <Button 
+            type="text" 
+            icon={<RightOutlined />} 
+            onClick={() => handleMonthChange('next')}
+            className="month-nav-button"
+          />
+        </div>
+      </Card>
+      
+      {/* Статистика по расходам за выбранный месяц */}
       <Row gutter={24} className="stats-row">
-  <Col xs={24} sm={8}>
-    <Card className="stat-card">
-      <Statistic 
-        title={
-          <>
-            <span className="stat-card-icon">
-              <WalletOutlined />
-            </span>
-            Всего расходов
-          </>
-        } 
-        value={summaryData.total} 
-        precision={2}
-        suffix={<span className="currency-suffix">BYN</span>}
-        className="expense-stat"
-      />
-    </Card>
-  </Col>
-  <Col xs={24} sm={8}>
-    <Card className="stat-card">
-      <Statistic 
-        title={
-          <>
-            <span className="stat-card-icon">
-              <TagOutlined />
-            </span>
-            Крупнейшая категория
-          </>
-        } 
-        value={summaryData.byCategory[0]?.Total || 0} 
-        precision={2}
-        suffix={
-          <>
-            <span className="currency-suffix">BYN</span>
-            {' '}
-            <span className="stat-category">
-              {summaryData.byCategory[0]?.Category || 'Нет данных'}
-            </span>
-          </>
-        }
-        className="expense-stat"
-      />
-    </Card>
-  </Col>
-  <Col xs={24} sm={8}>
-    <Card className="stat-card">
-      <Statistic 
-        title={
-          <>
-            <span className="stat-card-icon">
-              <CalendarOutlined />
-            </span>
-            Текущий месяц
-          </>
-        } 
-        value={summaryData.currentMonth} 
-        precision={2}
-        suffix={<span className="currency-suffix">BYN</span>}
-        className="expense-stat"
-      />
-    </Card>
-  </Col>
-</Row>
+        <Col xs={24} sm={6}>
+          <Card className="stat-card">
+            <Statistic 
+              title={
+                <>
+                  <span className="stat-card-icon">
+                    <WalletOutlined />
+                  </span>
+                  Общая сумма
+                </>
+              } 
+              value={monthlyData.summary.total} 
+              precision={2}
+              suffix={<span className="currency-suffix">BYN</span>}
+              className="expense-stat"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card className="stat-card">
+            <Statistic 
+              title={
+                <>
+                  <span className="stat-card-icon">
+                    <CalendarOutlined />
+                  </span>
+                  Количество записей
+                </>
+              } 
+              value={monthlyData.summary.count} 
+              className="expense-stat"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card className="stat-card">
+            <Statistic 
+              title={
+                <>
+                  <span className="stat-card-icon">
+                    <TagOutlined />
+                  </span>
+                  Крупнейшая категория
+                </>
+              } 
+              value={monthlyData.summary.byCategory[0]?.Total || 0} 
+              precision={2}
+              suffix={
+                <>
+                  <span className="currency-suffix">BYN</span>
+                  {monthlyData.summary.byCategory[0] && (
+                    <>
+                      {' '}
+                      <span className="stat-category">
+                        {monthlyData.summary.byCategory[0].Category}
+                      </span>
+                    </>
+                  )}
+                </>
+              }
+              className="expense-stat"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card className="stat-card">
+            <Statistic 
+              title={
+                <>
+                  <span className="stat-card-icon">
+                    <DollarOutlined />
+                  </span>
+                  Средний расход
+                </>
+              } 
+              value={monthlyData.summary.count > 0 ? monthlyData.summary.total / monthlyData.summary.count : 0} 
+              precision={2}
+              suffix={<span className="currency-suffix">BYN</span>}
+              className="expense-stat"
+            />
+          </Card>
+        </Col>
+      </Row>
       
       <Card>
         <div className="ant-page-header-wrapper">
           <div className="ant-page-header">
             {/* Left side: title with export and import buttons */}
             <div className="header-left-content">
-              <Title level={2}>Расходы</Title>
+              <Title level={2}>Расходы за {selectedMonth.format('MMMM YYYY')}</Title>
               <Button 
                 type="primary" 
                 icon={<FileExcelOutlined />} 
@@ -965,23 +1068,23 @@ const handleImport = async () => {
             <div className="header-right-content">
               {/* Filter button */}
               <Button
-    type="primary" 
-    icon={<FilterOutlined />}
-    onClick={toggleFilters}
-    className="ant-filter-button"
-  >
-    Фильтр
-  </Button>
-  
-  {/* Report button */}
-  <Button
-    type="primary" 
-    icon={<FileDoneOutlined />}
-    onClick={handleGenerateReport}
-    className="ant-report-button"
-  >
-    Создать отчёт
-  </Button>
+                type="primary" 
+                icon={<FilterOutlined />}
+                onClick={toggleFilters}
+                className="ant-filter-button"
+              >
+                Фильтр
+              </Button>
+              
+              {/* Report button */}
+              <Button
+                type="primary" 
+                icon={<FileDoneOutlined />}
+                onClick={handleGenerateReport}
+                className="ant-report-button"
+              >
+                Создать отчёт
+              </Button>
               
               {/* Search bar */}
               <div className="expenses-search-bar-container">
@@ -1019,20 +1122,8 @@ const handleImport = async () => {
               </div>
               
               <Row gutter={[16, 16]}>
-                {/* Date range filter - replaced RangePicker with custom DateRangePicker */}
-                <Col xs={24} sm={24} md={12}>
-  <div className="filter-group">
-    <label>Период</label>
-    <DateRangePicker 
-      value={filterValues.dateRange}
-      onChange={handleDateRangeChange}
-      style={{ width: '100%' }}
-    />
-  </div>
-</Col>
-                
                 {/* Resource type filter */}
-                <Col xs={24} sm={12} md={6}>
+                <Col xs={24} sm={12} md={8}>
                   <div className="filter-group">
                     <label>Тип ресурса</label>
                     <Select
@@ -1053,7 +1144,7 @@ const handleImport = async () => {
                 </Col>
                 
                 {/* Category filter */}
-                <Col xs={24} sm={12} md={6}>
+                <Col xs={24} sm={12} md={8}>
                   <div className="filter-group">
                     <label>Категория</label>
                     <Select
@@ -1084,6 +1175,11 @@ const handleImport = async () => {
               rowKey="Expense_ID"
               pagination={false}
               scroll={{ x: 'max-content' }}
+              locale={{
+                emptyText: filteredExpenses.length === 0 && monthlyData.expenses.length === 0 
+                  ? `Нет расходов за ${selectedMonth.format('MMMM YYYY')}`
+                  : 'Нет данных, соответствующих фильтрам'
+              }}
             />
             
             {/* Custom pagination component */}
