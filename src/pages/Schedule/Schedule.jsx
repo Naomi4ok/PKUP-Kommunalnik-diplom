@@ -22,7 +22,9 @@ import {
   Spin,
   Popconfirm,
   Upload,
-  Alert
+  Alert,
+  Avatar,
+  Space
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -37,7 +39,8 @@ import {
   FileExcelOutlined,
   ImportOutlined,
   InboxOutlined,
-  FileDoneOutlined
+  FileDoneOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import 'moment/locale/ru'; // Импортируем русскую локализацию moment
@@ -252,7 +255,7 @@ const Schedule = () => {
         const employeeNames = getEmployeeNames(item.employeeIds);
         const equipmentNames = getEquipmentNames(item.equipmentIds);
         const transportNames = getTransportNames(item.transportIds);
-        const processName = getProcessName(item.ProcessId);
+        const processName = item.ProcessName || ''; // Используем ProcessName вместо поиска по ID
         
         return {
           'Название задачи': item.Title || '',
@@ -494,10 +497,8 @@ const Schedule = () => {
               return tr ? tr.Transport_ID : null;
             }).filter(Boolean);
 
-            // Find process by name
+            // Get process name directly from Excel (no ID lookup needed)
             const processName = columns.process ? row[columns.process] || '' : '';
-            const process = processes.find(proc => proc.Name === processName);
-            const processId = process ? process.Process_ID : null;
 
             // Map priority and status
             const priorityText = columns.priority ? row[columns.priority] || '' : '';
@@ -512,7 +513,7 @@ const Schedule = () => {
               startTime: columns.startTime ? row[columns.startTime] || '08:00' : '08:00',
               endTime: columns.endTime ? row[columns.endTime] || '17:00' : '17:00',
               location: columns.location ? row[columns.location] || '' : '',
-              processId: processId,
+              processName: processName, // Изменили на processName
               employeeIds: employeeIds,
               equipmentIds: equipmentIds,
               transportIds: transportIds,
@@ -662,7 +663,7 @@ const Schedule = () => {
       employeeIds: task.employeeIds,
       equipmentIds: task.equipmentIds,
       transportIds: task.transportIds,
-      processId: task.ProcessId,
+      processName: task.ProcessName, // Изменили на processName
       location: task.Location,
       status: task.Status,
       priority: task.Priority,
@@ -720,7 +721,7 @@ const Schedule = () => {
             employeeIds: values.employeeIds || [],
             equipmentIds: values.equipmentIds || [],
             transportIds: values.transportIds || [],
-            processId: values.processId,
+            processName: values.processName || '', // Изменили на processName
             location: values.location,
             status: values.status,
             priority: values.priority,
@@ -800,10 +801,10 @@ const Schedule = () => {
     }).join(', ');
   };
 
-  const getProcessName = (id) => {
-    if (!id || !processes.length) return 'Не указано';
-    const process = processes.find(p => p.Process_ID === id);
-    return process ? process.Name : 'Не указано';
+  // Изменили функцию для работы с ProcessName
+  const getProcessName = (processName) => {
+    if (!processName) return 'Не указано';
+    return processName;
   };
 
   // Calculate schedule statistics
@@ -964,7 +965,7 @@ const Schedule = () => {
                         <EnvironmentOutlined /> {task.Location || 'Не указано'}
                       </div>
                       <div className="task-card-process">
-                        {getProcessName(task.ProcessId)}
+                        {getProcessName(task.ProcessName)}
                       </div>
                       <div className="task-card-resources">
                         <div><TeamOutlined /> {getEmployeeNames(task.employeeIds)}</div>
@@ -1100,16 +1101,10 @@ const Schedule = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="processId"
+                name="processName"
                 label="Процесс"
               >
-                <Select placeholder="Выберите процесс">
-                  {processes.map(process => (
-                    <Option key={process.Process_ID} value={process.Process_ID}>
-                      {process.Name}
-                    </Option>
-                  ))}
-                </Select>
+                <Input placeholder="Введите название процесса" />
               </Form.Item>
             </Col>
           </Row>
@@ -1125,10 +1120,29 @@ const Schedule = () => {
                   placeholder="Выберите сотрудников"
                   optionFilterProp="children"
                   showSearch
+                  filterOption={(input, option) => {
+                    // Фильтр по имени сотрудника
+                    const employeeName = option.children?.props?.children?.[1];
+                    return employeeName && employeeName.toLowerCase().includes(input.toLowerCase());
+                  }}
                 >
                   {employees.map(employee => (
                     <Option key={employee.Employee_ID} value={employee.Employee_ID}>
-                      {employee.Full_Name}
+                      <Space>
+                        <Avatar 
+                          size="small" 
+                          src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
+                          icon={!employee.Photo ? <UserOutlined /> : undefined} 
+                        />
+                        <span>
+                          {employee.Full_Name}
+                          {employee.Position && (
+                            <Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
+                              ({employee.Position})
+                            </Text>
+                          )}
+                        </span>
+                      </Space>
                     </Option>
                   ))}
                 </Select>
@@ -1144,10 +1158,28 @@ const Schedule = () => {
                   placeholder="Выберите оборудование"
                   optionFilterProp="children"
                   showSearch
+                  filterOption={(input, option) => {
+                    // Фильтр по названию оборудования
+                    const equipmentText = option.children?.props?.children || option.children;
+                    return equipmentText && equipmentText.toLowerCase().includes(input.toLowerCase());
+                  }}
                 >
                   {equipment.map(item => (
                     <Option key={item.Equipment_ID} value={item.Equipment_ID}>
-                      {item.Name}
+                      <div>
+                        <div style={{ fontWeight: 'bold' }}>{item.Name}
+                                                    {item.Type && (
+                            <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px', fontWeight: 'normal' }}>
+                              [{item.Type}]
+                            </Text>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#8c8c8c' }}>
+                          {item.Manufacturer && `${item.Manufacturer} `}
+                          {item.Model && `${item.Model} `}
+                          {item.Inventory_Number && `(${item.Inventory_Number})`}
+                        </div>
+                      </div>
                     </Option>
                   ))}
                 </Select>
