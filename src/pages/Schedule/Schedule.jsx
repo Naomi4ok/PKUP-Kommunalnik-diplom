@@ -1198,10 +1198,28 @@ const Schedule = () => {
                   placeholder="Выберите транспорт"
                   optionFilterProp="children"
                   showSearch
+                  filterOption={(input, option) => {
+                    // Фильтр по тексту транспорта (бренд, модель, гос.номер)
+                    const transportText = option.children?.props?.children || option.children;
+                    return transportText && transportText.toLowerCase().includes(input.toLowerCase());
+                  }}
                 >
                   {transport.map(item => (
                     <Option key={item.Transport_ID} value={item.Transport_ID}>
-                      {item.Brand} {item.Model}
+                      <div>
+                        <div style={{ fontWeight: 'bold' }}>
+                          {item.Brand} {item.Model}
+                          {item.LicenseNumber && (
+                            <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px', fontWeight: 'normal' }}>
+                              [{item.LicenseNumber}]
+                            </Text>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#8c8c8c' }}>
+                          {item.Purpose && `Назначение: ${item.Purpose} `}
+                          {item.Year && `| Год: ${item.Year}`}
+                        </div>
+                      </div>
                     </Option>
                   ))}
                 </Select>
