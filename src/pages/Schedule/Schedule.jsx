@@ -529,7 +529,7 @@ const Schedule = () => {
               startTime: columns.startTime ? row[columns.startTime] || '08:00' : '08:00',
               endTime: columns.endTime ? row[columns.endTime] || '17:00' : '17:00',
               location: columns.location ? row[columns.location] || '' : '',
-              processName: processName, // Изменили на processName
+              processId: processName, // Изменили на processName
               employeeIds: employeeIds,
               equipmentIds: equipmentIds,
               transportIds: transportIds,
@@ -678,17 +678,17 @@ const Schedule = () => {
     setCurrentTask(task);
     
     form.setFieldsValue({
-      title: task.Title,
-      employeeIds: task.employeeIds,
-      equipmentIds: task.equipmentIds,
-      transportIds: task.transportIds,
-      processName: task.ProcessName, // Изменили на processName
-      location: task.Location,
-      status: task.Status,
-      priority: task.Priority,
-      description: task.Description,
-      progress: task.Progress,
-    });
+    title: task.Title,
+    employeeIds: task.employeeIds,
+    equipmentIds: task.equipmentIds,
+    transportIds: task.transportIds,
+    processId: task.ProcessId, // Изменено с processName на processId
+    location: task.Location,
+    status: task.Status,
+    priority: task.Priority,
+    description: task.Description,
+    progress: task.Progress,
+  });
     
     // Установка значений времени для TimeRangePicker
     setStartTime(task.StartTime || '08:00');
@@ -736,20 +736,20 @@ const Schedule = () => {
           }
           
           const taskData = {
-            title: values.title,
-            date,
-            startTime,
-            endTime,
-            employeeIds: values.employeeIds || [],
-            equipmentIds: values.equipmentIds || [],
-            transportIds: values.transportIds || [],
-            processName: values.processName || '', // Изменили на processName
-            location: values.location,
-            status: values.status,
-            priority: values.priority,
-            description: values.description,
-            progress: values.progress || 0,
-          };
+          title: values.title,
+          date,
+          startTime,
+          endTime,
+          employeeIds: values.employeeIds || [],
+          equipmentIds: values.equipmentIds || [],
+          transportIds: values.transportIds || [],
+          processId: values.processId || null, // Изменено с processName на processId
+          location: values.location,
+          status: values.status,
+          priority: values.priority,
+          description: values.description,
+          progress: values.progress || 0,
+        };
           
           if (isEditing && currentTask) {
             // Update existing task
@@ -1140,10 +1140,16 @@ const Schedule = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="processName"
+                name="processId"
                 label="Процесс"
               >
-                <Input placeholder="Введите название процесса" />
+                <Select placeholder="Выберите процесс" allowClear>
+                  {processes.map(process => (
+                    <Option key={process.Process_ID} value={process.Process_ID}>
+                      {process.Name}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
           </Row>

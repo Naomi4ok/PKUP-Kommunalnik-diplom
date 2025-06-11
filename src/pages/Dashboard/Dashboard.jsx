@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { 
   Row, Col, Card, Statistic, Table, Alert, 
   Badge, Spin, Typography, Avatar, Divider, Progress, 
-  Empty, Tag
+  Empty, Tag, Button // Добавил Button в импорты
 } from 'antd';
 import { 
   UserOutlined, ToolOutlined, CarOutlined, 
@@ -109,7 +109,7 @@ const Dashboard = () => {
   // Заменяем статическую дату на текущее время
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weatherData, setWeatherData] = useState(null);
-  const [maintenanceSchedule, setMaintenanceSchedule] = useState([]);
+  const [scheduleData, setScheduleData] = useState([]); // Изменено название с maintenanceSchedule на scheduleData
   const [error, setError] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const currentUser = 'Naomi4ok';
@@ -150,7 +150,7 @@ const Dashboard = () => {
           fetchStats(),
           fetchEquipmentStatus(),
           fetchTransportStatus(),
-          fetchMaintenanceSchedule(),
+          fetchScheduleData(), // Изменено с fetchMaintenanceSchedule на fetchScheduleData
           fetchWeatherData()
         ]);
         
@@ -270,75 +270,75 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch maintenance schedule
-  const fetchMaintenanceSchedule = async () => {
+  // Fetch schedule data - новая функция, заменяющая fetchMaintenanceSchedule
+  const fetchScheduleData = async () => {
     try {
-      // Get scheduled tasks from the Schedule table
+      // Получаем данные из расписания
       const response = await axios.get('/api/schedule');
       const tasks = response.data;
       
-      // Get equipment and transport data for details
-      const [equipmentResponse, transportResponse] = await Promise.all([
-        axios.get('/api/equipment'),
-        axios.get('/api/transportation')
-      ]);
-      
-      const equipment = equipmentResponse.data.reduce((map, item) => {
-        map[item.Equipment_ID] = item;
-        return map;
-      }, {});
-      
-      const transport = transportResponse.data.reduce((map, item) => {
-        map[item.Transport_ID] = item;
-        return map;
-      }, {});
-      
-      // Filter tasks for maintenance-related activities and map to the required format
-      const maintenanceItems = tasks
-        .filter(task => task.ProcessId === 1 || task.ProcessId === 2)
-        .slice(0, 10)
-        .map((task, index) => {
-          const equipmentIds = task.EquipmentIds ? JSON.parse(task.EquipmentIds) : [];
-          const transportIds = task.TransportIds ? JSON.parse(task.TransportIds) : [];
-          
-          const equipmentId = equipmentIds.length > 0 ? equipmentIds[0] : null;
-          const transportId = transportIds.length > 0 ? transportIds[0] : null;
-          
-          let itemType, itemName;
-          if (equipmentId && equipment[equipmentId]) {
-            itemType = 'Оборудование';
-            itemName = equipment[equipmentId].Name || 'Неизвестное оборудование';
-          } else if (transportId && transport[transportId]) {
-            itemType = 'Транспорт';
-            itemName = `${transport[transportId].Brand} ${transport[transportId].Model}` || 'Неизвестный транспорт';
-          } else {
-            itemType = 'Другое';
-            itemName = task.Title || 'Неизвестно';
+      // Сортируем по дате (ближайшие даты сначала) и берем первые 10 задач
+      const sortedTasks = tasks
+        .sort((a, b) => new Date(a.Date) - new Date(b.Date))
+        .slice(0, 10);
+
+      // Маппинг данных для отображения в таблице
+      const formattedSchedule = sortedTasks.map((task, index) => {
+        // Парсим employeeIds
+        const employeeIds = task.EmployeeIds ? JSON.parse(task.EmployeeIds) : [];
+        const employeeCount = employeeIds.length;
+
+        // Определяем приоритет
+        const priorityOptions = {
+          'low': { label: 'Низкий', color: '#52c41a' },
+          'medium': { label: 'Средний', color: '#1890ff' },
+          'high': { label: 'Высокий', color: '#fa8c16' },
+          'critical': { label: 'Критичный', color: '#f5222d' }
+        };
+
+        // Определяем статус
+        const statusOptions = {
+          'scheduled': { label: 'Запланировано', color: '#1890ff' },
+          'in-progress': { label: 'В процессе', color: '#fa8c16' },
+          'completed': { label: 'Выполнено', color: '#52c41a' },
+          'delayed': { label: 'Отложено', color: '#f5222d' },
+          'cancelled': { label: 'Отменено', color: '#595959' }
+        };
+
+        // Форматирование даты
+        const formatTaskDate = (dateString) => {
+          if (!dateString) return '';
+          try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '';
+            
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            
+            return `${day}.${month}.${year}`;
+          } catch (error) {
+            return '';
           }
-          
-          let status;
-          if (task.Status === 'completed') {
-            status = 'Выполнено';
-          } else if (task.Status === 'in-progress') {
-            status = 'В процессе';
-          } else {
-            status = 'Назначено';
-          }
-          
-          return {
-            id: task.Task_ID || index + 1,
-            itemType,
-            itemName,
-            maintenanceType: task.Title?.includes('ремонт') ? 'Внеплановый ремонт' : 'Плановое ТО',
-            scheduledDate: task.Date ? `${task.Date}T${task.StartTime}` : new Date().toISOString(),
-            assignedTo: task.EmployeeIds ? 'Назначенный сотрудник' : 'Не назначен',
-            status
-          };
-        });
-      
-      setMaintenanceSchedule(maintenanceItems);
+        };
+
+        return {
+          id: task.Task_ID || index + 1,
+          taskName: task.Title || 'Не указано',
+          processName: task.ProcessName || 'Не указано',
+          employeeCount: employeeCount,
+          date: task.Date ? formatTaskDate(task.Date) : 'Не указана',
+          priority: task.Priority || 'medium',
+          status: task.Status || 'scheduled',
+          startTime: task.StartTime || '',
+          endTime: task.EndTime || '',
+          location: task.Location || ''
+        };
+      });
+
+      setScheduleData(formattedSchedule);
     } catch (error) {
-      console.error('Error fetching maintenance schedule:', error);
+      console.error('Error fetching schedule data:', error);
       throw error;
     }
   };
@@ -462,82 +462,87 @@ const fetchWeatherData = async () => {
     );
   };
 
-  // Maintenance schedule display
-  const renderMaintenanceSchedule = () => {
+  // Обновленная функция для отображения таблицы расписания
+  const renderScheduleTable = () => {
     const columns = [
       {
-        title: 'Тип',
-        dataIndex: 'itemType',
-        key: 'itemType',
-        width: '12%',
-        render: (text) => {
-          let icon = <ApartmentOutlined />;
-          if (text === 'Оборудование') icon = <SettingOutlined />;
-          if (text === 'Транспорт') icon = <CarOutlined />;
-          return (
-            <span>
-              {icon} {text}
-            </span>
-          );
-        }
-      },
-      {
-        title: 'Наименование',
-        dataIndex: 'itemName',
-        key: 'itemName',
+        title: 'Название задачи',
+        dataIndex: 'taskName',
+        key: 'taskName',
         width: '25%',
-        ellipsis: true
+        ellipsis: true,
+        render: (text) => (
+          <span style={{ fontWeight: '500' }}>{text}</span>
+        )
       },
       {
-        title: 'Вид работ',
-        dataIndex: 'maintenanceType',
-        key: 'maintenanceType',
+        title: 'Процесс задачи',
+        dataIndex: 'processName',
+        key: 'processName',
         width: '20%',
-        render: (text) => {
-          const isUrgent = text.includes('Внеплановый');
-          return (
-            <Tag color={isUrgent ? 'volcano' : 'blue'}>
-              {text}
-            </Tag>
-          );
-        }
+        ellipsis: true,
+        render: (text) => (
+          <Tag color="blue">{text}</Tag>
+        )
+      },
+      {
+        title: 'Количество сотрудников',
+        dataIndex: 'employeeCount',
+        key: 'employeeCount',
+        width: '15%',
+        align: 'center',
+        render: (count) => (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <TeamOutlined style={{ marginRight: '4px', color: '#1890ff' }} />
+            <span style={{ fontWeight: '500' }}>{count}</span>
+          </div>
+        )
       },
       {
         title: 'Дата',
-        dataIndex: 'scheduledDate',
-        key: 'scheduledDate',
-        render: (text) => {
-          const date = new Date(text);
-          const today = new Date();
-          const isToday = date.toDateString() === today.toDateString();
+        dataIndex: 'date',
+        key: 'date',
+        width: '15%',
+        render: (text, record) => {
+          const today = new Date().toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          const isToday = text === today;
           
           return (
             <div>
-              <div>{date.toLocaleDateString()}</div>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-              {isToday && <Tag color="green" style={{ marginLeft: '4px' }}>Сегодня</Tag>}
+              <div style={{ fontWeight: isToday ? 'bold' : 'normal' }}>{text}</div>
+              {record.startTime && record.endTime && (
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {record.startTime} - {record.endTime}
+                </Text>
+              )}
+              {isToday && <Tag color="green" style={{ marginTop: '2px' }}>Сегодня</Tag>}
             </div>
           );
-        },
-        width: '15%',
+        }
       },
       {
-        title: 'Исполнитель',
-        dataIndex: 'assignedTo',
-        key: 'assignedTo',
-        width: '15%',
-        render: (text) => {
+        title: 'Приоритет',
+        dataIndex: 'priority',
+        key: 'priority',
+        width: '12%',
+        render: (priority) => {
+          const priorityOptions = {
+            'low': { label: 'Низкий', color: '#52c41a' },
+            'medium': { label: 'Средний', color: '#1890ff' },
+            'high': { label: 'Высокий', color: '#fa8c16' },
+            'critical': { label: 'Критичный', color: '#f5222d' }
+          };
+          
+          const priorityConfig = priorityOptions[priority] || priorityOptions['medium'];
+          
           return (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar 
-                size="small" 
-                icon={<UserOutlined />} 
-                style={{ marginRight: '8px', backgroundColor: text === 'Не назначен' ? '#f0f0f0' : '#1890ff' }} 
-              />
-              {text}
-            </div>
+            <Tag color={priorityConfig.color}>
+              {priorityConfig.label}
+            </Tag>
           );
         }
       },
@@ -547,35 +552,38 @@ const fetchWeatherData = async () => {
         key: 'status',
         width: '13%',
         render: (status) => {
-          let color = 'blue';
-          let icon = <ClockCircleOutlined />;
+          const statusOptions = {
+            'scheduled': { label: 'Запланировано', color: 'blue', icon: <ClockCircleOutlined /> },
+            'in-progress': { label: 'В процессе', color: 'orange', icon: <SyncOutlined spin /> },
+            'completed': { label: 'Выполнено', color: 'green', icon: <CheckCircleOutlined /> },
+            'delayed': { label: 'Отложено', color: 'red', icon: <ClockCircleOutlined /> },
+            'cancelled': { label: 'Отменено', color: 'default', icon: <CloseCircleOutlined /> }
+          };
           
-          if (status === 'Выполнено') {
-            color = 'green';
-            icon = <CheckCircleOutlined />;
-          } else if (status === 'В процессе') {
-            color = 'orange';
-            icon = <SyncOutlined spin />;
-          }
+          const statusConfig = statusOptions[status] || statusOptions['scheduled'];
           
           return (
-            <Tag color={color} icon={icon}>
-              {status}
+            <Tag color={statusConfig.color} icon={statusConfig.icon}>
+              {statusConfig.label}
             </Tag>
           );
-        },
-      },
+        }
+      }
     ];
     
     return (
       <Table 
         columns={columns} 
-        dataSource={maintenanceSchedule} 
+        dataSource={scheduleData} 
         rowKey="id" 
         size="middle" 
-        pagination={{ pageSize: 5 }}
-        locale={{ emptyText: <Empty description="Нет запланированных работ" /> }}
-        rowClassName={(record) => record.status === 'Назначено' ? 'highlight-row' : ''}
+        pagination={{ pageSize: 10 }}
+        locale={{ emptyText: <Empty description="Нет запланированных задач" /> }}
+        rowClassName={(record) => {
+          if (record.status === 'completed') return 'completed-row';
+          if (record.status === 'delayed') return 'delayed-row';
+          return '';
+        }}
       />
     );
   };
@@ -838,20 +846,29 @@ const fetchWeatherData = async () => {
               </Card>
             </Col>
 
-            {/* Maintenance schedule */}
+            {/* Schedule table - обновленная секция */}
             <Col xs={24}>
               <Card 
                 title={
                   <div className="card-title-with-icon">
-                    <ToolOutlined className="title-icon maintenance-icon" />
-                    <span>График технического обслуживания</span>
+                    <CalendarOutlined className="title-icon schedule-icon" />
+                    <span>Расписание задач</span>
                   </div>
                 }
                 className="schedule-card"
                 bordered={false}
                 hoverable
+                extra={
+                  <Button 
+                    type="link" 
+                    onClick={() => handleCardClick('/schedule')}
+                    style={{ padding: 0 }}
+                  >
+                    Посмотреть все →
+                  </Button>
+                }
               >
-                {renderMaintenanceSchedule()}
+                {renderScheduleTable()}
               </Card>
             </Col>
           </Row>
