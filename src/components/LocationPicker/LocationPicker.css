@@ -1,0 +1,48 @@
+.location-picker-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-container {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.selected-location-info {
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.selected-location-info p {
+  margin: 0;
+  color: #52c41a;
+}
+
+.map-instruction {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin: 8px 0 0 0;
+}
+
+/* Убираем стандартные стили leaflet для контейнера */
+.leaflet-container {
+  background: #fff;
+}
+
+/* Стили для маркера */
+.leaflet-marker-icon {
+  filter: hue-rotate(120deg);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .map-container {
+    height: 300px;
+  }
+}

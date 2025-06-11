@@ -12,7 +12,6 @@ import {
   Modal, 
   Form, 
   Input, 
-  // DatePicker, // Удаляем импорт DatePicker из Ant Design
   Select, 
   Slider, 
   message, 
@@ -51,6 +50,7 @@ import * as XLSX from 'xlsx';
 import '../../styles/Schedule/Schedule.css';
 import TimeRangePicker from '../../components/TimeRangePicker'; // Импортируем наш компонент TimeRangePicker
 import DatePicker from '../../components/DatePicker/DatePicker'; // Импортируем кастомный DatePicker
+import LocationMapPicker from '../../components/LocationMapPicker/LocationMapPicker'; // Новый компонент карты
 
 // Устанавливаем русскую локализацию для moment
 moment.locale('ru');
@@ -95,6 +95,10 @@ const Schedule = () => {
   const [importFileList, setImportFileList] = useState([]);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState('');
+
+  // Map picker state - НОВОЕ
+  const [mapPickerVisible, setMapPickerVisible] = useState(false);
+  const [selectedMapLocation, setSelectedMapLocation] = useState('');
 
   // Priority and status options
   const priorityOptions = [
@@ -226,6 +230,18 @@ const Schedule = () => {
     }
   };
 
+  // Map picker handlers - НОВЫЕ ФУНКЦИИ
+  const handleMapLocationSelect = (locationData) => {
+    setSelectedMapLocation(locationData.address);
+    form.setFieldsValue({ location: locationData.address });
+    setMapPickerVisible(false);
+    message.success('Местоположение выбрано на карте');
+  };
+
+  const handleMapPickerCancel = () => {
+    setMapPickerVisible(false);
+  };
+
   // Форматирование даты из YYYY-MM-DD в DD.MM.YYYY
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -321,9 +337,9 @@ const Schedule = () => {
     setImportFileList(info.fileList.slice(-1)); // Save only the last file
   };
 
-    const handleGenerateReport = () => {
-  navigate('/schedule/report');
-};
+  const handleGenerateReport = () => {
+    navigate('/schedule/report');
+  };
 
   // Create template for download
   const downloadTemplate = () => {
@@ -647,6 +663,9 @@ const Schedule = () => {
     // Установка даты для кастомного DatePicker
     setTaskDate(defaultDate);
     
+    // Сброс местоположения карты - НОВОЕ
+    setSelectedMapLocation('');
+    
     // Сброс ошибки даты
     setDateError('');
     
@@ -677,6 +696,9 @@ const Schedule = () => {
     
     // Установка даты для кастомного DatePicker
     setTaskDate(new Date(task.Date));
+    
+    // Установка местоположения карты - НОВОЕ
+    setSelectedMapLocation(task.Location || '');
     
     // Сброс ошибки даты для редактирования
     setDateError('');
@@ -1096,7 +1118,24 @@ const Schedule = () => {
                 name="location"
                 label="Местоположение"
               >
-                <Input placeholder="Введите адрес или местоположение" />
+                {/* ОБНОВЛЕННОЕ ПОЛЕ МЕСТОПОЛОЖЕНИЯ С ИНТЕГРАЦИЕЙ КАРТЫ */}
+                <Input.Group compact>
+                  <Input
+                    style={{ width: 'calc(100% - 40px)' }}
+                    placeholder="Введите адрес или выберите на карте"
+                    value={selectedMapLocation}
+                    onChange={(e) => {
+                      setSelectedMapLocation(e.target.value);
+                      form.setFieldsValue({ location: e.target.value });
+                    }}
+                  />
+                  <Button
+                    style={{ width: '40px', height: '40px' }}
+                    icon={<EnvironmentOutlined />}
+                    onClick={() => setMapPickerVisible(true)}
+                    title="Выбрать на карте"
+                  />
+                </Input.Group>
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -1168,7 +1207,7 @@ const Schedule = () => {
                     <Option key={item.Equipment_ID} value={item.Equipment_ID}>
                       <div>
                         <div style={{ fontWeight: 'bold' }}>{item.Name}
-                                                    {item.Type && (
+                          {item.Type && (
                             <Text type="secondary" style={{ fontSize: '12px', marginLeft: '8px', fontWeight: 'normal' }}>
                               [{item.Type}]
                             </Text>
@@ -1353,6 +1392,14 @@ const Schedule = () => {
           </p>
         </Upload.Dragger>
       </Modal>
+
+      {/* Location Map Picker Modal - НОВЫЙ КОМПОНЕНТ */}
+      <LocationMapPicker
+        visible={mapPickerVisible}
+        onCancel={handleMapPickerCancel}
+        onSelect={handleMapLocationSelect}
+        initialLocation={selectedMapLocation}
+      />
     </div>
   );
 };
