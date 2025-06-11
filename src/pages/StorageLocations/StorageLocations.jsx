@@ -30,6 +30,7 @@ import {
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import Pagination from '../../components/Pagination';
+import LocationMapPicker from '../../components/LocationMapPicker/LocationMapPicker'; // Импортируем компонент карты
 import '../../styles/StorageLocations/StorageLocations.css';
 
 const { Title, Text } = Typography;
@@ -56,6 +57,10 @@ const StorageLocations = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [locationType, setLocationType] = useState('tools');
   const [form] = Form.useForm();
+
+  // Map picker state - НОВОЕ
+  const [mapPickerVisible, setMapPickerVisible] = useState(false);
+  const [selectedMapLocation, setSelectedMapLocation] = useState('');
 
   // Fetch all storage locations on component mount
   useEffect(() => {
@@ -114,12 +119,27 @@ const StorageLocations = () => {
     setPageSize(size);
   };
 
+  // Map picker handlers - НОВЫЕ ФУНКЦИИ
+  const handleMapLocationSelect = (locationData) => {
+    setSelectedMapLocation(locationData.address);
+    // Устанавливаем значение в форму как description для совместимости с бэкендом
+    form.setFieldsValue({ description: locationData.address });
+    setMapPickerVisible(false);
+    message.success('Местоположение выбрано на карте');
+  };
+
+  const handleMapPickerCancel = () => {
+    setMapPickerVisible(false);
+  };
+
   // Open modal for adding new location
   const showAddModal = (type) => {
     setModalType('add');
     setLocationType(type);
     setCurrentLocation(null);
     form.resetFields();
+    // Сброс местоположения карты - НОВОЕ
+    setSelectedMapLocation('');
     setIsModalVisible(true);
   };
 
@@ -130,8 +150,10 @@ const StorageLocations = () => {
     setCurrentLocation(location);
     form.setFieldsValue({
       name: location.name,
-      description: location.description
+      description: location.description || location.address || '' // Используем description или fallback на address
     });
+    // Установка местоположения карты - НОВОЕ
+    setSelectedMapLocation(location.description || location.address || '');
     setIsModalVisible(true);
   };
 
@@ -211,13 +233,13 @@ const StorageLocations = () => {
     }));
     
     if (type === 'equipment' && result.updatedEquipment) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования.`);
     } else if (type === 'tools' && result.updatedTools) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} инструментов`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} инструментов.`);
     } else if (type === 'spares' && result.updatedSpares) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} запчастей`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} запчастей.`);
     } else if (type === 'materials' && result.updatedMaterials) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. материалов`);
+      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. материалов.`);
     } else {
       message.success('Место хранения успешно удалено');
     }
@@ -338,7 +360,8 @@ const StorageLocations = () => {
                     <div className="storage-location-info">
                       <Title level={4}>{location.name}</Title>
                       <Text type="secondary" className="storage-location-description">
-                        {location.description}
+                        <EnvironmentOutlined style={{ marginRight: '4px' }} />
+                        {location.description || 'Адрес не указан'}
                       </Text>
                       <div className="storage-location-count">
                         <Tag color={getTagColorByCount(location.itemCount)}>
@@ -518,21 +541,43 @@ const StorageLocations = () => {
           
           <Form.Item
             name="description"
-            label="Описание"
+            label="Адрес места хранения"
             rules={[
               { 
                 required: true, 
-                message: 'Пожалуйста, введите описание места хранения' 
+                message: 'Пожалуйста, введите адрес места хранения' 
               }
             ]}
           >
-            <Input.TextArea 
-              placeholder="Введите описание места хранения"
-              rows={4}
-            />
+            {/* ОБНОВЛЕННОЕ ПОЛЕ АДРЕСА С ИНТЕГРАЦИЕЙ КАРТЫ */}
+            <Input.Group compact>
+              <Input
+                style={{ width: 'calc(100% - 40px)' }}
+                placeholder="Введите адрес или выберите на карте"
+                value={selectedMapLocation}
+                onChange={(e) => {
+                  setSelectedMapLocation(e.target.value);
+                  form.setFieldsValue({ description: e.target.value });
+                }}
+              />
+              <Button
+                style={{ width: '40px', height: '40px' }}
+                icon={<EnvironmentOutlined />}
+                onClick={() => setMapPickerVisible(true)}
+                title="Выбрать на карте"
+              />
+            </Input.Group>
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Location Map Picker Modal - НОВЫЙ КОМПОНЕНТ */}
+      <LocationMapPicker
+        visible={mapPickerVisible}
+        onCancel={handleMapPickerCancel}
+        onSelect={handleMapLocationSelect}
+        initialLocation={selectedMapLocation}
+      />
     </div>
   );
 };

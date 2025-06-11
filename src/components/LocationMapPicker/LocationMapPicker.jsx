@@ -290,22 +290,6 @@ const LocationMapPicker = ({ visible, onCancel, onSelect, initialLocation = '' }
           </div>
         </div>
       )}
-
-      <div style={{ 
-        marginTop: 12, 
-        padding: '8px 12px',
-        backgroundColor: '#e6f7ff',
-        border: '1px solid #91d5ff',
-        borderRadius: '4px',
-        fontSize: '12px', 
-        color: '#0050b3' 
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>💡 Как использовать карту:</div>
-        <div>• Введите адрес в поле поиска выше</div>
-        <div>• Кликните по карте для установки метки</div>
-        <div>• Перетащите красную метку для точного позиционирования</div>
-        <div>• Используйте колесо мыши для масштабирования</div>
-      </div>
     </Modal>
   );
 };
