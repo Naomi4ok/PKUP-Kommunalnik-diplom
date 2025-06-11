@@ -20,7 +20,8 @@ import {
   Row,
   Col,
   DatePicker,
-  Breadcrumb
+  Breadcrumb,
+  Avatar
 } from 'antd';
 import {
   ToolOutlined,
@@ -35,7 +36,8 @@ import {
   EllipsisOutlined,
   FilterOutlined,
   HomeOutlined,
-  FileDoneOutlined
+  FileDoneOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import '../../styles/Tools/Tools.css';
@@ -222,6 +224,31 @@ const Tools = () => {
     } catch (error) {
       return '';
     }
+  };
+
+  // Получение имени сотрудника по ID и рендеринг с аватаркой
+  const renderEmployeeWithAvatar = (employeeId) => {
+    const employee = employees.find(emp => emp.Employee_ID === employeeId);
+    
+    if (!employee) {
+      return (
+        <Space>
+          <Avatar size="small" icon={<UserOutlined />} />
+          <span>Не назначен</span>
+        </Space>
+      );
+    }
+    
+    return (
+      <Space>
+        <Avatar 
+          size="small" 
+          src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
+          icon={!employee.Photo ? <UserOutlined /> : undefined} 
+        />
+        <span>{employee.Full_Name}</span>
+      </Space>
+    );
   };
 
   // Export tools to Excel
@@ -580,7 +607,7 @@ const Tools = () => {
       dataIndex: 'Responsible_Employee_ID',
       key: 'responsibleEmployee',
       ellipsis: true,
-      render: employeeId => getEmployeeName(employeeId),
+      render: renderEmployeeWithAvatar, // Используем новую функцию с аватаркой
       filters: employees.map(employee => ({
         text: employee.Full_Name,
         value: employee.Employee_ID,
@@ -769,7 +796,7 @@ const Tools = () => {
         </div>
       </Col>
       
-      {/* Responsible employee filter */}
+      {/* Responsible employee filter - добавляем аватарки в фильтр */}
       <Col xs={24} sm={12} md={8}>
         <div className="filter-group">
           <label>Ответственный за эксплуатацию</label>
@@ -782,7 +809,16 @@ const Tools = () => {
             maxTagCount="responsive"
           >
             {employees.map(employee => (
-              <Option key={employee.Employee_ID} value={employee.Employee_ID}>{employee.Full_Name}</Option>
+              <Option key={employee.Employee_ID} value={employee.Employee_ID}>
+                <Space>
+                  <Avatar 
+                    size="small" 
+                    src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
+                    icon={!employee.Photo ? <UserOutlined /> : undefined} 
+                  />
+                  {employee.Full_Name}
+                </Space>
+              </Option>
             ))}
           </Select>
         </div>

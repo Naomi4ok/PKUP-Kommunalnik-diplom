@@ -12,9 +12,10 @@ import {
   Spin,
   Divider,
   Space,
-  InputNumber
+  InputNumber,
+  Avatar
 } from 'antd';
-import { HomeOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { HomeOutlined, SaveOutlined, ArrowLeftOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import '../../styles/Tools/ToolsForm.css';
 import DatePicker from '../../components/DatePicker/DatePicker';
@@ -358,7 +359,7 @@ const ToolsForm = () => {
                 </Select>
               </Form.Item>
               
-              {/* Responsible employee */}
+              {/* Responsible employee - добавляем аватарки как в EquipmentForm */}
               <Form.Item
                 name="responsibleEmployeeId"
                 label="Ответственный"
@@ -370,13 +371,22 @@ const ToolsForm = () => {
                   placeholder="Выберите ответственного сотрудника"
                   showSearch
                   optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                  }
+                  filterOption={(input, option) => {
+                    return option.children && 
+                      typeof option.children.props.children[1] === 'string' && 
+                      option.children.props.children[1].toLowerCase().includes(input.toLowerCase());
+                  }}
                 >
                   {employees.map(employee => (
                     <Option key={employee.Employee_ID} value={employee.Employee_ID}>
-                      {employee.Full_Name}
+                      <Space>
+                        <Avatar 
+                          size="small" 
+                          src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
+                          icon={!employee.Photo ? <UserOutlined /> : undefined} 
+                        />
+                        {employee.Full_Name}
+                      </Space>
                     </Option>
                   ))}
                 </Select>

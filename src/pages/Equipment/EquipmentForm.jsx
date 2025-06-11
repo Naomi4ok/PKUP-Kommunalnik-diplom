@@ -417,6 +417,7 @@ const EquipmentForm = () => {
                 ]}
               >
                 <Select
+                  className="location-select"
                   placeholder="Выберите место нахождения"
                   showSearch
                   allowClear
