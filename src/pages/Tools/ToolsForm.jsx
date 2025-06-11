@@ -340,17 +340,19 @@ const ToolsForm = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span>{location.name}</span>
                         <span style={{ 
-                          fontSize: '11px', 
-                          color: '#999',
-                          marginLeft: '8px'
+                            fontSize: '11px', 
+                            color: '#999',
+                            marginLeft: '8px',
+                            flexShrink: 0
                         }}>
                           ({location.itemCount} инстр.)
                         </span>
                       </div>
                       <div style={{ 
-                        fontSize: '11px', 
-                        color: '#666',
-                        marginTop: '2px'
+                          fontSize: '10px', 
+                          color: '#666',
+                          lineHeight: '1.2',
+                          marginBottom: '8px'
                       }}>
                         {location.description}
                       </div>

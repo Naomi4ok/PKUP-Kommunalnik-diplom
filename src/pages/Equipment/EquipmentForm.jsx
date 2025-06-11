@@ -408,7 +408,7 @@ const EquipmentForm = () => {
                 </Select>
               </Form.Item>
               
-              {/* Место нахождения - заменяем на Select с местами хранения */}
+              {/* Место нахождения - улучшенная версия с лучшим отображением */}
               <Form.Item
                 name="location"
                 label="Место нахождения"
@@ -443,22 +443,30 @@ const EquipmentForm = () => {
                 >
                   {storageLocations.map(location => (
                     <Option key={location.id} value={location.name} title={location.description}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>{location.name}</span>
-                        <span style={{ 
-                          fontSize: '11px', 
-                          color: '#999',
-                          marginLeft: '8px'
+                      <div>
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
                         }}>
-                          ({location.itemCount} ед.)
-                        </span>
-                      </div>
-                      <div style={{ 
-                        fontSize: '11px', 
-                        color: '#666',
-                        marginTop: '2px'
-                      }}>
-                        {location.description}
+                          <span>{location.name}</span>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            color: '#999',
+                            marginLeft: '8px',
+                            flexShrink: 0
+                          }}>
+                            ({location.itemCount} ед.)
+                          </span>
+                        </div>
+                        <div style={{ 
+                          fontSize: '10px', 
+                          color: '#666',
+                          lineHeight: '1.2',
+                          marginBottom: '8px'
+                        }}>
+                          {location.description}
+                        </div>
                       </div>
                     </Option>
                   ))}
