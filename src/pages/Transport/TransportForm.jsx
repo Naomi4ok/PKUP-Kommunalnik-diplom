@@ -4,7 +4,7 @@ import {
   Input, 
   Button, 
   Select, 
-  DatePicker, 
+  DatePicker as AntDatePicker, // Переименовываем для года выпуска
   Typography, 
   Card, 
   Row, 
@@ -33,6 +33,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
 import '../../styles/Transport/TransportForm.css';
+import DatePicker from '../../components/DatePicker/DatePicker'; // Импорт кастомного DatePicker
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -70,6 +71,7 @@ const TransportForm = () => {
   const [selectedCondition, setSelectedCondition] = useState('Исправен');
   const [customBrandMode, setCustomBrandMode] = useState(false);
   const [purposes, setPurposes] = useState([]); // Добавляем состояние для хранения списка назначений
+  const [lastMaintenanceDate, setLastMaintenanceDate] = useState(null); // Добавляем состояние для даты ТО
   const isEditMode = !!id;
 
   // Fetch employees for dropdown
@@ -157,6 +159,11 @@ const TransportForm = () => {
     setSelectedCondition(value);
   };
 
+  // Handle maintenance date change
+  const handleMaintenanceDateChange = (date) => {
+    setLastMaintenanceDate(date);
+  };
+
   // Handle cancel/back
   const handleCancel = () => {
     navigate('/transport');
@@ -182,8 +189,13 @@ const TransportForm = () => {
       
       // Format dates if they exist
       const formattedValues = { ...values };
-      if (formattedValues.lastMaintenance) {
-        formattedValues.lastMaintenance = moment(formattedValues.lastMaintenance).format('DD.MM.YYYY');
+      
+      // Форматируем дату ТО из кастомного DatePicker
+      if (lastMaintenanceDate) {
+        const day = lastMaintenanceDate.getDate().toString().padStart(2, '0');
+        const month = (lastMaintenanceDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = lastMaintenanceDate.getFullYear();
+        formattedValues.lastMaintenance = `${day}.${month}.${year}`;
       }
       
       // Add all other form values
@@ -251,15 +263,22 @@ const TransportForm = () => {
           return response.json();
         })
         .then(data => {
-          // Преобразуем дату из формата сервера в объект moment
+          // Преобразуем дату из формата сервера в объект moment для года выпуска
           let maintenanceDate = null;
           if (data.LastMaintenance) {
-          // сначала пробуем формат "DD.MM.YYYY"
-          maintenanceDate = moment(data.LastMaintenance, 'DD.MM.YYYY', true);
-          // если не прокатило (т.е. дата в ISO или другом формате), подождём moment сам распарсит
-          if (!maintenanceDate.isValid()) {
-          maintenanceDate = moment(data.LastMaintenance);
-          }
+            // Парсим дату ТО для кастомного DatePicker
+            const dateParts = data.LastMaintenance.split('.');
+            if (dateParts.length === 3) {
+              // Формат DD.MM.YYYY
+              const day = parseInt(dateParts[0], 10);
+              const month = parseInt(dateParts[1], 10) - 1; // месяцы в JS начинаются с 0
+              const year = parseInt(dateParts[2], 10);
+              maintenanceDate = new Date(year, month, day);
+            } else {
+              // Пытаемся распарсить как ISO дату
+              maintenanceDate = new Date(data.LastMaintenance);
+            }
+            setLastMaintenanceDate(maintenanceDate);
           }
           
           const formattedData = {
@@ -272,7 +291,6 @@ const TransportForm = () => {
             transmissionType: data.TransmissionType,
             technicalCondition: data.TechnicalCondition,
             assignedEmployeeId: data.AssignedEmployee_ID || null,
-            lastMaintenance: maintenanceDate,
           };
           
           setInitialData(formattedData);
@@ -325,6 +343,7 @@ const TransportForm = () => {
       setSelectedCondition('Исправен');
       setFileList([]);
       setCustomBrandMode(false);
+      setLastMaintenanceDate(null); // Сбрасываем дату ТО
       form.resetFields();
       form.setFieldsValue({
          technicalCondition: 'Исправен',
@@ -493,7 +512,7 @@ const TransportForm = () => {
       return date ? date.year() : null;
     }}
   >
-    <DatePicker
+    <AntDatePicker
       style={{ width: '100%' }}
       picker="year"
       placeholder="Выберите год"
@@ -618,13 +637,11 @@ const TransportForm = () => {
               
               <Col xs={24} md={12} lg={6}>
                 <Form.Item
-                  name="lastMaintenance"
                   label="Дата последнего ТО"
                 >
                   <DatePicker 
-                    style={{ width: '100%' }}
-                    format="DD.MM.YYYY"
-                    placeholder="Выберите дату"
+                    selectedDate={lastMaintenanceDate} 
+                    onChange={handleMaintenanceDateChange} 
                   />
                 </Form.Item>
               </Col>
