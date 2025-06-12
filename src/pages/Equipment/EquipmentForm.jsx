@@ -25,7 +25,7 @@ import dayjs from 'dayjs'; // Using dayjs instead of moment
 import '../../styles/Equipment/EquipmentForm.css';
 import DatePicker from '../../components/DatePicker/DatePicker'; // Импортируем кастомный DatePicker
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -361,7 +361,7 @@ const EquipmentForm = () => {
                 />
               </Form.Item>
               
-              {/* Ответственный за эксплуатацию - добавляем аватарки как в ExpenseForm */}
+              {/* Ответственный за эксплуатацию - добавляем должность как в Schedule.jsx */}
               <Form.Item
                 name="responsibleEmployeeId"
                 label="Ответственный за эксплуатацию"
@@ -374,9 +374,9 @@ const EquipmentForm = () => {
                   showSearch
                   optionFilterProp="children"
                   filterOption={(input, option) => {
-                    return option.children && 
-                      typeof option.children.props.children[1] === 'string' && 
-                      option.children.props.children[1].toLowerCase().includes(input.toLowerCase());
+                    // Фильтр по имени сотрудника
+                    const employeeName = option.children?.props?.children?.[1]?.props?.children?.[0];
+                    return employeeName && employeeName.toLowerCase().includes(input.toLowerCase());
                   }}
                 >
                   {employees.map(employee => (
@@ -387,7 +387,14 @@ const EquipmentForm = () => {
                           src={employee.Photo ? `data:image/jpeg;base64,${employee.Photo}` : undefined} 
                           icon={!employee.Photo ? <UserOutlined /> : undefined} 
                         />
-                        {employee.Full_Name}
+                        <span>
+                          {employee.Full_Name}
+                          {employee.Position && (
+                            <Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
+                              ({employee.Position})
+                            </Text>
+                          )}
+                        </span>
                       </Space>
                     </Option>
                   ))}
