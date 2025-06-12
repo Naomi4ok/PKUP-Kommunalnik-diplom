@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import './DatePicker.css';
 
@@ -10,6 +10,9 @@ const DatePicker = ({ selectedDate, onChange }) => {
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
+  // Ref для контейнера календаря
+  const datePickerRef = useRef(null);
+
   // Update internal state when prop changes
   useEffect(() => {
     if (selectedDate) {
@@ -17,6 +20,27 @@ const DatePicker = ({ selectedDate, onChange }) => {
       setCurrentMonth(new Date(selectedDate));
     }
   }, [selectedDate]);
+
+  // Обработчик клика вне календаря
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setShowYearPicker(false);
+        setShowMonthPicker(false);
+      }
+    };
+
+    // Добавляем обработчик события только когда календарь открыт
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Очищаем обработчик при размонтировании или когда календарь закрывается
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const months = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -190,7 +214,7 @@ const DatePicker = ({ selectedDate, onChange }) => {
   };
 
   return (
-    <div className="date-picker-container">
+    <div className="date-picker-container" ref={datePickerRef}>
       <div className="date-input-wrapper">
         <input
           type="text"

@@ -245,7 +245,6 @@
      ========================================== */
   .day-view-card {
     border-radius: 12px;
-    overflow: hidden;
     background: white;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     border: none;
@@ -576,3 +575,106 @@
   .schedule-tabs .ant-tabs-ink-bar {
     background-color: #0AB101;
   }
+
+  .progress-slider.completed .ant-slider-track {
+  background-color: #52c41a !important;
+}
+
+.progress-slider.completed .ant-slider-handle {
+  border-color: #52c41a !important;
+}
+
+.progress-slider.cancelled .ant-slider-track {
+  background-color: #ff4d4f !important;
+}
+
+.progress-slider.cancelled .ant-slider-handle {
+  border-color: #ff4d4f !important;
+}
+
+/* Дополнительные стили для отключенного состояния */
+.ant-slider-disabled .ant-slider-track {
+  background-color: #f5f5f5 !important;
+}
+
+.ant-slider-disabled .ant-slider-handle {
+  border-color: #d9d9d9 !important;
+  background-color: #f5f5f5 !important;
+}
+
+/* Переопределение для статуса "Выполнено" даже в отключенном состоянии */
+.progress-slider.completed.ant-slider-disabled .ant-slider-track {
+  background-color: #52c41a !important;
+}
+
+.progress-slider.completed.ant-slider-disabled .ant-slider-handle {
+  border-color: #52c41a !important;
+  background-color: #52c41a !important;
+}
+
+/* Переопределение для статуса "Отменено" даже в отключенном состоянии */
+.progress-slider.cancelled.ant-slider-disabled .ant-slider-track {
+  background-color: #ff4d4f !important;
+}
+
+.progress-slider.cancelled.ant-slider-disabled .ant-slider-handle {
+  border-color: #ff4d4f !important;
+  background-color: #ff4d4f !important;
+}
+
+/* Стили для заблокированного прогресс-бара */
+.progress-slider .ant-slider-disabled {
+  cursor: not-allowed;
+}
+
+.progress-slider .ant-slider-disabled .ant-slider-rail {
+  background-color: #f5f5f5 !important;
+}
+
+/* Анимация для изменения цвета прогресс-бара */
+.progress-slider .ant-slider-track {
+  transition: background-color 0.3s ease;
+}
+
+.progress-slider .ant-slider-handle {
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Дополнительные стили для контейнера прогресс-бара */
+.progress-slider {
+  position: relative;
+}
+
+.progress-slider .ant-slider {
+  margin: 10px 0;
+}
+
+/* Стили для меток прогресса */
+.progress-slider .ant-slider-mark-text {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Стили для активного состояния прогресс-бара */
+.progress-slider:not(.ant-slider-disabled) .ant-slider-handle:hover {
+  border-color: #40a9ff;
+}
+
+.progress-slider:not(.ant-slider-disabled) .ant-slider-handle:focus {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 5px rgba(24, 144, 255, 0.12);
+}
+
+/* Специальные стили для завершенных задач */
+.progress-slider.completed:not(.ant-slider-disabled) .ant-slider-handle:hover,
+.progress-slider.completed:not(.ant-slider-disabled) .ant-slider-handle:focus {
+  border-color: #389e0d;
+  box-shadow: 0 0 0 5px rgba(82, 196, 26, 0.12);
+}
+
+/* Специальные стили для отмененных задач */
+.progress-slider.cancelled:not(.ant-slider-disabled) .ant-slider-handle:hover,
+.progress-slider.cancelled:not(.ant-slider-disabled) .ant-slider-handle:focus {
+  border-color: #cf1322;
+  box-shadow: 0 0 0 5px rgba(255, 77, 79, 0.12);
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import moment from 'moment';
 import './DateRangePicker.css';
 
@@ -18,10 +18,14 @@ const DateRangePicker = ({ value, onChange }) => {
   });
   const [isOpen, setIsOpen] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
 
   // For portal positioning
   const inputStartRef = useRef(null);
   const inputEndRef = useRef(null);
+  const dateRangePickerRef = useRef(null);
+  const calendarPopupRef = useRef(null);
   const [popupStyle, setPopupStyle] = useState({});
 
   // Update calendar position under input
@@ -52,6 +56,34 @@ const DateRangePicker = ({ value, onChange }) => {
   // eslint-disable-next-line
   }, [isOpen, activeInput]);
 
+  // Обработчик клика вне календаря
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Проверяем клик вне основного контейнера и вне popup календаря
+      if (
+        dateRangePickerRef.current && 
+        !dateRangePickerRef.current.contains(event.target) &&
+        calendarPopupRef.current &&
+        !calendarPopupRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+        setActiveInput(null);
+        setShowYearPicker(false);
+        setShowMonthPicker(false);
+      }
+    };
+
+    // Добавляем обработчик события только когда календарь открыт
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Очищаем обработчик при размонтировании или когда календарь закрывается
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
   // Update internal state when props change
   useEffect(() => {
     if (value && value[0]) setCurrentStartDate(value[0].toDate());
@@ -63,6 +95,16 @@ const DateRangePicker = ({ value, onChange }) => {
     'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
   const daysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+  // Generate array of years (current year ± 50 years)
+  const generateYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear - 50; year <= currentYear + 50; year++) {
+      years.push(year);
+    }
+    return years;
+  };
 
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => {
@@ -99,6 +141,7 @@ const DateRangePicker = ({ value, onChange }) => {
     } else {
       setCurrentEndDate(selectedDate);
       setIsOpen(false);
+      setActiveInput(null);
       setSelectingStartDate(true);
     }
 
@@ -107,6 +150,16 @@ const DateRangePicker = ({ value, onChange }) => {
       const newEndDate = selectingStartDate ? moment(currentEndDate) : moment(selectedDate);
       onChange([newStartDate, newEndDate]);
     }
+  };
+
+  const handleYearSelect = (year) => {
+    setCurrentMonth(prevMonth => new Date(year, prevMonth.getMonth()));
+    setShowYearPicker(false);
+  };
+
+  const handleMonthSelect = (monthIndex) => {
+    setCurrentMonth(prevMonth => new Date(prevMonth.getFullYear(), monthIndex));
+    setShowMonthPicker(false);
   };
 
   const toggleCalendar = (inputType) => {
@@ -120,6 +173,20 @@ const DateRangePicker = ({ value, onChange }) => {
       setCurrentMonth(inputType === 'start' ? currentStartDate : currentEndDate);
       setTimeout(updatePopupPosition, 0); // пересчитать позицию после рендера
     }
+    setShowYearPicker(false);
+    setShowMonthPicker(false);
+  };
+
+  const toggleYearPicker = (e) => {
+    e.stopPropagation();
+    setShowYearPicker(!showYearPicker);
+    setShowMonthPicker(false);
+  };
+
+  const toggleMonthPicker = (e) => {
+    e.stopPropagation();
+    setShowMonthPicker(!showMonthPicker);
+    setShowYearPicker(false);
   };
 
   const formatDate = (date) => {
@@ -178,9 +245,50 @@ const DateRangePicker = ({ value, onChange }) => {
     return days;
   };
 
+  const renderYearPicker = () => {
+    const years = generateYears();
+    const currentYear = currentMonth.getFullYear();
+    
+    return (
+      <div className="picker-dropdown year-picker">
+        <div className="picker-list">
+          {years.map(year => (
+            <div
+              key={year}
+              onClick={() => handleYearSelect(year)}
+              className={`picker-item ${year === currentYear ? 'selected' : ''}`}
+            >
+              {year}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMonthPicker = () => {
+    const currentMonthIndex = currentMonth.getMonth();
+    
+    return (
+      <div className="picker-dropdown month-picker">
+        <div className="picker-list">
+          {months.map((month, index) => (
+            <div
+              key={index}
+              onClick={() => handleMonthSelect(index)}
+              className={`picker-item ${index === currentMonthIndex ? 'selected' : ''}`}
+            >
+              {month}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   // Календарь в portal
   const calendarPopup = isOpen ? createPortal(
-    <div className="calendar-popup" style={popupStyle}>
+    <div className="calendar-popup" style={popupStyle} ref={calendarPopupRef}>
       <div className="calendar-header">
         <button
           onClick={handlePrevMonth}
@@ -189,8 +297,17 @@ const DateRangePicker = ({ value, onChange }) => {
         >
           <ChevronLeft size={20} />
         </button>
-        <div className="current-month">
-          {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+        <div className="current-month-year">
+          <div className="month-selector" onClick={toggleMonthPicker}>
+            <span className="month-text">{months[currentMonth.getMonth()]}</span>
+            <ChevronDown size={14} className={`dropdown-icon ${showMonthPicker ? 'rotated' : ''}`} />
+          </div>
+          <div className="year-selector" onClick={toggleYearPicker}>
+            <span className="year-text">{currentMonth.getFullYear()}</span>
+            <ChevronDown size={14} className={`dropdown-icon ${showYearPicker ? 'rotated' : ''}`} />
+          </div>
+          {showYearPicker && renderYearPicker()}
+          {showMonthPicker && renderMonthPicker()}
         </div>
         <button
           onClick={handleNextMonth}
@@ -233,7 +350,12 @@ const DateRangePicker = ({ value, onChange }) => {
           Сегодня
         </button>
         <button
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false);
+            setActiveInput(null);
+            setShowYearPicker(false);
+            setShowMonthPicker(false);
+          }}
           className="close-button"
           type="button"
         >
@@ -245,7 +367,7 @@ const DateRangePicker = ({ value, onChange }) => {
   ) : null;
 
   return (
-    <div className="date-range-picker-container" style={{ position: 'relative' }}>
+    <div className="date-range-picker-container" style={{ position: 'relative' }} ref={dateRangePickerRef}>
       <div className="date-range-inputs flex items-center">
         <div className="date-input-wrapper relative">
           <input

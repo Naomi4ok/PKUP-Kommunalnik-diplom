@@ -99,6 +99,11 @@ const Schedule = () => {
   const [mapPickerVisible, setMapPickerVisible] = useState(false);
   const [selectedMapLocation, setSelectedMapLocation] = useState('');
 
+  // НОВОЕ: Состояния для управления статусом и прогрессом
+  const [currentStatus, setCurrentStatus] = useState('scheduled');
+  const [isProgressDisabled, setIsProgressDisabled] = useState(true);
+  const [progressValue, setProgressValue] = useState(0);
+
   // Priority and status options
   const priorityOptions = [
     { value: 'low', label: 'Низкий', color: '#52c41a' },
@@ -114,6 +119,84 @@ const Schedule = () => {
     { value: 'delayed', label: 'Отложено', color: '#f5222d' },
     { value: 'cancelled', label: 'Отменено', color: '#595959' }
   ];
+
+  // НОВАЯ ФУНКЦИЯ: Обработка изменения статуса
+  const handleStatusChange = (status) => {
+    setCurrentStatus(status);
+    
+    switch (status) {
+      case 'scheduled':
+        // Если выбран статус "Запланировано" — прогресс-бар блокируется
+        setIsProgressDisabled(true);
+        break;
+        
+      case 'in-progress':
+        // Если выбран статус "В процессе" — прогресс-бар разблокируется
+        setIsProgressDisabled(false);
+        break;
+        
+      case 'completed':
+        // Если выбран статус "Выполнено" — прогресс-бар автоматически устанавливается на 100%
+        setIsProgressDisabled(true);
+        setProgressValue(100);
+        form.setFieldsValue({ progress: 100 });
+        break;
+        
+      case 'delayed':
+        // Если выбран статус "Отложено" — прогресс-бар блокируется (значение не меняется)
+        setIsProgressDisabled(true);
+        break;
+        
+      case 'cancelled':
+        // Если выбран статус "Отменено" — прогресс-бар блокируется
+        setIsProgressDisabled(true);
+        break;
+        
+      default:
+        setIsProgressDisabled(true);
+        break;
+    }
+  };
+
+  // НОВАЯ ФУНКЦИЯ: Обработка изменения прогресса
+  const handleProgressChange = (value) => {
+    if (!isProgressDisabled) {
+      setProgressValue(value);
+      form.setFieldsValue({ progress: value });
+      
+      // НОВАЯ ЛОГИКА: Если при статусе "В процессе" прогресс достигает 100%, 
+      // автоматически переключаем статус на "Выполнено"
+      if (currentStatus === 'in-progress' && value === 100) {
+        setCurrentStatus('completed');
+        form.setFieldsValue({ status: 'completed' });
+        setIsProgressDisabled(true);
+        
+        // Показываем уведомление пользователю
+        message.success('Прогресс достиг 100%! Статус автоматически изменен на "Выполнено"');
+      }
+    }
+  };
+
+  // НОВАЯ ФУНКЦИЯ: Получение стиля для прогресс-бара
+  const getProgressBarStyle = () => {
+    if (currentStatus === 'completed') {
+      // Зелёный цвет для статуса "Выполнено"
+      return {
+        '--slider-color': '#52c41a',
+        '--slider-handle-color': '#52c41a',
+        '--slider-track-color': '#52c41a'
+      };
+    } else if (currentStatus === 'cancelled') {
+      // Красный цвет для статуса "Отменено"
+      return {
+        '--slider-color': '#ff4d4f',
+        '--slider-handle-color': '#ff4d4f',
+        '--slider-track-color': '#ff4d4f'
+      };
+    }
+    // Стандартный цвет для остальных статусов
+    return {};
+  };
 
   // Функция для проверки, является ли дата прошедшей
   const isDateInPast = (date) => {
@@ -655,6 +738,11 @@ const Schedule = () => {
     
     // Сброс ошибки даты
     setDateError('');
+
+    // НОВОЕ: Инициализация состояния статуса и прогресса
+    setCurrentStatus('scheduled');
+    setIsProgressDisabled(true);
+    setProgressValue(0);
     
     setModalVisible(true);
   };
@@ -689,6 +777,11 @@ const Schedule = () => {
     
     // Сброс ошибки даты для редактирования
     setDateError('');
+
+    // НОВОЕ: Инициализация состояния статуса и прогресса при редактировании
+    setCurrentStatus(task.Status);
+    setProgressValue(task.Progress || 0);
+    handleStatusChange(task.Status); // Применяем логику статуса
     
     setModalVisible(true);
   };
@@ -1275,7 +1368,11 @@ const Schedule = () => {
                 label="Статус"
                 rules={[{ required: true, message: 'Пожалуйста, выберите статус' }]}
               >
-                <Select placeholder="Выберите статус">
+                <Select 
+                  placeholder="Выберите статус"
+                  onChange={handleStatusChange}
+                  value={currentStatus}
+                >
                   {statusOptions.map(option => (
                     <Option key={option.value} value={option.value}>
                       <Badge color={option.color} text={option.label} />
@@ -1289,15 +1386,21 @@ const Schedule = () => {
                 name="progress"
                 label="Прогресс выполнения"
               >
-                <Slider
-                  marks={{
-                    0: '0%',
-                    25: '25%',
-                    50: '50%',
-                    75: '75%',
-                    100: '100%'
-                  }}
-                />
+                <div style={getProgressBarStyle()}>
+                  <Slider
+                    disabled={isProgressDisabled}
+                    value={progressValue}
+                    onChange={handleProgressChange}
+                    marks={{
+                      0: '0%',
+                      25: '25%',
+                      50: '50%',
+                      75: '75%',
+                      100: '100%'
+                    }}
+                    className={`progress-slider ${currentStatus === 'completed' ? 'completed' : ''} ${currentStatus === 'cancelled' ? 'cancelled' : ''}`}
+                  />
+                </div>
               </Form.Item>
             </Col>
           </Row>
