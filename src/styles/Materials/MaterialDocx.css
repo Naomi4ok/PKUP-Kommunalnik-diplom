@@ -5,3 +5,13 @@
   background-color: #f5f5f5;
   min-height: 100vh;
 }
+
+.material-summary-card {
+  margin-top: 16px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+}
+
+.material-docx-title {
+  margin-bottom: 0 !important;
+}

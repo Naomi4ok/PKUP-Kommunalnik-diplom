@@ -85,10 +85,9 @@
 }
 
 .employee-summary-card {
-  margin-top: 20px;
+  margin-top: 16px;
+  background-color: #f7f7f7;
   border-radius: 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
 }
 
 .employee-summary-card .ant-card-body {
@@ -110,7 +109,7 @@
 }
 
 .employee-summary .ant-typography {
-  color: white !important;
+  color: rgb(0, 0, 0) !important;
   font-size: 16px;
 }
 

@@ -5,3 +5,7 @@
   background-color: #f5f5f5;
   min-height: 100vh;
 }
+
+.equipment-docx-title {
+  margin-bottom: 0 !important;
+}

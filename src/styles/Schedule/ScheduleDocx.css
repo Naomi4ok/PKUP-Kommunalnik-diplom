@@ -4,3 +4,13 @@
   margin: 0 auto;
   min-height: 100vh;
 }
+
+.schedule-summary-card {
+  margin-top: 16px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+}
+
+.schedule-docx-title {
+  margin-bottom: 0 !important;
+}
