@@ -5,10 +5,8 @@ const db = require('../database/db');
 // GET all schedule tasks
 router.get('/', (req, res) => {
   db.all(`
-    SELECT s.*, p.Name as ProcessName, p.Color as ProcessColor
-    FROM Schedule s
-    LEFT JOIN Processes p ON s.ProcessId = p.Process_ID
-    ORDER BY s.Date, s.StartTime
+    SELECT * FROM Schedule
+    ORDER BY Date, StartTime
   `, [], (err, rows) => {
     if (err) {
       console.error('Error fetching schedule tasks:', err);
@@ -34,10 +32,7 @@ router.get('/:id', (req, res) => {
   const { id } = req.params;
   
   db.get(`
-    SELECT s.*, p.Name as ProcessName, p.Color as ProcessColor
-    FROM Schedule s
-    LEFT JOIN Processes p ON s.ProcessId = p.Process_ID
-    WHERE s.Task_ID = ?
+    SELECT * FROM Schedule WHERE Task_ID = ?
   `, [id], (err, row) => {
     if (err) {
       console.error('Error fetching task:', err);
@@ -81,7 +76,7 @@ router.post('/', (req, res) => {
     employeeIds,
     equipmentIds,
     transportIds,
-    processId,
+    processId, // Теперь это будет строка с названием процесса
     location,
     status,
     priority,
@@ -119,7 +114,7 @@ router.post('/', (req, res) => {
       EmployeeIds, 
       EquipmentIds, 
       TransportIds, 
-      ProcessId, 
+      ProcessName, 
       Location, 
       Status, 
       Priority, 
@@ -139,7 +134,7 @@ router.post('/', (req, res) => {
     employeeIdsJson, 
     equipmentIdsJson, 
     transportIdsJson, 
-    processId, 
+    processId || '', // Сохраняем название процесса как строку
     location, 
     status || 'scheduled', 
     priority || 'medium', 
@@ -171,7 +166,7 @@ router.put('/:id', (req, res) => {
     employeeIds,
     equipmentIds,
     transportIds,
-    processId,
+    processId, // Теперь это строка с названием процесса
     location,
     status,
     priority,
@@ -221,7 +216,7 @@ router.put('/:id', (req, res) => {
           EmployeeIds = ?, 
           EquipmentIds = ?, 
           TransportIds = ?, 
-          ProcessId = ?, 
+          ProcessName = ?, 
           Location = ?, 
           Status = ?, 
           Priority = ?, 
@@ -239,7 +234,7 @@ router.put('/:id', (req, res) => {
       employeeIdsJson, 
       equipmentIdsJson, 
       transportIdsJson, 
-      processId, 
+      processId || '', // Сохраняем название процесса как строку
       location, 
       status || 'scheduled', 
       priority || 'medium', 
@@ -288,106 +283,8 @@ router.delete('/:id', (req, res) => {
   });
 });
 
-// GET all processes
-router.get('/processes/all', (req, res) => {
-  db.all('SELECT * FROM Processes ORDER BY Name', [], (err, rows) => {
-    if (err) {
-      console.error('Error fetching processes:', err);
-      return res.status(500).json({ error: err.message });
-    }
-    
-    res.json(rows);
-  });
-});
-
-// POST create new process
-router.post('/processes', (req, res) => {
-  const { name, description, color } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: 'Process name is required' });
-  }
-
-  const sql = 'INSERT INTO Processes (Name, Description, Color) VALUES (?, ?, ?)';
-  
-  db.run(sql, [name, description || '', color || '#1890ff'], function(err) {
-    if (err) {
-      console.error('Error creating process:', err);
-      return res.status(500).json({ error: err.message });
-    }
-    
-    res.status(201).json({ 
-      message: 'Process created successfully',
-      processId: this.lastID 
-    });
-  });
-});
-
-// PUT update process
-router.put('/processes/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, description, color } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: 'Process name is required' });
-  }
-
-  const sql = 'UPDATE Processes SET Name = ?, Description = ?, Color = ? WHERE Process_ID = ?';
-  
-  db.run(sql, [name, description || '', color || '#1890ff', id], function(err) {
-    if (err) {
-      console.error('Error updating process:', err);
-      return res.status(500).json({ error: err.message });
-    }
-    
-    if (this.changes === 0) {
-      return res.status(404).json({ error: 'Process not found' });
-    }
-    
-    res.json({ 
-      message: 'Process updated successfully',
-      changes: this.changes 
-    });
-  });
-});
-
-// DELETE process
-router.delete('/processes/:id', (req, res) => {
-  const { id } = req.params;
-  
-  // First check if process is being used in any tasks
-  db.get('SELECT COUNT(*) as count FROM Schedule WHERE ProcessId = ?', [id], (err, row) => {
-    if (err) {
-      console.error('Error checking process usage:', err);
-      return res.status(500).json({ error: err.message });
-    }
-    
-    if (row.count > 0) {
-      return res.status(400).json({ 
-        error: 'Cannot delete process that is being used in tasks' 
-      });
-    }
-    
-    // If not being used, proceed with deletion
-    const sql = 'DELETE FROM Processes WHERE Process_ID = ?';
-    
-    db.run(sql, [id], function(err) {
-      if (err) {
-        console.error('Error deleting process:', err);
-        return res.status(500).json({ error: err.message });
-      }
-      
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Process not found' });
-      }
-      
-      res.json({ 
-        message: 'Process deleted successfully',
-        changes: this.changes 
-      });
-    });
-  });
-});
+// Убираем все эндпоинты связанные с процессами, так как они больше не нужны
+// Удаляем GET /processes/all, POST /processes, PUT /processes/:id, DELETE /processes/:id
 
 // POST import tasks from Excel
 router.post('/import', (req, res) => {
@@ -410,7 +307,7 @@ router.post('/import', (req, res) => {
       startTime,
       endTime,
       location,
-      processId,
+      processId, // Теперь это строка с названием процесса
       employeeIds,
       equipmentIds,
       transportIds,
@@ -446,7 +343,7 @@ router.post('/import', (req, res) => {
         EmployeeIds, 
         EquipmentIds, 
         TransportIds, 
-        ProcessId, 
+        ProcessName, 
         Location, 
         Status, 
         Priority, 
@@ -466,7 +363,7 @@ router.post('/import', (req, res) => {
       employeeIdsJson,
       equipmentIdsJson,
       transportIdsJson,
-      processId,
+      processId || '', // Сохраняем название процесса как строку
       location || '',
       status || 'scheduled',
       priority || 'medium',
@@ -509,11 +406,9 @@ router.get('/range/:startDate/:endDate', (req, res) => {
   const { startDate, endDate } = req.params;
   
   db.all(`
-    SELECT s.*, p.Name as ProcessName, p.Color as ProcessColor
-    FROM Schedule s
-    LEFT JOIN Processes p ON s.ProcessId = p.Process_ID
-    WHERE s.Date BETWEEN ? AND ?
-    ORDER BY s.Date, s.StartTime
+    SELECT * FROM Schedule
+    WHERE Date BETWEEN ? AND ?
+    ORDER BY Date, StartTime
   `, [startDate, endDate], (err, rows) => {
     if (err) {
       console.error('Error fetching tasks by date range:', err);
@@ -539,11 +434,9 @@ router.get('/status/:status', (req, res) => {
   const { status } = req.params;
   
   db.all(`
-    SELECT s.*, p.Name as ProcessName, p.Color as ProcessColor
-    FROM Schedule s
-    LEFT JOIN Processes p ON s.ProcessId = p.Process_ID
-    WHERE s.Status = ?
-    ORDER BY s.Date, s.StartTime
+    SELECT * FROM Schedule
+    WHERE Status = ?
+    ORDER BY Date, StartTime
   `, [status], (err, rows) => {
     if (err) {
       console.error('Error fetching tasks by status:', err);
@@ -569,11 +462,9 @@ router.get('/employee/:employeeId', (req, res) => {
   const { employeeId } = req.params;
   
   db.all(`
-    SELECT s.*, p.Name as ProcessName, p.Color as ProcessColor
-    FROM Schedule s
-    LEFT JOIN Processes p ON s.ProcessId = p.Process_ID
-    WHERE s.EmployeeIds LIKE ?
-    ORDER BY s.Date, s.StartTime
+    SELECT * FROM Schedule
+    WHERE EmployeeIds LIKE ?
+    ORDER BY Date, StartTime
   `, [`%"${employeeId}"%`], (err, rows) => {
     if (err) {
       console.error('Error fetching tasks by employee:', err);
@@ -697,7 +588,7 @@ router.post('/:id/duplicate', (req, res) => {
         EmployeeIds, 
         EquipmentIds, 
         TransportIds, 
-        ProcessId, 
+        ProcessName, 
         Location, 
         Status, 
         Priority, 
@@ -717,7 +608,7 @@ router.post('/:id/duplicate', (req, res) => {
       row.EmployeeIds,
       row.EquipmentIds,
       row.TransportIds,
-      row.ProcessId,
+      row.ProcessName, // Изменено с ProcessId на ProcessName
       row.Location,
       'scheduled', // Reset status to scheduled
       row.Priority,

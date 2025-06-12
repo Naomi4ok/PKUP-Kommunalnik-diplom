@@ -68,7 +68,6 @@ const Schedule = () => {
   const [employees, setEmployees] = useState([]);
   const [equipment, setEquipment] = useState([]);
   const [transport, setTransport] = useState([]);
-  const [processes, setProcesses] = useState([]);
 
   // State for UI
   const [isLoading, setIsLoading] = useState(false);
@@ -162,8 +161,7 @@ const Schedule = () => {
         fetchTasks(),
         fetchEmployees(),
         fetchEquipment(),
-        fetchTransport(),
-        fetchProcesses()
+        fetchTransport()
       ]);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -219,17 +217,6 @@ const Schedule = () => {
     }
   };
 
-  const fetchProcesses = async () => {
-    try {
-      const response = await axios.get('/api/schedule/processes/all');
-      setProcesses(response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching processes:', error);
-      return [];
-    }
-  };
-
   // Map picker handlers - НОВЫЕ ФУНКЦИИ
   const handleMapLocationSelect = (locationData) => {
     setSelectedMapLocation(locationData.address);
@@ -271,7 +258,7 @@ const Schedule = () => {
         const employeeNames = getEmployeeNames(item.employeeIds);
         const equipmentNames = getEquipmentNames(item.equipmentIds);
         const transportNames = getTransportNames(item.transportIds);
-        const processName = item.ProcessName || ''; // Используем ProcessName вместо поиска по ID
+        const processName = item.ProcessName || ''; // Используем ProcessName напрямую
         
         return {
           'Название задачи': item.Title || '',
@@ -513,7 +500,7 @@ const Schedule = () => {
               return tr ? tr.Transport_ID : null;
             }).filter(Boolean);
 
-            // Get process name directly from Excel (no ID lookup needed)
+            // Get process name directly from Excel
             const processName = columns.process ? row[columns.process] || '' : '';
 
             // Map priority and status
@@ -529,7 +516,7 @@ const Schedule = () => {
               startTime: columns.startTime ? row[columns.startTime] || '08:00' : '08:00',
               endTime: columns.endTime ? row[columns.endTime] || '17:00' : '17:00',
               location: columns.location ? row[columns.location] || '' : '',
-              processId: processName, // Изменили на processName
+              processId: processName, // Теперь это просто строка с названием процесса
               employeeIds: employeeIds,
               equipmentIds: equipmentIds,
               transportIds: transportIds,
@@ -678,17 +665,17 @@ const Schedule = () => {
     setCurrentTask(task);
     
     form.setFieldsValue({
-    title: task.Title,
-    employeeIds: task.employeeIds,
-    equipmentIds: task.equipmentIds,
-    transportIds: task.transportIds,
-    processId: task.ProcessId, // Изменено с processName на processId
-    location: task.Location,
-    status: task.Status,
-    priority: task.Priority,
-    description: task.Description,
-    progress: task.Progress,
-  });
+      title: task.Title,
+      employeeIds: task.employeeIds,
+      equipmentIds: task.equipmentIds,
+      transportIds: task.transportIds,
+      processId: task.ProcessName, // Изменено с ProcessId на ProcessName
+      location: task.Location,
+      status: task.Status,
+      priority: task.Priority,
+      description: task.Description,
+      progress: task.Progress,
+    });
     
     // Установка значений времени для TimeRangePicker
     setStartTime(task.StartTime || '08:00');
@@ -736,20 +723,20 @@ const Schedule = () => {
           }
           
           const taskData = {
-          title: values.title,
-          date,
-          startTime,
-          endTime,
-          employeeIds: values.employeeIds || [],
-          equipmentIds: values.equipmentIds || [],
-          transportIds: values.transportIds || [],
-          processId: values.processId || null, // Изменено с processName на processId
-          location: values.location,
-          status: values.status,
-          priority: values.priority,
-          description: values.description,
-          progress: values.progress || 0,
-        };
+            title: values.title,
+            date,
+            startTime,
+            endTime,
+            employeeIds: values.employeeIds || [],
+            equipmentIds: values.equipmentIds || [],
+            transportIds: values.transportIds || [],
+            processId: values.processId || '', // Теперь это просто строка с названием процесса
+            location: values.location,
+            status: values.status,
+            priority: values.priority,
+            description: values.description,
+            progress: values.progress || 0,
+          };
           
           if (isEditing && currentTask) {
             // Update existing task
@@ -823,7 +810,7 @@ const Schedule = () => {
     }).join(', ');
   };
 
-  // Изменили функцию для работы с ProcessName
+  // Функция для работы с ProcessName
   const getProcessName = (processName) => {
     if (!processName) return 'Не указано';
     return processName;
@@ -1143,13 +1130,7 @@ const Schedule = () => {
                 name="processId"
                 label="Процесс"
               >
-                <Select placeholder="Выберите процесс" allowClear>
-                  {processes.map(process => (
-                    <Option key={process.Process_ID} value={process.Process_ID}>
-                      {process.Name}
-                    </Option>
-                  ))}
-                </Select>
+                <Input placeholder="Введите название процесса" />
               </Form.Item>
             </Col>
           </Row>
