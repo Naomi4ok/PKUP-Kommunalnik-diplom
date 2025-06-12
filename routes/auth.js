@@ -39,7 +39,12 @@ router.post('/login', (req, res) => {
       }
 
       // Update last login time
-      db.run('UPDATE Users SET Last_Login = CURRENT_TIMESTAMP WHERE User_ID = ?', [user.User_ID]);
+      db.run(
+  `UPDATE Users 
+     SET Last_Login = DATETIME('now','localtime') 
+   WHERE User_ID = ?`,
+  [user.User_ID]
+);
 
       // Create JWT token
       const token = jwt.sign(
