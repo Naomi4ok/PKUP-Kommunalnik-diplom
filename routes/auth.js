@@ -4,6 +4,7 @@ const db = require('../database/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const moment = require('moment');
 
 // Setup multer for memory storage
 const storage = multer.memoryStorage();
@@ -39,12 +40,14 @@ router.post('/login', (req, res) => {
       }
 
       // Update last login time
+      const moscowTime = moment().utcOffset('+03:00').format('YYYY-MM-DD HH:mm:ss');
+
       db.run(
-  `UPDATE Users 
-     SET Last_Login = DATETIME('now','localtime') 
-   WHERE User_ID = ?`,
-  [user.User_ID]
-);
+        `UPDATE Users 
+          SET Last_Login = ? 
+        WHERE User_ID = ?`,
+        [moscowTime, user.User_ID]
+      );
 
       // Create JWT token
       const token = jwt.sign(
