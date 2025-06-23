@@ -3,6 +3,8 @@ import { Table, Button, Modal, Form, Input, Select, message, Space, Popconfirm }
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
+import { formatToMoscowTime } from '../../utils/dateUtils';
+
 const { Option } = Select;
 
 const Settings = () => {
@@ -162,6 +164,7 @@ const Settings = () => {
       title: 'Последний вход',
       dataIndex: 'Last_Login',
       key: 'lastLogin',
+      render: (timestamp) => formatToMoscowTime(timestamp)
     },
     {
       title: 'Действия',
