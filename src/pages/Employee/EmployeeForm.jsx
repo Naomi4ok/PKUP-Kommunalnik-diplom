@@ -124,10 +124,11 @@ const EmployeeForm = () => {
       
       const employee = await response.json();
       
-      // Разделение полного имени на имя и фамилию
-      const nameParts = employee.Full_Name ? employee.Full_Name.split(' ') : ['', ''];
+      // Разделение полного имени на имя, отчество и фамилию
+      const nameParts = employee.Full_Name ? employee.Full_Name.split(' ') : ['', '', ''];
       const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+      const middleName = nameParts[1] || '';
+      const lastName = nameParts.slice(2).join(' ') || '';
       
       // Определение типа рабочего графика и значения
       let workScheduleType = 'Гибкий'; // По умолчанию Гибкий
@@ -157,6 +158,7 @@ const EmployeeForm = () => {
       // Установка начальных значений формы
       const formValues = {
         firstName,
+        middleName,
         lastName,
         position: employee.Position || '',
         department: employee.Department || '',
@@ -196,8 +198,8 @@ const EmployeeForm = () => {
       // Создание объекта FormData для обработки загрузки файла
       const formData = new FormData();
       
-      // Объединение имени и фамилии
-      const fullName = `${values.firstName} ${values.lastName}`.trim();
+      // Объединение имени, отчества и фамилии
+      const fullName = `${values.firstName} ${values.middleName || ''} ${values.lastName}`.replace(/\s+/g, ' ').trim();
       formData.append('fullName', fullName);
       formData.append('position', values.position || '');
       formData.append('department', values.department || '');
@@ -413,7 +415,7 @@ const EmployeeForm = () => {
               <Col xs={24} md={16}>
                 <div className="basic-info-section">
                   <Row gutter={16}>
-                    <Col xs={24} md={12}>
+                    <Col xs={24} md={8}>
                       <Form.Item
                         name="firstName"
                         label="Имя"
@@ -423,7 +425,17 @@ const EmployeeForm = () => {
                       </Form.Item>
                     </Col>
                     
-                    <Col xs={24} md={12}>
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        name="middleName"
+                        label="Отчество"
+                        rules={[{ required: true, message: 'Пожалуйста, введите отчество' }]}
+                      >
+                        <Input placeholder="Введите отчество" />
+                      </Form.Item>
+                    </Col>
+                    
+                    <Col xs={24} md={8}>
                       <Form.Item
                         name="lastName"
                         label="Фамилия"

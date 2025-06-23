@@ -36,7 +36,7 @@ import { AuthContext } from '../../context/AuthContext';
 import AvatarUploadForm from '../AvatarUploadForm';
 import SearchBar from '../../components/SearchBar';
 import Pagination from '../../components/Pagination';
-import { formatToMoscowTime } from '../../utils/dateUtils'; // Импортируем утилиту
+import { formatToMoscowTime } from '../../utils/dateUtils';
 import './UserManagement.css';
 
 const { Option } = Select;
@@ -419,7 +419,7 @@ const UserManagement = () => {
         if (!b.Last_Login) return -1;
         return new Date(b.Last_Login) - new Date(a.Last_Login);
       },
-      render: (timestamp) => new Date(timestamp).toLocaleString('ru-RU', {year:   'numeric', month:  '2-digit', day:    '2-digit', hour:   '2-digit', minute: '2-digit', second: '2-digit'}) // Используем утилиту
+      render: (timestamp) => formatToMoscowTime(timestamp) // Используем утилиту
     },
     {
       title: 'Действия',

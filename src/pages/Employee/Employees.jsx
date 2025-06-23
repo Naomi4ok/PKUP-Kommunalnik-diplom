@@ -309,13 +309,15 @@ const Employees = () => {
     try {
       // Создание набора данных без фотографий и с форматированными данными
       const exportData = employees.map(employee => {
-        // Разделение полного имени на имя и фамилию, если возможно
-        const nameParts = employee.Full_Name ? employee.Full_Name.split(' ') : ['', ''];
+        // Разделение полного имени на имя, отчество и фамилию
+        const nameParts = employee.Full_Name ? employee.Full_Name.split(' ') : ['', '', ''];
         const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
+        const middleName = nameParts[1] || '';
+        const lastName = nameParts.slice(2).join(' ') || '';
         
         return {
           'Имя': firstName,
+          'Отчество': middleName,
           'Фамилия': lastName,
           'Должность': employee.Position || '',
           'Отдел': employee.Department || '',
@@ -331,6 +333,7 @@ const Employees = () => {
       // Установка ширины столбцов
       const wscols = [
         { wch: 15 }, // Имя
+        { wch: 15 }, // Отчество
         { wch: 20 }, // Фамилия
         { wch: 20 }, // Должность
         { wch: 20 }, // Отдел
@@ -373,6 +376,7 @@ const Employees = () => {
     const sampleData = [
       {
         'Имя': 'Иван',
+        'Отчество': 'Иванович',
         'Фамилия': 'Иванов',
         'Должность': 'Менеджер',
         'Отдел': 'ИТ',
@@ -382,6 +386,7 @@ const Employees = () => {
       },
       {
         'Имя': 'Мария',
+        'Отчество': 'Петровна',
         'Фамилия': 'Петрова',
         'Должность': 'Разработчик',
         'Отдел': 'Инженерный',
@@ -397,6 +402,7 @@ const Employees = () => {
     // Установка ширины столбцов
     const wscols = [
       { wch: 15 }, // Имя
+      { wch: 15 }, // Отчество
       { wch: 20 }, // Фамилия
       { wch: 20 }, // Должность
       { wch: 20 }, // Отдел
@@ -468,6 +474,7 @@ const Employees = () => {
           const headerRow = jsonData[0];
           const columns = {
             firstName: Object.keys(headerRow).find(key => headerRow[key] === 'Имя'),
+            middleName: Object.keys(headerRow).find(key => headerRow[key] === 'Отчество'),
             lastName: Object.keys(headerRow).find(key => headerRow[key] === 'Фамилия'),
             position: Object.keys(headerRow).find(key => headerRow[key] === 'Должность'),
             department: Object.keys(headerRow).find(key => headerRow[key] === 'Отдел'),
@@ -484,8 +491,9 @@ const Employees = () => {
           const employees = jsonData.slice(1).map(row => {
             // Извлечение значений из идентифицированных позиций столбцов
             const firstName = columns.firstName ? row[columns.firstName] || '' : '';
+            const middleName = columns.middleName ? row[columns.middleName] || '' : '';
             const lastName = columns.lastName ? row[columns.lastName] || '' : '';
-            const fullName = `${firstName} ${lastName}`.trim();
+            const fullName = `${firstName} ${middleName} ${lastName}`.replace(/\s+/g, ' ').trim();
             
             // Конвертирование русского статуса в английский для API
             const status = columns.status ? translateStatusToEnglish(row[columns.status] || 'Активен') : 'Active';
@@ -626,7 +634,7 @@ const Employees = () => {
       ),
     },
     {
-      title: 'Имя, Фамилия',
+      title: 'Имя Фамилия Отчество',
       dataIndex: 'Full_Name',
       key: 'fullName',
       sorter: (a, b) => a.Full_Name.localeCompare(b.Full_Name),
@@ -995,6 +1003,7 @@ const Employees = () => {
           <p>Пожалуйста, загрузите Excel-файл со следующими столбцами:</p>
           <ul>
             <li><strong>Имя</strong> (обязательно)</li>
+            <li><strong>Отчество</strong> (обязательно)</li>
             <li><strong>Фамилия</strong></li>
             <li>Должность</li>
             <li>Отдел</li>
