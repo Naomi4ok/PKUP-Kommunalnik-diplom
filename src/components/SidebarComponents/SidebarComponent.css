@@ -190,7 +190,7 @@
   margin: 8px 0 !important; /* Space around divider */
 }
 
-/* User profile section */
+/* User profile section - ИСПРАВЛЕННАЯ ВЕРСИЯ */
 .sidebar-user {
   position: relative; /* For positioning the dropdown */
   display: flex;
@@ -199,6 +199,7 @@
   cursor: pointer;
   border-radius: 6px;
   transition: background-color 0.2s ease;
+  min-width: 0; /* Позволяет flex элементам сжиматься */
 }
 
 .sidebar-user:hover {
@@ -209,10 +210,25 @@
   background-color: rgba(0, 0, 0, 0.06);
 }
 
+/* Аватарка - фиксированный размер */
+.sidebar-user .ant-avatar {
+  flex-shrink: 0; /* Не позволяет аватарке сжиматься */
+  min-width: 40px; /* Минимальная ширина */
+  max-width: 40px; /* Максимальная ширина */
+}
+
+.ant-layout-sider-collapsed .sidebar-user .ant-avatar {
+  min-width: 32px;
+  max-width: 32px;
+}
+
+/* Информация о пользователе - ограниченная ширина */
 .user-info {
   margin-left: 12px;
   overflow: hidden; /* Prevent text overflow */
-  flex-grow: 1;
+  flex: 1; /* Занимает доступное место */
+  min-width: 0; /* Позволяет сжиматься */
+  max-width: calc(100% - 52px); /* Ограничивает максимальную ширину (40px аватарка + 12px отступ) */
 }
 
 .user-name {
@@ -222,12 +238,16 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%; /* Занимает всю доступную ширину контейнера */
 }
 
 .user-role {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.45); /* Antd secondary text color */
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%; /* Занимает всю доступную ширину контейнера */
 }
 
 /* Collapsed user profile */

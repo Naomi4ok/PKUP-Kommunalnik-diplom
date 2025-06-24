@@ -19,6 +19,7 @@ import { AuthContext } from '../../context/AuthContext';
 import '../../styles/Dashboard/Dashboard.css';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
+import Pagination from '../../components/Pagination'; // Импорт кастомной пагинации
 
 const { Title, Text } = Typography;
 
@@ -115,6 +116,11 @@ const Dashboard = () => {
   const [scheduleData, setScheduleData] = useState([]); // Изменено название с maintenanceSchedule на scheduleData
   const [error, setError] = useState(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
+  
+  // Добавляем состояния для пагинации
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
   const currentUser = 'Naomi4ok';
 
   // Добавляем эффект для обновления времени каждую секунду
@@ -286,10 +292,9 @@ const Dashboard = () => {
       const response = await axios.get('/api/schedule');
       const tasks = response.data;
       
-      // Сортируем по дате (ближайшие даты сначала) и берем первые 10 задач
+      // Сортируем по дате (ближайшие даты сначала)
       const sortedTasks = tasks
-        .sort((a, b) => new Date(a.Date) - new Date(b.Date))
-        .slice(0, 10);
+        .sort((a, b) => new Date(a.Date) - new Date(b.Date));
 
       // Маппинг данных для отображения в таблице
       const formattedSchedule = sortedTasks.map((task, index) => {
@@ -520,6 +525,12 @@ const fetchWeatherData = async () => {
     );
   };
 
+  // Обработка изменения страницы для пользовательской пагинации
+  const handlePageChange = (page, newPageSize) => {
+    setCurrentPage(page);
+    setPageSize(newPageSize);
+  };
+
   // Обновленная функция для отображения таблицы расписания
   const renderScheduleTable = () => {
     const columns = [
@@ -629,20 +640,34 @@ const fetchWeatherData = async () => {
       }
     ];
     
+    // Вычисляем данные для текущей страницы
+    const paginatedData = scheduleData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    
     return (
-      <Table 
-        columns={columns} 
-        dataSource={scheduleData} 
-        rowKey="id" 
-        size="middle" 
-        pagination={{ pageSize: 10 }}
-        locale={{ emptyText: <Empty description="Нет запланированных задач" /> }}
-        rowClassName={(record) => {
-          if (record.status === 'completed') return 'completed-row';
-          if (record.status === 'delayed') return 'delayed-row';
-          return '';
-        }}
-      />
+      <div>
+        <Table 
+          columns={columns} 
+          dataSource={paginatedData} 
+          rowKey="id" 
+          size="middle" 
+          pagination={false} // Отключаем встроенную пагинацию
+          locale={{ emptyText: <Empty description="Нет запланированных задач" /> }}
+          rowClassName={(record) => {
+            if (record.status === 'completed') return 'completed-row';
+            if (record.status === 'delayed') return 'delayed-row';
+            return '';
+          }}
+        />
+        
+        {/* Добавляем кастомную пагинацию */}
+        <Pagination
+          totalItems={scheduleData.length}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+          pageSizeOptions={[5, 10, 20]}
+          initialPageSize={pageSize}
+        />
+      </div>
     );
   };
 
