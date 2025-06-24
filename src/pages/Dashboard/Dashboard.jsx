@@ -11,6 +11,9 @@ import {
   CloudOutlined, ApartmentOutlined, BellOutlined,
   ClockCircleOutlined, SyncOutlined, TeamOutlined
 } from '@ant-design/icons';
+import {
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
+} from 'recharts';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import '../../styles/Dashboard/Dashboard.css';
@@ -220,10 +223,13 @@ const Dashboard = () => {
         }
       });
       
-      const equipmentStatusData = Object.keys(statusCounts).map(type => ({
-        type,
-        value: statusCounts[type]
-      }));
+      const equipmentStatusData = Object.keys(statusCounts)
+        .filter(type => statusCounts[type] > 0) // Показываем только те статусы, которые есть
+        .map(type => ({
+          name: type,
+          value: statusCounts[type],
+          color: getStatusColor(type)
+        }));
       
       setEquipmentStatus(equipmentStatusData);
     } catch (error) {
@@ -258,10 +264,13 @@ const Dashboard = () => {
         }
       });
       
-      const transportStatusData = Object.keys(statusCounts).map(type => ({
-        type,
-        value: statusCounts[type]
-      }));
+      const transportStatusData = Object.keys(statusCounts)
+        .filter(type => statusCounts[type] > 0) // Показываем только те статусы, которые есть
+        .map(type => ({
+          name: type,
+          value: statusCounts[type],
+          color: getStatusColor(type)
+        }));
       
       setTransportStatus(transportStatusData);
     } catch (error) {
@@ -424,18 +433,67 @@ const fetchWeatherData = async () => {
     navigate(path);
   };
 
-  // Status color mapping
+  // Status color mapping for charts
   const getStatusColor = (statusType) => {
     if (statusType.includes('Рабочее') || statusType.includes('Исправен') || statusType === 'Выполнено') {
       return '#52c41a'; // green
     } else if (statusType.includes('Требует ТО') || statusType === 'В процессе') {
-      return '#1890ff'; // orange
+      return '#1890ff'; // blue
     } else if (statusType.includes('Ремонтируется')) {
-      return '#fa8c16'; // dark orange
+      return '#fa8c16'; // orange
     } else if (statusType.includes('Неисправ')) {
       return '#f5222d'; // red
     }
     return '#1890ff'; // blue default
+  };
+
+  // Custom tooltip for pie charts
+  const renderTooltip = (props) => {
+    if (props.active && props.payload && props.payload.length) {
+      const data = props.payload[0];
+      return (
+        <div style={{
+          backgroundColor: '#fff',
+          padding: '12px',
+          border: '1px solid #d9d9d9',
+          borderRadius: '6px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          fontSize: '13px'
+        }}>
+          <p style={{ margin: 0, fontWeight: 'bold', color: data.payload.color }}>
+            {data.payload.name}
+          </p>
+          <p style={{ margin: '4px 0 0 0', color: '#666' }}>
+            Количество: {data.value}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Custom label for pie chart
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, value }) => {
+    if (percent < 0.05) return null; // Не показываем метки для очень маленьких сегментов
+    
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        fontSize="12"
+        fontWeight="bold"
+      >
+        {value}
+      </text>
+    );
   };
 
   // Weather info display
@@ -588,51 +646,122 @@ const fetchWeatherData = async () => {
     );
   };
 
-  // Simple chart component for status visualization
-  const renderSimpleStatusChart = (data) => {
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    
+  // Render equipment status chart
+  const renderEquipmentChart = () => {
+    if (!equipmentStatus.length) {
+      return <Empty description="Нет данных об оборудовании" />;
+    }
+
+    const total = equipmentStatus.reduce((sum, item) => sum + item.value, 0);
+
     return (
-      <div className="enhanced-chart">
-        <div className="status-summary">
-          {data.map((item, index) => {
-            const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
-            const statusColor = getStatusColor(item.type);
-            
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '300px' }}>
+        <ResponsiveContainer width="60%" height="100%">
+          <PieChart>
+            <Pie
+              data={equipmentStatus}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderCustomizedLabel}
+              outerRadius={100}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {equipmentStatus.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={renderTooltip} />
+          </PieChart>
+        </ResponsiveContainer>
+        
+        <div style={{ width: '35%', paddingLeft: '20px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#333' }}>
+            Всего: {total}
+          </div>
+          {equipmentStatus.map((item, index) => {
+            const percentage = Math.round((item.value / total) * 100);
             return (
-              <div key={index} className="status-count-card">
+              <div key={index} style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
                 <div 
-                  className="status-indicator" 
-                  style={{ backgroundColor: statusColor }}
+                  style={{ 
+                    width: '12px', 
+                    height: '12px', 
+                    backgroundColor: item.color, 
+                    borderRadius: '50%',
+                    marginRight: '8px',
+                    flexShrink: 0
+                  }}
                 />
-                <div className="status-details">
-                  <div className="status-value">{item.value}</div>
-                  <div className="status-label">{item.type}</div>
+                <div style={{ flex: 1, fontSize: '13px' }}>
+                  <div style={{ fontWeight: '500', color: '#333' }}>{item.name}</div>
+                  <div style={{ color: '#666', fontSize: '12px' }}>
+                    {item.value} ({percentage}%)
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
+      </div>
+    );
+  };
+
+  // Render transport status chart
+  const renderTransportChart = () => {
+    if (!transportStatus.length) {
+      return <Empty description="Нет данных о транспорте" />;
+    }
+
+    const total = transportStatus.reduce((sum, item) => sum + item.value, 0);
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '300px' }}>
+        <ResponsiveContainer width="60%" height="100%">
+          <PieChart>
+            <Pie
+              data={transportStatus}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderCustomizedLabel}
+              outerRadius={100}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {transportStatus.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={renderTooltip} />
+          </PieChart>
+        </ResponsiveContainer>
         
-        <div className="status-bars">
-          {data.map((item, index) => {
-            const percentage = total > 0 ? Math.round((item.value / total) * 100) : 0;
-            const statusColor = getStatusColor(item.type);
-            
+        <div style={{ width: '35%', paddingLeft: '20px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#333' }}>
+            Всего: {total}
+          </div>
+          {transportStatus.map((item, index) => {
+            const percentage = Math.round((item.value / total) * 100);
             return (
-              <div key={index} className="chart-item">
-                <div className="chart-item-label">
-                  <span className="chart-label-text">{item.type}</span>
-                  <span className="chart-item-percentage">{percentage}%</span>
-                </div>
-                <Progress 
-                  percent={percentage} 
-                  showInfo={false} 
-                  strokeColor={statusColor}
-                  trailColor="#f0f0f0"
-                  size="default"
-                  className="status-progress"
+              <div key={index} style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                <div 
+                  style={{ 
+                    width: '12px', 
+                    height: '12px', 
+                    backgroundColor: item.color, 
+                    borderRadius: '50%',
+                    marginRight: '8px',
+                    flexShrink: 0
+                  }}
                 />
+                <div style={{ flex: 1, fontSize: '13px' }}>
+                  <div style={{ fontWeight: '500', color: '#333' }}>{item.name}</div>
+                  <div style={{ color: '#666', fontSize: '12px' }}>
+                    {item.value} ({percentage}%)
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -806,7 +935,7 @@ const fetchWeatherData = async () => {
 
           {/* Main content rows */}
           <Row gutter={[16, 16]} className="main-row">
-            {/* Equipment and transport status */}
+            {/* Equipment and transport status charts */}
             <Col xs={24} md={12}>
               <Card 
                 title={
@@ -819,11 +948,7 @@ const fetchWeatherData = async () => {
                 bordered={false}
                 hoverable
               >
-                {equipmentStatus.length > 0 ? (
-                  renderSimpleStatusChart(equipmentStatus)
-                ) : (
-                  <Empty description="Нет данных об оборудовании" />
-                )}
+                {renderEquipmentChart()}
               </Card>
             </Col>
             <Col xs={24} md={12}>
@@ -838,11 +963,7 @@ const fetchWeatherData = async () => {
                 bordered={false}
                 hoverable
               >
-                {transportStatus.length > 0 ? (
-                  renderSimpleStatusChart(transportStatus)
-                ) : (
-                  <Empty description="Нет данных о транспорте" />
-                )}
+                {renderTransportChart()}
               </Card>
             </Col>
 
