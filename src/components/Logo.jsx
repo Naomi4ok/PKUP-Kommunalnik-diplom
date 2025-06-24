@@ -1,18 +1,37 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Logo = ({ collapsed, lightTheme = false }) => {
+  const navigate = useNavigate();
+
   // Different styling based on whether the sidebar is collapsed or not
   const logoStyle = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     padding: collapsed ? '16px 8px' : '16px',
-    // margin: '10px 0',
     borderBottom: lightTheme ? '1px solid #f0f0f0' : '1px solidrgb(255, 255, 255)',
+    cursor: 'pointer', // Добавляем курсор указатель
+    transition: 'all 0.3s ease', // Плавный переход для эффектов
+  };
+
+  // Функция для обработки клика по логотипу
+  const handleLogoClick = () => {
+    navigate('/'); // Переход на главную страницу (dashboard)
   };
 
   return (
-    <div style={logoStyle}>
+    <div 
+      style={logoStyle} 
+      onClick={handleLogoClick}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = '#f5f5f5'; // Эффект при наведении
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent'; // Возвращаем обычное состояние
+      }}
+      title="Перейти на главную страницу" // Подсказка при наведении
+    >
       {/* Main Logo SVG Icon */}
       <svg width="62" height="52" viewBox="0 0 62 52" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M29.2503 19.7322C29.4315 19.8771 29.5826 20.0653 29.7163 20.2535C29.955 20.5895 30.2465 21.1475 30.1546 21.5738C30.1291 21.6922 30.0931 21.7293 29.9972 21.7904C29.9501 21.7781 29.9028 21.7663 29.8569 21.7499C29.5583 21.643 29.2907 21.3646 29.1699 21.0752C29.003 20.6754 29.0849 20.1205 29.2503 19.7322Z" fill="#213946"/>
