@@ -30,7 +30,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  margin-top: 10px;
+}
+
+.ant-typography {
+  margin-bottom: 0.0em !important;
 }
 
 .storage-modal-header {

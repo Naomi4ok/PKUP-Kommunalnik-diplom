@@ -14,7 +14,9 @@ import {
   Form, 
   Input, 
   message, 
-  Popconfirm
+  Popconfirm,
+  Upload,
+  Space
 } from 'antd';
 import { 
   HomeOutlined, 
@@ -26,11 +28,15 @@ import {
   EditOutlined,
   DeleteOutlined,
   EnvironmentOutlined,
-  SaveOutlined
+  SaveOutlined,
+  FileExcelOutlined,
+  ImportOutlined,
+  InboxOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import * as XLSX from 'xlsx';
 import Pagination from '../../components/Pagination';
-import LocationMapPicker from '../../components/LocationMapPicker/LocationMapPicker'; // Импортируем компонент карты
+import LocationMapPicker from '../../components/LocationMapPicker/LocationMapPicker';
 import '../../styles/StorageLocations/StorageLocations.css';
 
 const { Title, Text } = Typography;
@@ -58,9 +64,15 @@ const StorageLocations = () => {
   const [locationType, setLocationType] = useState('tools');
   const [form] = Form.useForm();
 
-  // Map picker state - НОВОЕ
+  // Map picker state
   const [mapPickerVisible, setMapPickerVisible] = useState(false);
   const [selectedMapLocation, setSelectedMapLocation] = useState('');
+
+  // Import/Export states
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importFileList, setImportFileList] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState('');
 
   // Fetch all storage locations on component mount
   useEffect(() => {
@@ -110,7 +122,7 @@ const StorageLocations = () => {
   const handleTabChange = (key) => {
     setActiveTab(key);
     setLocationType(key);
-    setCurrentPage(1); // Сбрасываем к первой странице при смене вкладки
+    setCurrentPage(1);
   };
 
   // Handle pagination change
@@ -119,10 +131,255 @@ const StorageLocations = () => {
     setPageSize(size);
   };
 
-  // Map picker handlers - НОВЫЕ ФУНКЦИИ
+  // Export to Excel function
+  const exportToExcel = () => {
+    try {
+      // Create a workbook with multiple sheets
+      const workbook = XLSX.utils.book_new();
+      
+      // Define sheets for each type
+      const sheetTypes = [
+        { key: 'tools', name: 'Места хранения инструментов' },
+        { key: 'spares', name: 'Места хранения запчастей' },
+        { key: 'materials', name: 'Места хранения материалов' },
+        { key: 'equipment', name: 'Локации оборудования' }
+      ];
+
+      sheetTypes.forEach(({ key, name }) => {
+        const data = storageLocations[key] || [];
+        
+        // Create export data for this type
+        const exportData = data.map(item => ({
+          'Название': item.name || '',
+          'Адрес': item.description || item.address || '',
+          'Количество единиц': item.itemCount || (key === 'equipment' ? item.linkedEquipment : 0) || 0
+        }));
+
+        // Create worksheet
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        
+        // Set column widths
+        const wscols = [
+          { wch: 30 }, // Название
+          { wch: 40 }, // Адрес
+          { wch: 20 }  // Количество единиц
+        ];
+        worksheet['!cols'] = wscols;
+        
+        // Add sheet to workbook with truncated name (Excel limit)
+        const sheetName = name.length > 31 ? name.substring(0, 31) : name;
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+      });
+      
+      // Generate and download Excel file
+      const filename = `Места_хранения_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+      
+      message.success('Данные о местах хранения успешно экспортированы!');
+    } catch (err) {
+      message.error(`Не удалось экспортировать данные: ${err.message}`);
+    }
+  };
+
+  // Show import modal
+  const showImportModal = () => {
+    setImportFileList([]);
+    setImportError('');
+    setImportModalVisible(true);
+  };
+
+  // Handle import file change
+  const handleImportFileChange = (info) => {
+    setImportFileList(info.fileList.slice(-1));
+  };
+
+  // Download template function
+  const downloadTemplate = () => {
+    try {
+      const workbook = XLSX.utils.book_new();
+      
+      // Define sample data for each type
+      const sampleData = {
+        'Инструменты': [
+          {
+            'Название': 'Склад инструментов №1',
+            'Адрес': 'ул. Промышленная, 15, корп. 1',
+            'Количество единиц': 25
+          },
+          {
+            'Название': 'Мастерская',
+            'Адрес': 'ул. Рабочая, 8',
+            'Количество единиц': 12
+          }
+        ],
+        'Запчасти': [
+          {
+            'Название': 'Склад запчастей №1',
+            'Адрес': 'ул. Складская, 3',
+            'Количество единиц': 150
+          }
+        ],
+        'Материалы': [
+          {
+            'Название': 'Склад материалов',
+            'Адрес': 'ул. Материальная, 12',
+            'Количество единиц': 75
+          }
+        ],
+        'Оборудование': [
+          {
+            'Название': 'Цех №1',
+            'Адрес': 'ул. Производственная, 20',
+            'Количество единиц': 8
+          }
+        ]
+      };
+
+      // Create sheets for each type
+      Object.entries(sampleData).forEach(([sheetName, data]) => {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        
+        // Set column widths
+        const wscols = [
+          { wch: 30 }, // Название
+          { wch: 40 }, // Адрес
+          { wch: 20 }  // Количество единиц
+        ];
+        worksheet['!cols'] = wscols;
+        
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+      });
+      
+      // Download template
+      XLSX.writeFile(workbook, 'Шаблон_Импорта_Мест_Хранения.xlsx');
+      message.success('Шаблон успешно скачан!');
+    } catch (err) {
+      message.error(`Не удалось скачать шаблон: ${err.message}`);
+    }
+  };
+
+  // Handle import function
+  const handleImport = async () => {
+    setImportError('');
+    
+    if (!importFileList || importFileList.length === 0) {
+      setImportError('Пожалуйста, выберите Excel-файл для импорта');
+      message.error('Пожалуйста, выберите Excel-файл для импорта');
+      return;
+    }
+
+    const file = importFileList[0].originFileObj;
+    
+    if (!file) {
+      setImportError('Неверный файловый объект');
+      message.error('Неверный файловый объект');
+      return;
+    }
+    
+    setImporting(true);
+
+    try {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          // Parse Excel data
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          
+          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error('Excel-файл не содержит листов');
+          }
+
+          let totalImported = 0;
+          
+          // Process each sheet
+          for (const sheetName of workbook.SheetNames) {
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: "A" });
+            
+            if (!jsonData || jsonData.length <= 1) continue;
+            
+            // Determine location type based on sheet name
+            let locationType = 'tools'; // default
+            if (sheetName.toLowerCase().includes('запчас')) {
+              locationType = 'spares';
+            } else if (sheetName.toLowerCase().includes('материал')) {
+              locationType = 'materials';
+            } else if (sheetName.toLowerCase().includes('оборудован')) {
+              locationType = 'equipment';
+            }
+            
+            // Find header row and identify column positions
+            const headerRow = jsonData[0];
+            const columns = {
+              name: Object.keys(headerRow).find(key => headerRow[key] === 'Название'),
+              address: Object.keys(headerRow).find(key => headerRow[key] === 'Адрес'),
+              itemCount: Object.keys(headerRow).find(key => headerRow[key] === 'Количество единиц')
+            };
+            
+            if (!columns.name) continue;
+            
+            // Transform rows to our format, skipping header row
+            const locationItems = jsonData.slice(1).map(row => ({
+              name: columns.name ? row[columns.name] || '' : '',
+              description: columns.address ? row[columns.address] || '' : '',
+              itemCount: columns.itemCount ? Number(row[columns.itemCount]) || 0 : 0
+            }));
+            
+            // Filter valid records
+            const validLocations = locationItems.filter(item => item.name.trim() !== '');
+            
+            if (validLocations.length === 0) continue;
+            
+            // Send data to server
+            const response = await fetch(`/api/storage/${locationType}/import`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ locations: validLocations })
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `Импорт не удался для типа ${locationType}`);
+            }
+            
+            const result = await response.json();
+            totalImported += result.imported || 0;
+          }
+          
+          setImportModalVisible(false);
+          message.success(`Успешно импортировано ${totalImported} мест хранения`);
+          fetchStorageLocations();
+          
+        } catch (err) {
+          setImportError(`Импорт не удался: ${err.message}`);
+          message.error(`Импорт не удался: ${err.message}`);
+        } finally {
+          setImporting(false);
+        }
+      };
+      
+      reader.onerror = (error) => {
+        setImportError('Не удалось прочитать файл');
+        message.error('Не удалось прочитать файл');
+        setImporting(false);
+      };
+      
+      reader.readAsArrayBuffer(file);
+      
+    } catch (err) {
+      setImportError(`Импорт не удался: ${err.message}`);
+      message.error(`Импорт не удался: ${err.message}`);
+      setImporting(false);
+    }
+  };
+
+  // Map picker handlers
   const handleMapLocationSelect = (locationData) => {
     setSelectedMapLocation(locationData.address);
-    // Устанавливаем значение в форму как description для совместимости с бэкендом
     form.setFieldsValue({ description: locationData.address });
     setMapPickerVisible(false);
     message.success('Местоположение выбрано на карте');
@@ -138,7 +395,6 @@ const StorageLocations = () => {
     setLocationType(type);
     setCurrentLocation(null);
     form.resetFields();
-    // Сброс местоположения карты - НОВОЕ
     setSelectedMapLocation('');
     setIsModalVisible(true);
   };
@@ -150,9 +406,8 @@ const StorageLocations = () => {
     setCurrentLocation(location);
     form.setFieldsValue({
       name: location.name,
-      description: location.description || location.address || '' // Используем description или fallback на address
+      description: location.description || location.address || ''
     });
-    // Установка местоположения карты - НОВОЕ
     setSelectedMapLocation(location.description || location.address || '');
     setIsModalVisible(true);
   };
@@ -217,36 +472,36 @@ const StorageLocations = () => {
 
   // Handle location deletion
   const handleDelete = async (type, id) => {
-  try {
-    // API call to delete location
-    const response = await fetch(`/api/storage/${type}/${id}`, {
-      method: 'DELETE'
-    });
-    
-    if (!response.ok) throw new Error('Failed to delete location');
-    
-    const result = await response.json();
-    
-    setStorageLocations(prev => ({
-      ...prev,
-      [type]: prev[type].filter(item => item.id !== id)
-    }));
-    
-    if (type === 'equipment' && result.updatedEquipment) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования.`);
-    } else if (type === 'tools' && result.updatedTools) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} инструментов.`);
-    } else if (type === 'spares' && result.updatedSpares) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} запчастей.`);
-    } else if (type === 'materials' && result.updatedMaterials) {
-      message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. материалов.`);
-    } else {
-      message.success('Место хранения успешно удалено');
+    try {
+      // API call to delete location
+      const response = await fetch(`/api/storage/${type}/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete location');
+      
+      const result = await response.json();
+      
+      setStorageLocations(prev => ({
+        ...prev,
+        [type]: prev[type].filter(item => item.id !== id)
+      }));
+      
+      if (type === 'equipment' && result.updatedEquipment) {
+        message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. оборудования.`);
+      } else if (type === 'tools' && result.updatedTools) {
+        message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} инструментов.`);
+      } else if (type === 'spares' && result.updatedSpares) {
+        message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} запчастей.`);
+      } else if (type === 'materials' && result.updatedMaterials) {
+        message.success(`Место хранения успешно удалено. Информация о местонахождении удалена из ${result.affectedCount} ед. материалов.`);
+      } else {
+        message.success('Место хранения успешно удалено');
+      }
+    } catch (error) {
+      message.error(`Ошибка: ${error.message}`);
     }
-  } catch (error) {
-    message.error(`Ошибка: ${error.message}`);
-  }
-};
+  };
 
   // Function to get icon by type
   const getTypeIcon = (type) => {
@@ -411,7 +666,28 @@ const StorageLocations = () => {
 
       <Card className="storage-locations-card">
         <div className="storage-locations-header">
-          <Title level={2}>Места хранения и локации</Title>
+          <div className="header-left-content">
+            <Title level={2}>Места хранения и локации</Title>
+            {/* Export and Import buttons */}
+            <Space size="middle">
+              <Button 
+                type="primary" 
+                icon={<FileExcelOutlined />} 
+                onClick={exportToExcel}
+                className="ant-export-button"
+              >
+                Экспорт
+              </Button>
+              <Button 
+                type="primary" 
+                icon={<ImportOutlined />} 
+                onClick={showImportModal}
+                className="ant-import-button"
+              >
+                Импорт
+              </Button>
+            </Space>
+          </div>
           <Button
             type="primary"
             className="ant-add-storage-button"
@@ -515,7 +791,6 @@ const StorageLocations = () => {
           onClick={handleCancel}
           size="large"
           >
-            
             Отмена
           </Button>
         ]}
@@ -549,7 +824,6 @@ const StorageLocations = () => {
               }
             ]}
           >
-            {/* ОБНОВЛЕННОЕ ПОЛЕ АДРЕСА С ИНТЕГРАЦИЕЙ КАРТЫ */}
             <Input.Group compact>
               <Input
                 style={{ width: 'calc(100% - 40px)' }}
@@ -571,7 +845,69 @@ const StorageLocations = () => {
         </Form>
       </Modal>
 
-      {/* Location Map Picker Modal - НОВЫЙ КОМПОНЕНТ */}
+      {/* Import Modal */}
+      <Modal
+        title="Импорт мест хранения из Excel"
+        open={importModalVisible}
+        onCancel={() => setImportModalVisible(false)}
+        footer={[
+          <Button key="template" onClick={downloadTemplate} style={{ float: 'left' }}>
+            Скачать шаблон
+          </Button>,
+          <Button key="cancel" onClick={() => setImportModalVisible(false)}>
+            Отмена
+          </Button>,
+          <Button
+            key="import"
+            type="primary"
+            loading={importing}
+            onClick={handleImport}
+            disabled={importFileList.length === 0}
+          >
+            Импорт
+          </Button>
+        ]}
+      >
+        <div className="import-instructions">
+          <p>Пожалуйста, загрузите Excel-файл с листами для каждого типа мест хранения:</p>
+          <ul>
+            <li><strong>Инструменты</strong> - места хранения инструментов</li>
+            <li><strong>Запчасти</strong> - места хранения запчастей</li>
+            <li><strong>Материалы</strong> - места хранения материалов</li>
+            <li><strong>Оборудование</strong> - локации оборудования</li>
+          </ul>
+          <p>Каждый лист должен содержать столбцы:</p>
+          <ul>
+            <li><strong>Название</strong> (обязательно)</li>
+            <li><strong>Адрес</strong></li>
+            <li><strong>Количество единиц</strong></li>
+          </ul>
+        </div>
+
+        {importError && (
+          <div className="import-error" style={{ color: 'red', marginBottom: '10px' }}>
+            Ошибка: {importError}
+          </div>
+        )}
+
+        <Upload.Dragger
+          accept=".xlsx,.xls"
+          beforeUpload={() => false}
+          fileList={importFileList}
+          onChange={handleImportFileChange}
+          maxCount={1}
+        >
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">Нажмите или перетащите файл в эту область для загрузки</p>
+          <p className="ant-upload-hint">
+            Поддерживается загрузка одного Excel-файла. Убедитесь, что ваш файл содержит необходимые листы и столбцы.
+          </p>
+        </Upload.Dragger>
+      </Modal>
+
+      {/* Location Map Picker Modal */}
       <LocationMapPicker
         visible={mapPickerVisible}
         onCancel={handleMapPickerCancel}
