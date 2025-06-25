@@ -24,12 +24,6 @@ const Logo = ({ collapsed, lightTheme = false }) => {
     <div 
       style={logoStyle} 
       onClick={handleLogoClick}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = '#f5f5f5'; // Эффект при наведении
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'transparent'; // Возвращаем обычное состояние
-      }}
       title="Перейти на главную страницу" // Подсказка при наведении
     >
       {/* Main Logo SVG Icon */}
